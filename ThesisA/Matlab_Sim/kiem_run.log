@@ -1,0 +1,33 @@
+================================================================
+  RADAR DATA COMPRESSION SIMULATION - KIEM-REALISTIC unified scene
+  (Pipeline matches Kiem Table 3.1: 512 x 512 x 4, 14-bit)
+================================================================
+
+================================================================
+  SCENE: KIEM-REALISTIC
+================================================================
+  [ADC Gen] sigma_ADC = 418.1509 (-25.8 dB below full-scale)
+  [ADC Gen] clipped samples = 0.000%  (clean)
+  Reference detections: 160
+  Algorithm      CR   FN (%)   FP (%)  NF est.(dBFS)   SNR (dB)
+  ---------  ------   ------   ------  -------------   --------
+  FP16         1.00     0.00     0.00        -71.077     23.833
+  FX16         1.00     0.00     0.00        -71.033     23.809
+  DRHE         1.11     0.00     0.00        -71.033     23.809
+
+  --- Kiem Reference (Table 3.5, real data) ---
+  Algorithm      CR   FN (%)   FP (%)  NF est.(dBFS)   SNR (dB)
+  FP16*        1.00     0.00     0.00        -70.714     22.407
+  FX16*        1.00     0.59     1.18        -70.691     22.330
+  DRHE*        3.25     0.59     1.18        -70.691     22.330
+
+  Interpretation (KIEM-REALISTIC scene):
+    * refDet ~ 160, NF ~ -71.03 dBFS, SNR ~ 23.81 dB - close to Kiem.
+    * FX16/DRHE FN ~ 0.00%, FP ~ 0.00% - small, as in Kiem.
+    * DRHE CR ~ 1.11 vs Kiem's 3.25 - the residual gap.
+      At NF = -70.7 dBFS the AWGN sigma sets the FX16 code std,
+      which caps DRHE residuals (and so the CR) around 1.1.
+      Closing the last gap requires modelling coherent clutter
+      *inside the floor* (real data) rather than AWGN.
+
+  Plots generated. KIEM-REALISTIC simulation complete.

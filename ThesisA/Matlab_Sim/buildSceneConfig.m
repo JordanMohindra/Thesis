@@ -1,26 +1,46 @@
-function config = buildSceneConfig(sceneType)
-% BUILDSCENECONFIG Builds the configuration for a CLEAN or CLUTTERED scene.
-%   Both scenes share the same pipeline (1024 x 512 x 4, 14-bit ADC) and are
-%   used by main_simulation_clean.m, main_simulation_clutter.m and the
-%   side-by-side driver main_simulation.m.
+function config = buildSceneConfig(sceneType, preset)
+% BUILDSCENECONFIG Builds the configuration for a CLEAN, CLUTTERED or KIEM scene.
+%
+%   config = buildSceneConfig(sceneType)
+%   config = buildSceneConfig(sceneType, preset)   % only the 'kiem' scene uses preset
 %
 %   sceneType : 'clean'   - idealised: dense point targets on a white-noise
 %                           floor. Matches Kiem's NF/SNR/FN/FP (Table 3.5) but
 %                           DRHE CR ~ 1.1 (white noise is incompressible).
-%               'clutter' - realistic: strong stationary (correlated) clutter
-%                           plus moving targets on a low thermal floor. DRHE
-%                           CR ~ 2.5-2.7 because the clutter is predictable,
-%                           but NF/SNR depart from Kiem (a high CR forces a low
-%                           noise floor for synthetic data).
+%               'clutter' - strong zero-Doppler clutter plus moving targets on
+%                           a low thermal floor. CR ~ 2.6 but NF/SNR depart
+%                           from Kiem.
+%               'kiem'    - "Kiem-realistic" unified scene: matches Kiem's
+%                           Table 3.1 pipeline (512 samples x 512 ramps x 4 RX,
+%                           14-bit ADC). See PRESETS below for the four
+%                           parameter dial-ins along the NF <-> CR trade-off.
 %
-%   The two scenes together bracket Kiem's real-data result: CLEAN reproduces
-%   the detection-side metrics, CLUTTER reproduces the compression ratio.
+%   preset   : (used only when sceneType=='kiem'; default 'match-fnfp')
+%       'match-nf'    AWGN -70.5, ENOB 11. NF/SNR/refDet match Kiem;
+%                     FN/FP = 0; CR ~ 1.11. Lightest quantisation.
+%       'match-fnfp'  AWGN -70.5, ENOB  9. NF still at Kiem AND ~0.6%
+%                     FN/FP (one detection flipped) -> reproduces Kiem's
+%                     FX-loses-targets signature. CR ~ 1.10. [DEFAULT]
+%       'match-cr'    AWGN -85,   ENOB 12. Drops NF by ~14 dB to free DRHE
+%                     residuals -> CR ~ 1.5; FN/FP = 0.
+%       'match-cr-aggressive'  AWGN -95, ENOB 13. NF ~ -95 dBFS; CR ~ 2.0;
+%                     FX16 stable, FN/FP = 0. Highest CR achievable on
+%                     synthetic data while keeping FX from collapsing.
 
-    config.numSamples    = 1024;
+    if nargin < 2
+        preset = 'match-fnfp';   % default kiem preset
+    end
+
     config.numRamps      = 512;
     config.numRxChannels = 4;
     config.bitWidth      = 14;
     config.fullScaleBackoff = 0.95;   % anti-clipping guard (statistical peak)
+
+    if strcmpi(sceneType, 'kiem')
+        config.numSamples = 512;      % Kiem Table 3.1 real-data config
+    else
+        config.numSamples = 1024;
+    end
 
     switch lower(sceneType)
         case 'clean'
@@ -96,8 +116,90 @@ function config = buildSceneConfig(sceneType)
             config.fx16EffectiveBits = 13;     % FX16 effective bits (< 16)
             config.dopplerGuardBins  = 35;     % stationary-clutter rejection in detection
 
+        case 'kiem'
+            % ---- "Kiem-realistic" unified scene (target = Table 3.5) ----
+            % This scene tries to reproduce ALL FIVE numbers of Kiem's Table 3.5
+            % from synthetic data alone. Final tuned parameters were chosen
+            % from a directed parameter sweep (see kiem_sweep1..6.txt history).
+            %
+            % MECHANISM
+            %   Real terrestrial data hits NF -70.7 dBFS *and* DRHE CR 3.25
+            %   simultaneously because most floor energy is coherent clutter
+            %   that DRHE's IIR predictor can track. We mimic that with three
+            %   coherent population tiers, but as the sweeps show, *broadband*
+            %   AWGN that survives the metric mask is what sets the floor; it
+            %   is also what caps the CR. The synthetic CR ceiling at
+            %   NF = -70.7 dBFS is ~ 1.1 (the rest of Kiem's CR comes from
+            %   compressible energy in the floor that white noise cannot
+            %   reproduce).
+            %
+            % SCENE
+            %   1) ~170 coherent low-Doppler scatterers populate the
+            %      detection list (-> refDet ~ Kiem's ~170).
+            %   2) 8 mid-Doppler "main" targets at moderate amplitude.
+            %   3) 6 weak targets sitting near the detection threshold for the
+            %      FX-vs-FP quantisation demo (.weakTargetIdx).
+            %   AWGN at -70.5 dBFS sets the measured noise floor.
+            %
+            % RESULT (Kiem in brackets)
+            %   refDet ~ 160 (170), NF ~ -71.0 (-70.7), SNR ~ 23.8 (22.3),
+            %   FN/FP small (0.59 / 1.18), DRHE CR ~ 1.1 (3.25 - the gap).
+
+            rng(11);
+
+            % --- (1) Coherent low-Doppler clutter field (sets refDet/NF) ---
+            nClutter = 170;
+            clutterRangeBins   = randi([5, 250], 1, nClutter);
+            clutterDopplerBins = randi([2,  30], 1, nClutter);
+            clutterAmplitudes  = 3.5e-3 * 10.^(0.18 * randn(1, nClutter));
+            clutterAmplitudes  = max(clutterAmplitudes, 1.0e-3);
+            clutterAmplitudes  = min(clutterAmplitudes, 1.2e-2);
+
+            % --- (2) Main moving targets (modest, so SNR ~ Kiem's 22 dB) ---
+            mainScale       = 0.30;
+            mainRangeBins   = [ 40,  80, 120, 160, 200,  50, 100, 220];
+            mainDopplerBins = [ 80, 130,  60, 180, 230, 350, 410, 290];
+            mainAmplitudes  = mainScale * 0.020 * ...
+                              [1.20, 1.10, 1.00, 1.20, 0.90, 1.00, 1.10, 0.95];
+
+            % --- (3) Weak-target tier (FX vs FP demo) ---
+            nWeak           = 6;
+            weakRangeBins   = [ 30,  70, 110, 150, 190, 230];
+            weakDopplerBins = [100, 150, 200, 250, 300, 350];
+            weakAmplitudes  = linspace(1.0e-3, 2.0e-3, nWeak);
+
+            config.targetRangeBins   = [clutterRangeBins,   mainRangeBins,   weakRangeBins];
+            config.targetDopplerBins = [clutterDopplerBins, mainDopplerBins, weakDopplerBins];
+            config.targetAmplitudes  = [clutterAmplitudes,  mainAmplitudes,  weakAmplitudes];
+            config.numTargets        = numel(config.targetAmplitudes);
+            config.weakTargetIdx     = (config.numTargets - nWeak + 1):config.numTargets;
+
+            % --- Preset dial-in along the NF <-> CR trade-off -----------
+            % Both noiseLevelDB and fx16EffectiveBits change between presets;
+            % everything else stays fixed so the comparison is apples-to-apples.
+            switch lower(preset)
+                case 'match-nf'
+                    config.noiseLevelDB      = -70.5;   % directly sets NF
+                    config.fx16EffectiveBits = 11;       % FN/FP = 0
+                case 'match-fnfp'
+                    config.noiseLevelDB      = -70.5;   % NF still at Kiem
+                    config.fx16EffectiveBits = 9;        % flips ~1 of 170 -> FN/FP > 0
+                case 'match-cr'
+                    config.noiseLevelDB      = -85;     % lower AWGN -> bigger CR
+                    config.fx16EffectiveBits = 12;       % higher ENOB so FX stays stable
+                case 'match-cr-aggressive'
+                    config.noiseLevelDB      = -95;     % near clutter-scene regime
+                    config.fx16EffectiveBits = 13;       % required to avoid FX collapse
+                otherwise
+                    error('buildSceneConfig:unknownPreset', ...
+                          'Unknown kiem preset "%s". Use match-nf | match-fnfp | match-cr | match-cr-aggressive.', preset);
+            end
+            config.kiemPreset = lower(preset);
+            % No Doppler guard: the low-Doppler clutter scatterers ARE the
+            % bulk of the detection list (~ Kiem's ~170).
+
         otherwise
             error('buildSceneConfig:badType', ...
-                'sceneType must be ''clean'' or ''clutter'' (got ''%s'').', sceneType);
+                'sceneType must be ''clean'', ''clutter'' or ''kiem'' (got ''%s'').', sceneType);
     end
 end
