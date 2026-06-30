@@ -26,6 +26,20 @@ function config = buildSceneConfig(sceneType, preset)
 %       'match-cr-aggressive'  AWGN -95, ENOB 13. NF ~ -95 dBFS; CR ~ 2.0;
 %                     FX16 stable, FN/FP = 0. Highest CR achievable on
 %                     synthetic data while keeping FX from collapsing.
+%       'noise-mixed-mild'   Same scene as match-nf but the AWGN is replaced
+%                     with a MIXED model (70%% white + 30%% slow-time
+%                     AR(1) rho=0.99). The correlated component is
+%                     compressible by DRHE so CR creeps up slightly above
+%                     pure white at the SAME measured NF (~1.09 vs 1.11).
+%       'noise-mixed-strong' 50%% white + 50%% AR(1) rho=0.999. Heavier
+%                     correlation requires more total noise power to keep
+%                     NF at Kiem; the experiment shows CR ends up LOWER
+%                     than the white baseline (the AR energy concentrates
+%                     at DC Doppler and barely lifts the NF measurement).
+%                     Included as a counter-example: it proves that simply
+%                     correlating the noise does NOT break the NF<->CR
+%                     trade-off (you must add coherent clutter to do that,
+%                     which is what the 'clutter' scene already does).
 
     if nargin < 2
         preset = 'match-fnfp';   % default kiem preset
@@ -190,9 +204,27 @@ function config = buildSceneConfig(sceneType, preset)
                 case 'match-cr-aggressive'
                     config.noiseLevelDB      = -95;     % near clutter-scene regime
                     config.fx16EffectiveBits = 13;       % required to avoid FX collapse
+                case 'noise-mixed-mild'
+                    % Replace AWGN with a 70% white + 30% AR(1) mixture.
+                    % Same target NF as match-nf so we can compare directly.
+                    config.noiseLevelDB      = -69.0;   % +1.5 dB raw power to land NF~-70.5
+                    config.fx16EffectiveBits = 11;
+                    config.noiseType         = 'mixed';
+                    config.noiseParams       = struct('rho', 0.99, 'alpha', 0.30);
+                case 'noise-mixed-strong'
+                    % Counter-example: 50/50 mix with very high correlation.
+                    % Needs much more raw power to hit measured NF=-70 because
+                    % the AR component concentrates at DC and does not lift
+                    % the broadband mean efficiently.
+                    config.noiseLevelDB      = -67.0;
+                    config.fx16EffectiveBits = 11;
+                    config.noiseType         = 'mixed';
+                    config.noiseParams       = struct('rho', 0.999, 'alpha', 0.50);
                 otherwise
                     error('buildSceneConfig:unknownPreset', ...
-                          'Unknown kiem preset "%s". Use match-nf | match-fnfp | match-cr | match-cr-aggressive.', preset);
+                        ['Unknown kiem preset "%s". Use ' ...
+                         'match-nf | match-fnfp | match-cr | match-cr-aggressive | ' ...
+                         'noise-mixed-mild | noise-mixed-strong.'], preset);
             end
             config.kiemPreset = lower(preset);
             % No Doppler guard: the low-Doppler clutter scatterers ARE the

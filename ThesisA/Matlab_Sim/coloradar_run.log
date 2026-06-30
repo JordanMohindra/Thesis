@@ -1,0 +1,46 @@
+================================================================
+  RADAR DATA COMPRESSION SIMULATION - COLORADAR CASCADE
+  frame 0, TX = [1 2 3 4 5 6 7 8 9 10 11 12]
+================================================================
+--- loadColoRadarFrame ---
+  file       : C:\Users\Jordan Mohindra\OneDrive\Documents\Fifth Year\ThesisA\Matlab_Sim\..\..\Jordan's Thesis\cascade\adc_samples\data\frame_0.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 869.543 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+
+================================================================
+  SCENE: COLORADAR - FRAME 0
+================================================================
+  Reference detections: 190
+  Algorithm      CR   FN (%)   FP (%)  NF est.(dBFS)   SNR (dB)
+  ---------  ------   ------   ------  -------------   --------
+  FP16         1.00     0.00     0.00       -105.982     36.264
+  FX16         1.00     4.21     0.53       -105.712     36.156
+  DRHE         3.32     4.21     0.53       -105.712     36.156
+
+================================================================
+  COLORADAR CASCADE: COMPRESSION SUMMARY (frame 0)
+================================================================
+  Algo       CR     FN%     FP%     NF dBFS    SNR dB
+  FP16     1.00    0.00    0.00    -105.982    36.264
+  FX16     1.00    4.21    0.53    -105.712    36.156
+  DRHE     3.32    4.21    0.53    -105.712    36.156
+
+  --- Kiem Reference (Table 3.5, real data) ---
+  Algorithm      CR   FN (%)   FP (%)  NF est.(dBFS)   SNR (dB)
+  FP16*        1.00     0.00     0.00        -70.714     22.407
+  FX16*        1.00     0.59     1.18        -70.691     22.330
+  DRHE*        3.25     0.59     1.18        -70.691     22.330
+
+  Interpretation:
+   * 190 ref detections in the cascade NCI image.
+   * DRHE compression ratio = 3.32. This is REAL data so the floor
+     contains coherent clutter / phase noise / multipath, which
+     DRHE compresses unlike pure AWGN -> typically CR markedly above 1.
+   * Compare against the synthetic Kiem-realistic scene (CR ~ 1.1):
+     the gap is the "real-data structure" the AWGN simulator does not model.
+
+================================================================
+  COLORADAR RUN COMPLETE
+================================================================

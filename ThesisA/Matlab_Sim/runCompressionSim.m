@@ -1,4 +1,4 @@
-function results = runCompressionSim(config, fullScaleRefPower, label)
+function results = runCompressionSim(config, fullScaleRefPower, label, rawADC)
 % RUNCOMPRESSIONSIM Runs the full Kiem compression workflow on one scene.
 %   Executes the four processing paths from Figure 3.1 (Reference / FP16 /
 %   FX16 / DRHE), evaluates the Section 3.4.2 metrics, prints a results table
@@ -8,19 +8,28 @@ function results = runCompressionSim(config, fullScaleRefPower, label)
 %     config            - scene/pipeline configuration struct
 %     fullScaleRefPower - 0 dBFS reference power (computeFullScaleRefPower)
 %     label             - short string naming the scene (for printouts)
+%     rawADC            - (optional) pre-built ADC cube
+%                         [numSamples x numRamps x numRxChannels]. When supplied
+%                         the synthetic generator is skipped and this data is run
+%                         through the pipeline instead -- this is how real radar
+%                         captures (loadRealRadarCube.m) reuse the exact same
+%                         compression workflow. May be complex (I/Q) for real
+%                         captures; rangeFFT keeps the positive-range half.
 %
 %   Output:
 %     results - struct with metrics, range-Doppler maps, detection lists and
 %               the DRHE compression record.
 
-    if nargin < 3, label = 'scene'; end
+    if nargin < 3 || isempty(label), label = 'scene'; end
 
     fprintf('\n================================================================\n');
     fprintf('  SCENE: %s\n', upper(label));
     fprintf('================================================================\n');
 
     % --- Step 1-3: ADC -> Preprocessing -> Range FFT ---
-    rawADC           = generateSyntheticADC(config);
+    if nargin < 4 || isempty(rawADC)
+        rawADC = generateSyntheticADC(config);     % synthetic scene
+    end
     preprocessedData = preprocessing(rawADC, config);
     rangeFFTData     = rangeFFT(preprocessedData, config);
 

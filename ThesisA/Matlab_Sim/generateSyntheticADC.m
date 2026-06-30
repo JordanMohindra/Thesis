@@ -106,29 +106,36 @@ function rawADC = generateSyntheticADC(config)
         end
 
         % --- Receiver / clutter noise ---
-        % White noise is uncorrelated from ramp to ramp, so DRHE (which predicts
-        % each ramp from the previous one) cannot compress it: at a given noise
-        % floor the compression ratio is pinned near 1. REAL radar data sits on a
-        % floor that is largely *correlated* across ramps (slow-moving clutter,
-        % phase noise, etc.), which is exactly why DRHE achieves CR ~3 on it.
-        % We optionally model this with a first-order (AR(1)) slow-time
-        % correlation of coefficient noiseCorr in [0,1): the floor keeps the same
-        % power (so the noise floor in dBFS is unchanged) but consecutive ramps
-        % become similar, so the ramp-to-ramp differences DRHE encodes shrink and
-        % the compression ratio climbs. noiseCorr = 0 reproduces the clean,
-        % incompressible white-noise floor.
-        if isfield(config, 'noiseCorr') && config.noiseCorr > 0
-            rho = config.noiseCorr;
-            innov = noiseSigmaADC * randn(nSamp, nRamp);
-            noise = zeros(nSamp, nRamp);
-            noise(:, 1) = innov(:, 1);
-            s = sqrt(1 - rho^2);
-            for mm = 2:nRamp
-                noise(:, mm) = rho * noise(:, mm-1) + s * innov(:, mm);
-            end
+        % White AWGN is uncorrelated ramp-to-ramp, so DRHE (which predicts each
+        % ramp from the previous one) cannot compress it: at a given noise floor
+        % CR ~ 1. REAL radar noise has structure (oscillator phase noise, slow
+        % clutter, multipath ripple). The CORRELATED parts ARE compressible by
+        % DRHE. generateNoise() exposes several correlation models so we can
+        % test how much of Kiem's "real-data" CR comes from non-AWGN structure.
+        %
+        % config.noiseType   : 'white' (default) | 'ar1_slow' | 'ar1_fast'
+        %                       | 'colored_slow' | 'pink_slow' | 'mixed'
+        % config.noiseParams : struct with model-specific params, e.g.
+        %     .rho   AR(1) coefficient in [0,1) for ar1_* and mixed
+        %     .bw    cutoff fraction for colored_slow
+        %     .alpha mixed: fraction of variance that is correlated
+        % config.noiseCorr   : (legacy) scalar rho. If set and noiseType
+        %                      missing, behaves as ar1_slow with this rho.
+        if isfield(config, 'noiseType') && ~isempty(config.noiseType)
+            nType = config.noiseType;
+        elseif isfield(config, 'noiseCorr') && config.noiseCorr > 0
+            nType = 'ar1_slow';
         else
-            noise = noiseSigmaADC * randn(nSamp, nRamp);
+            nType = 'white';
         end
+        if isfield(config, 'noiseParams')
+            nParams = config.noiseParams;
+        elseif isfield(config, 'noiseCorr')
+            nParams = struct('rho', config.noiseCorr);
+        else
+            nParams = struct();
+        end
+        noise = generateNoise(nType, nSamp, nRamp, noiseSigmaADC, nParams);
         signal = signal + noise;
 
         signal = max(min(signal, maxADCVal), -maxADCVal);

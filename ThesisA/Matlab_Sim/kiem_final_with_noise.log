@@ -1,0 +1,87 @@
+================================================================
+  KIEM-REALISTIC: ALL 6 PRESETS
+================================================================
+
+================================================================
+  SCENE: KIEM-MATCH-NF
+================================================================
+  [ADC Gen] sigma_ADC = 418.1509 (-25.8 dB below full-scale)
+  [ADC Gen] clipped samples = 0.000%  (clean)
+  Reference detections: 160
+  Algorithm      CR   FN (%)   FP (%)  NF est.(dBFS)   SNR (dB)
+  ---------  ------   ------   ------  -------------   --------
+  FP16         1.00     0.00     0.00        -71.077     23.833
+  FX16         1.00     0.00     0.00        -71.033     23.809
+  DRHE         1.11     0.00     0.00        -71.033     23.809
+  match-nf               white   ENOB=11 AWGN=-70.5   refDet=160  NF=-71.03  SNR=23.81  CR=1.11  FN=0.00 % FP=0.00 %
+
+================================================================
+  SCENE: KIEM-MATCH-FNFP
+================================================================
+  [ADC Gen] sigma_ADC = 418.1509 (-25.8 dB below full-scale)
+  [ADC Gen] clipped samples = 0.000%  (clean)
+  Reference detections: 160
+  Algorithm      CR   FN (%)   FP (%)  NF est.(dBFS)   SNR (dB)
+  ---------  ------   ------   ------  -------------   --------
+  FP16         1.00     0.00     0.00        -71.077     23.833
+  FX16         1.00     0.62     0.00        -70.703     23.511
+  DRHE         1.10     0.62     0.00        -70.703     23.511
+  match-fnfp             white   ENOB=9  AWGN=-70.5   refDet=160  NF=-70.70  SNR=23.51  CR=1.10  FN=0.62 % FP=0.00 %
+
+================================================================
+  SCENE: KIEM-NOISE-MIXED-MILD
+================================================================
+  [ADC Gen] sigma_ADC = 496.9733 (-24.3 dB below full-scale)
+  [ADC Gen] clipped samples = 0.000%  (clean)
+  Reference detections: 167
+  Algorithm      CR   FN (%)   FP (%)  NF est.(dBFS)   SNR (dB)
+  ---------  ------   ------   ------  -------------   --------
+  FP16         1.00     0.00     0.00        -70.806     23.561
+  FX16         1.00     0.00     0.00        -70.763     23.535
+  DRHE         1.09     0.00     0.00        -70.763     23.535
+  noise-mixed-mild       mixed   ENOB=11 AWGN=-69.0   refDet=167  NF=-70.76  SNR=23.53  CR=1.09  FN=0.00 % FP=0.00 %
+
+================================================================
+  SCENE: KIEM-NOISE-MIXED-STRONG
+================================================================
+  [ADC Gen] sigma_ADC = 625.6523 (-22.3 dB below full-scale)
+  [ADC Gen] clipped samples = 0.000%  (clean)
+  Reference detections: 148
+  Algorithm      CR   FN (%)   FP (%)  NF est.(dBFS)   SNR (dB)
+  ---------  ------   ------   ------  -------------   --------
+  FP16         1.00     0.00     0.00        -70.352     23.340
+  FX16         1.00     0.00     0.00        -70.318     23.320
+  DRHE         1.08     0.00     0.00        -70.318     23.320
+  noise-mixed-strong     mixed   ENOB=11 AWGN=-67.0   refDet=148  NF=-70.32  SNR=23.32  CR=1.08  FN=0.00 % FP=0.00 %
+
+================================================================
+  SCENE: KIEM-MATCH-CR
+================================================================
+  [ADC Gen] sigma_ADC = 78.7650 (-40.3 dB below full-scale)
+  [ADC Gen] clipped samples = 0.000%  (clean)
+  Reference detections: 163
+  Algorithm      CR   FN (%)   FP (%)  NF est.(dBFS)   SNR (dB)
+  ---------  ------   ------   ------  -------------   --------
+  FP16         1.00     0.00     0.00        -85.577     38.229
+  FX16         1.00     0.00     0.00        -85.370     38.049
+  DRHE         1.56     0.00     0.00        -85.370     38.049
+  match-cr               white   ENOB=12 AWGN=-85.0   refDet=163  NF=-85.37  SNR=38.05  CR=1.56  FN=0.00 % FP=0.00 %
+
+================================================================
+  SCENE: KIEM-MATCH-CR-AGGRESSIVE
+================================================================
+  [ADC Gen] sigma_ADC = 24.9077 (-50.3 dB below full-scale)
+  [ADC Gen] clipped samples = 0.000%  (clean)
+  Reference detections: 163
+  Algorithm      CR   FN (%)   FP (%)  NF est.(dBFS)   SNR (dB)
+  ---------  ------   ------   ------  -------------   --------
+  FP16         1.00     0.00     0.00        -95.575     48.226
+  FX16         1.00     0.00     0.00        -95.084     47.762
+  DRHE         2.08     0.00     0.00        -95.084     47.762
+  match-cr-aggressive    white   ENOB=13 AWGN=-95.0   refDet=163  NF=-95.08  SNR=47.76  CR=2.08  FN=0.00 % FP=0.00 %
+
+  --- Kiem Reference (Table 3.5, real data) ---
+  Algorithm      CR   FN (%)   FP (%)  NF est.(dBFS)   SNR (dB)
+  FP16*        1.00     0.00     0.00        -70.714     22.407
+  FX16*        1.00     0.59     1.18        -70.691     22.330
+  DRHE*        3.25     0.59     1.18        -70.691     22.330
