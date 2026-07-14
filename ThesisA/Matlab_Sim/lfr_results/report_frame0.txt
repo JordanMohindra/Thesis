@@ -1,0 +1,20 @@
+--- loadColoRadarFrame ---
+  file       : C:\Users\Jordan Mohindra\OneDrive\Documents\Fifth Year\ThesisA\Matlab_Sim\..\..\Jordan's Thesis\cascade\adc_samples\data\frame_0.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 869.543 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+
+==================================================================================
+  QUANTISATION-ERROR STUDY  (ColoRadar frame 0)
+  LFR params: t=244.9 (0.75% of L)  k=640.8  l=10.95  p=0.925  Rayleigh sigma=2.54e+05
+  DRHE lossless check (LFR path), max code error = 0
+----------------------------------------------------------------------------------
+  Method             relRMS %   magPSNR dB     RDerr dB  int16 use %    DRHE CR
+  ------             --------    ---------     --------   ----------    -------
+  FP16(ref)            0.0209       101.76       0.0053            -          -
+  FX16-uniform         1.8712        64.39       0.4366         1.32      3.323
+  FX16-linear          0.0277       101.10       0.0054        89.30      1.038
+  FX16-LFR             0.0048       114.38       0.0011        94.23      0.712
+==================================================================================
+  LFR vs uniform: magnitude PSNR +50.0 dB, relative-RMS error 1.871% -> 0.0048%
