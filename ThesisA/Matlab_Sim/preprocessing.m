@@ -14,7 +14,7 @@ function preprocessedData = preprocessing(rawADC, config)
     shiftAmount = 16 - config.bitWidth + 16;
     fullScaleData = double(rawADC) * (2^shiftAmount);
 
-    hanningWin = hanning(config.numSamples);
+    hanningWin = hann(config.numSamples);
 
     preprocessedData = fullScaleData .* hanningWin;
 end

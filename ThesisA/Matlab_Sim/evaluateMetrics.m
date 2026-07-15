@@ -22,13 +22,18 @@ function metrics = evaluateMetrics(detectionListRef, detectionListTest, rdMapRef
 
     % --- False Negatives and False Positives ---
     [fp, fn] = comparator(detectionListRef, detectionListTest);
-    totalRefDetections = sum(detectionListRef(:));
+    totalRefDetections  = sum(detectionListRef(:));   % FN + TP
+    totalTestDetections = sum(detectionListTest(:));   % FP + TP
 
     if totalRefDetections > 0
-        metrics.FN_pct = (fn / totalRefDetections) * 100;
-        metrics.FP_pct = (fp / totalRefDetections) * 100;
+        metrics.FN_pct = (fn / totalRefDetections) * 100;   % FNR = FN/(FN+TP)
     else
         metrics.FN_pct = 0;
+    end
+
+    if totalTestDetections > 0
+        metrics.FP_pct = (fp / totalTestDetections) * 100;  % FPR = FP/(FP+TP)
+    else
         metrics.FP_pct = 0;
     end
 

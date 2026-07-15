@@ -25,13 +25,13 @@ function P_ref = computeFullScaleRefPower(config)
     A_preproc = maxADCVal * 2^shift;
 
     % Range FFT peak for a real cosine (Hanning window, /N normalization)
-    % Peak at positive freq bin = A_preproc * sum(hanning(N)) / (2*N)
-    hannR = hanning(N);
+    % Peak at positive freq bin = A_preproc * sum(hann(N)) / (2*N)
+    hannR = hann(N);
     peakAfterRangeFFT = A_preproc * sum(hannR) / (2 * N);
 
     % Doppler FFT peak for complex exponential (Hanning window, /M normalization)
-    % Input is complex exp across ramps -> peak = amplitude * sum(hanning(M)) / M
-    hannD = hanning(M);
+    % Input is complex exp across ramps -> peak = amplitude * sum(hann(M)) / M
+    hannD = hann(M);
     peakAfterDopplerFFT = peakAfterRangeFFT * sum(hannD) / M;
 
     % NCI: sum of |peak|^2 across nRx channels

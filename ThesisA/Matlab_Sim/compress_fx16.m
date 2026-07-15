@@ -31,7 +31,7 @@ function compressedData = compress_fx16(inputData, config)
     N = config.numSamples;
     shift = 16 - config.bitWidth + 16;
     maxADCVal = 2^(config.bitWidth - 1) - 1;
-    hannWin = hanning(N);
+    hannWin = hann(N);
     maxPossibleFFT = maxADCVal * 2^shift * sum(hannWin) / (2 * N);
 
     int16Max = 32767;

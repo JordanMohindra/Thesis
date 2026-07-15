@@ -58,8 +58,8 @@ function rawADC = generateSyntheticADC(config)
     % NF_linear = 10*log10(NCI_noise / P_ref)
     % We target NF_linear = noiseLevelDB (with some empirical adjustment for dB-averaging)
     shift = 16 - config.bitWidth + 16;
-    hannR = hanning(nSamp);
-    hannD = hanning(nRamp);
+    hannR = hann(nSamp);
+    hannD = hann(nRamp);
 
     sumHannR2 = sum(hannR.^2);
     sumHannD2 = sum(hannD.^2);

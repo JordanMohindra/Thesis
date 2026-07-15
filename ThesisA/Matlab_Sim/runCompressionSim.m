@@ -1,7 +1,7 @@
 function results = runCompressionSim(config, fullScaleRefPower, label, rawADC)
-% RUNCOMPRESSIONSIM Runs the full Kiem compression workflow on one scene.
-%   Executes the four processing paths from Figure 3.1 (Reference / FP16 /
-%   FX16 / DRHE), evaluates the Section 3.4.2 metrics, prints a results table
+% RUNCOMPRESSIONSIM Runs the full compression workflow on one scene.
+%   Executes the processing paths (Reference / FP16 / FX16 / DRHE / BAQ /
+%   RDVLE / RDVLE+UDRE), evaluates the Section 3.4.2 metrics, prints a results table
 %   and returns everything needed for plotting and comparison.
 %
 %   Input:
@@ -61,12 +61,30 @@ function results = runCompressionSim(config, fullScaleRefPower, label, rawADC)
     decompressedBAQ = decompress_baq(compressedBAQ);
     [detListBAQ, rdMapBAQ, ~] = secondStageProcessing(decompressedBAQ, config);
 
+    % --- Path F: RDVLE (on FX16 data) ---
+    compressedRDVLE   = compress_rdvle(compressedFX16, config);
+    decompressedRDVLE = decompress_rdvle(compressedRDVLE);
+    [detListRDVLE, rdMapRDVLE, ~] = secondStageProcessing(decompressedRDVLE, config);
+
+    % --- Path G: RDVLE + UDRE (on FX16 data) ---
+    compressedRDVLE_UDRE   = compress_rdvle_udre(compressedFX16, config);
+    decompressedRDVLE_UDRE = decompress_rdvle_udre(compressedRDVLE_UDRE);
+    [detListRDVLE_UDRE, rdMapRDVLE_UDRE, ~] = secondStageProcessing(decompressedRDVLE_UDRE, config);
+
+    % --- Path H: LPC + Huffman (on FX16 data) ---
+    compressedLPC_Huffman   = compress_lpc_huffman(compressedFX16, config);
+    decompressedLPC_Huffman = decompress_lpc_huffman(compressedLPC_Huffman);
+    [detListLPC_Huffman, rdMapLPC_Huffman, ~] = secondStageProcessing(decompressedLPC_Huffman, config);
+
     % --- Metrics ---
     metricsFP16 = evaluateMetrics(detListRef, detListFP16, rdMapRef, rdMapFP16, 1.0, fullScaleRefPower);
     metricsDRHEfp16 = evaluateMetrics(detListRef, detListDRHEfp16, rdMapRef, rdMapDRHEfp16, compressedDRHEfp16.CR, fullScaleRefPower);
     metricsFX16 = evaluateMetrics(detListRef, detListFX16, rdMapRef, rdMapFX16, 1.0, fullScaleRefPower);
     metricsDRHE = evaluateMetrics(detListRef, detListDRHE, rdMapRef, rdMapDRHE, compressedDRHE.CR, fullScaleRefPower);
     metricsBAQ = evaluateMetrics(detListRef, detListBAQ, rdMapRef, rdMapBAQ, compressedBAQ.CR, fullScaleRefPower);
+    metricsRDVLE = evaluateMetrics(detListRef, detListRDVLE, rdMapRef, rdMapRDVLE, compressedRDVLE.CR, fullScaleRefPower);
+    metricsRDVLE_UDRE = evaluateMetrics(detListRef, detListRDVLE_UDRE, rdMapRef, rdMapRDVLE_UDRE, compressedRDVLE_UDRE.CR, fullScaleRefPower);
+    metricsLPC_Huffman = evaluateMetrics(detListRef, detListLPC_Huffman, rdMapRef, rdMapLPC_Huffman, compressedLPC_Huffman.CR, fullScaleRefPower);
 
     % --- Results table ---
     fprintf('  Reference detections: %d\n', sum(detListRef(:)));
@@ -77,6 +95,9 @@ function results = runCompressionSim(config, fullScaleRefPower, label, rawADC)
     fprintf('  %-10s %6.2f %8.2f %8.2f %14.3f %10.3f\n', 'FX16', metricsFX16.CR, metricsFX16.FN_pct, metricsFX16.FP_pct, metricsFX16.NF_dBFS, metricsFX16.SNR_dB);
     fprintf('  %-10s %6.2f %8.2f %8.2f %14.3f %10.3f\n', 'DRHE', metricsDRHE.CR, metricsDRHE.FN_pct, metricsDRHE.FP_pct, metricsDRHE.NF_dBFS, metricsDRHE.SNR_dB);
     fprintf('  %-10s %6.2f %8.2f %8.2f %14.3f %10.3f\n', 'BAQ', metricsBAQ.CR, metricsBAQ.FN_pct, metricsBAQ.FP_pct, metricsBAQ.NF_dBFS, metricsBAQ.SNR_dB);
+    fprintf('  %-10s %6.2f %8.2f %8.2f %14.3f %10.3f\n', 'RDVLE', metricsRDVLE.CR, metricsRDVLE.FN_pct, metricsRDVLE.FP_pct, metricsRDVLE.NF_dBFS, metricsRDVLE.SNR_dB);
+    fprintf('  %-10s %6.2f %8.2f %8.2f %14.3f %10.3f\n', 'RDVLE+UDRE', metricsRDVLE_UDRE.CR, metricsRDVLE_UDRE.FN_pct, metricsRDVLE_UDRE.FP_pct, metricsRDVLE_UDRE.NF_dBFS, metricsRDVLE_UDRE.SNR_dB);
+    fprintf('  %-10s %6.2f %8.2f %8.2f %14.3f %10.3f\n', 'LPC+Huff', metricsLPC_Huffman.CR, metricsLPC_Huffman.FN_pct, metricsLPC_Huffman.FP_pct, metricsLPC_Huffman.NF_dBFS, metricsLPC_Huffman.SNR_dB);
 
     % --- Pack results ---
     results.label         = label;
@@ -86,6 +107,9 @@ function results = runCompressionSim(config, fullScaleRefPower, label, rawADC)
     results.metricsFX16      = metricsFX16;
     results.metricsDRHE      = metricsDRHE;
     results.metricsBAQ       = metricsBAQ;
+    results.metricsRDVLE     = metricsRDVLE;
+    results.metricsRDVLE_UDRE = metricsRDVLE_UDRE;
+    results.metricsLPC_Huffman = metricsLPC_Huffman;
     results.refDetections = sum(detListRef(:));
     results.rangeFFTData  = rangeFFTData;
     results.dopplerFFTRef = dopplerFFTRef;
@@ -95,9 +119,15 @@ function results = runCompressionSim(config, fullScaleRefPower, label, rawADC)
     results.rdMapFX16        = rdMapFX16;
     results.rdMapDRHE        = rdMapDRHE;
     results.rdMapBAQ         = rdMapBAQ;
+    results.rdMapRDVLE       = rdMapRDVLE;
+    results.rdMapRDVLE_UDRE  = rdMapRDVLE_UDRE;
+    results.rdMapLPC_Huffman = rdMapLPC_Huffman;
     results.detListRef    = detListRef;
     results.compressedDRHE     = compressedDRHE;
     results.compressedDRHEfp16 = compressedDRHEfp16;
     results.compressedFX16     = compressedFX16;
     results.compressedBAQ      = compressedBAQ;
+    results.compressedRDVLE       = compressedRDVLE;
+    results.compressedRDVLE_UDRE  = compressedRDVLE_UDRE;
+    results.compressedLPC_Huffman = compressedLPC_Huffman;
 end
