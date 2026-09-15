@@ -63,13 +63,7 @@ void drhe_compress(
                     int re = (int)re_raw;
                     int im = (int)im_raw;
 
-                    // 1. Cartesian to Polar conversion of current sample
-                    float re_f = (float)re;
-                    float im_f = (float)im;
-                    float curr_mag   = hls::sqrt(re_f * re_f + im_f * im_f);
-                    float curr_phase = hls::atan2(im_f, re_f);
-
-                    // 2. Model Prediction — UNIFORM formula for ALL ramps
+                    // 1. Model Prediction — UNIFORM formula for ALL ramps
                     float mag_pred   = ALPHA * s_mag_pred[ch][s] + (1.0f - ALPHA) * s_prev_mag[ch][s];
                     float phase_pred = BETA * s_phase_pred[ch][s] + (2.0f - BETA) * s_prev_phase[ch][s] - s_prev_prev_phase[ch][s];
 
@@ -80,22 +74,47 @@ void drhe_compress(
                         phase_pred += 2.0f * (float)M_PI;
                     }
 
-                    // 3. Polar to Cartesian — with round() to match MATLAB
+                    // 2. Polar to Cartesian — with round() to match MATLAB
                     int pred_re = (int)roundf(mag_pred * hls::cos(phase_pred));
                     int pred_im = (int)roundf(mag_pred * hls::sin(phase_pred));
 
-                    // 4. Residual with int16 wraparound (matches MATLAB wrap_int16)
+                    // 3. Residual with int16 wraparound (matches MATLAB wrap_int16)
                     int diff_re = wrap_int16(re - pred_re);
                     int diff_im = wrap_int16(im - pred_im);
 
-                    // 5. Update State Memory
+                    // 3a. Saturate the one residual the S4/APPEND code cannot represent.
+                    //     Region S4=15 spans |v| in [16384, 32767] — exactly 2^15 values, which
+                    //     exactly fills the 15 APPEND bits. |v| = 32768 has no encoding, and
+                    //     get_append_bits(-32768, 15) aliases onto the code for +32767. Clamping
+                    //     to -32767 costs at most 1 LSB on that sample and keeps the bitstream
+                    //     format unchanged. Residuals in real ColoRadar data span only about
+                    //     [-514, +416], so this never fires in practice.
+                    if (diff_re == -32768) diff_re = -32767;
+                    if (diff_im == -32768) diff_im = -32767;
+
+                    // 3b. Reconstruct exactly what the decompressor will produce, and drive the
+                    //     prediction state from THAT rather than from the original sample.
+                    //     The decompressor has no access to the original, so if the encoder
+                    //     predicted from the original the two would diverge whenever 3a fires and
+                    //     the IIR filters would carry that divergence forward through every
+                    //     remaining ramp. Closing the loop bounds the error to the clamped sample.
+                    //     When no clamping occurs, recon == original and behaviour is unchanged.
+                    int recon_re = wrap_int16(diff_re + pred_re);
+                    int recon_im = wrap_int16(diff_im + pred_im);
+
+                    float re_f = (float)recon_re;
+                    float im_f = (float)recon_im;
+                    float curr_mag   = hls::sqrt(re_f * re_f + im_f * im_f);
+                    float curr_phase = hls::atan2(im_f, re_f);
+
+                    // 4. Update State Memory
                     s_prev_prev_phase[ch][s] = s_prev_phase[ch][s];
                     s_prev_phase[ch][s]      = curr_phase;
                     s_phase_pred[ch][s]      = phase_pred;
                     s_prev_mag[ch][s]        = curr_mag;
                     s_mag_pred[ch][s]        = mag_pred;
 
-                    // 6. Huffman & S4 Encoding for Real and Imaginary Residuals
+                    // 5. Huffman & S4 Encoding for Real and Imaginary Residuals
                     ap_uint<4> s4_re = get_s4_region(diff_re);
                     ap_uint<15> append_re = get_append_bits(diff_re, s4_re);
                     DictEntry_t huff_re = HUFFMAN_TABLE[s4_re];
