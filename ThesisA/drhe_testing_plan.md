@@ -10,10 +10,20 @@
 ## 0. Environment and Reproduction Status
 
 > [!NOTE]
-> **Phase 1 (Tests 1.1-1.3) and Phase 2 (Tests 2.1-2.3) have been fully re-run on a correctly
-> licensed toolchain: 15 September 2026.** The Signal Processing Toolbox and a Vivado licence are
-> both now installed, so every earlier workaround has been removed and every result below was
-> produced by the standard tools. Test 2.4 onward has not been run.
+> **Phases 1, 2 and 3 are complete as of 15 September 2026** - Tests 1.1-1.3, 2.1-2.4 and 3.1-3.3,
+> all run on a correctly licensed toolchain with the Signal Processing Toolbox installed. Every
+> earlier workaround has been removed and every result below was produced by the standard tools.
+> Only Phase 4, which needs the physical board, remains.
+>
+> **Two findings need attention before the write-up:**
+>
+> 1. Test 2.4 found a **latent correctness defect**: a residual of exactly `-32768` encodes
+>    identically to `+32767` and does not round-trip. It is unreachable with the ColoRadar data
+>    (measured residual range is only -514 to +416), but it breaks the *unconditional* lossless
+>    claim. Analysis and three options are in Test 2.4.
+> 2. Test 3.2 shows the design **does not meet 100 MHz** (estimated Fmax 81.88 MHz) and runs at
+>    **II=2** rather than the target II=1, making it 2.13x slower than Kiem's. The cause is a
+>    memory-port conflict on one state array, identified precisely in Test 3.2.
 
 ### 0.1 Current file locations
 
@@ -434,9 +444,6 @@ MaxDiff_vitis, outBits_vitis, deltaCR, padBits`).
 
 #### Test 2.4: Edge Case Testing
 
-> [!IMPORTANT]
-> **NOT RUN.** Testing stopped after Test 2.3. This is the next task.
-
 - **Purpose:** Verify robustness for degenerate inputs
 - **Test cases:**
 
@@ -451,6 +458,92 @@ MaxDiff_vitis, outBits_vitis, deltaCR, padBits`).
 - **How to implement:** Create a separate testbench `drhe_tb_edge.cpp` that generates synthetic data and feeds it through compress -> decompress
 - **Difficulty:** Medium - need to write a new testbench with synthetic data generators
 
+**Implementation.** `hls_component\drhe_tb_edge.cpp` generates all eight cases in the testbench
+itself, so it needs no data file and runs identically in C-simulation and co-simulation. Random data
+comes from a seeded xorshift32 rather than `std::rand`, so results are reproducible across
+compilers. Built with `test_edge.cfg`:
+
+```bat
+cd /d D:\Thesis\ThesisA\hls_component
+call "D:\Xilinx\2026.1\Vitis\bin\vitis-run.bat" --mode hls --csim ^
+     --config D:\Thesis\ThesisA\hls_component\test_edge.cfg --work_dir hls_edge
+```
+
+**RESULT - 5 / 8 PASS (15/09/2026).** A real defect was found.
+
+| Case | Input | CR | MaxDiff | Result |
+|------|-------|-----|---------|--------|
+| all-zeros | every sample 0 | 4.0000 | 0 | **PASS** |
+| dc-constant | Re=1000, Im=-500 everywhere | 3.5867 | 0 | **PASS** |
+| random-int16 | uniform random int16 | 0.6037 | 60475 | **FAIL** |
+| tone-192ramp | correlated tone, 192 ramps | 3.2777 | 0 | **PASS** |
+| tone-1ramp | same tone, nRamps = 1 | 0.6214 | 0 | **PASS** |
+| max-amplitude | all +32767 | 3.0132 | 0 | **PASS** |
+| max-alternating | +32767 / -32768 per ramp | 3.0326 | 65535 | **FAIL** |
+| int16-min | all -32768 | 3.0371 | 65535 | **FAIL** |
+
+Two of the plan's original expectations were wrong and are corrected by measurement:
+
+- **"Worst-case random -> CR approx 1.0"** is not right. A Huffman/append coder cannot leave
+  incompressible data unchanged; it *expands* it. Random int16 gives **CR 0.60**, i.e. 1.66x
+  expansion, because almost every residual lands in a high S4 region costing 12-bit code + 15
+  append bits = 27 bits to carry 16 bits of data. This is correct behaviour, not a fault, but a
+  real deployment needs a raw-passthrough fallback if such data is possible.
+- **"Single ramp -> CR approx 1.0"** likewise gives **CR 0.62**: with no prediction history the
+  residual equals the sample itself, so every value pays full code + append cost.
+
+##### The defect: residual -32768 is not representable
+
+`MaxDiff = 65535` is exactly the distance from `-32768` to `+32767`, which pins the cause. An
+exhaustive sweep of the codec in `drhe_common.h` over all 65,536 possible residuals confirms it:
+
+```
+MISMATCH v=-32768  s4=15  append=0x7FFF  decoded= 32767
+residuals tested   : 65536  (-32768 .. 32767)
+round-trip failures: 1
+```
+
+S4 region 15 spans `|v|` in [16384, 32767] - exactly 32,768 values, which exactly fills the 15
+APPEND bits. `-32768` has `|v| = 32768` and falls outside that span; it needs a 16th category.
+`get_s4_region()` clamps it to 15 and `get_append_bits(-32768, 15)` evaluates to
+`-32768 + 32767 = -1`, which truncates to `0x7FFF` - the identical encoding to `+32767`. The
+decoder therefore returns `+32767`.
+
+Because the decoder's prediction loop is driven by decoded values, one aliased residual also
+corrupts every later prediction for that range bin, which is why the random case shows
+`MaxDiff = 60475` rather than 65535.
+
+**Is it reachable with real data? No.** Across all 50 ColoRadar frames (9,830,400 residuals, 4 RX):
+
+| Measurement | Value |
+|-------------|-------|
+| Residual range | **-514 to +416** |
+| Residuals equal to -32768 | **0** |
+| Residuals reaching S4=15 (`\|v\| >= 16384`) | **0** (0.000%) |
+
+Real residuals stay ~32,000 away from the failing value and never leave the low S4 regions, which
+is exactly why Tests 2.1-2.3 are lossless on 50/50 frames. **The defect is latent, not active.**
+
+> [!NOTE]
+> This could never have been caught in MATLAB. `compress_drhe.m` does not actually encode a
+> bitstream - `drhe_encode_bits()` only *counts* bits, and the residuals are passed to
+> `decompress_drhe.m` as int16 arrays. The S4 + APPEND + Huffman round-trip exists only in the HLS
+> C++, so Test 2.4 is the first test that exercises it over its full input domain.
+
+**Options, in increasing cost:**
+
+1. **Document and leave.** Justified by the measured residual range, but the guarantee becomes
+   "lossless for residuals in [-32767, 32767]" rather than unconditionally lossless.
+2. **Saturate.** Clamp a `-32768` residual to `-32767` at the encoder. One line, keeps the format,
+   but makes the codec *lossy by 1 LSB* in that one case - it would no longer be lossless.
+3. **Add S4 category 16** with 16 APPEND bits and a 17th Huffman entry. Fully correct and keeps
+   losslessness, but changes the bitstream format, so the decoder, the Huffman table and any
+   already-generated results must all be regenerated.
+
+Option 3 is the only one that preserves the lossless claim. Since it changes the format and would
+invalidate the Phase 2 and Phase 3 numbers above, it has **not** been applied - this is a design
+decision for the author.
+
 ---
 
 ## 5. Phase 3 - Vitis HLS RTL Co-Simulation
@@ -462,13 +555,32 @@ Run the synthesized RTL (Verilog/VHDL) in a cycle-accurate simulator to verify:
 - Throughput estimation
 
 ### 5.2 How to Run
-```bash
-# Step 1: Synthesize (C -> RTL)
-vitis-run.bat --mode hls --csyn --config D:\Thesis\ThesisA\hls_component\test.cfg --work_dir hls_component
+> [!IMPORTANT]
+> **`--csyn` does not exist in Vitis 2026.1.** `vitis-run` accepts only `--csim`, `--cosim`,
+> `--impl`, `--package`, `--tcl` and `--itcl`. C synthesis is run by **`v++ -c --mode hls`**
+> instead, and co-simulation refuses to start until it has been done
+> (`ERROR: Must run -vppflow 'syn' before 'cosim'`).
+>
+> The config also needs a **`syn.top`**, which `test.cfg` did not have. It is now
+> `syn.top=drhe_compress` - not the `drhe_top` wrapper in `drhe.cpp`, because `drhe_compress`
+> already carries all the INTERFACE pragmas and, crucially, is the function the testbench calls.
+> Co-simulation only substitutes RTL for the *top* function, so if the top were `drhe_top` the
+> testbench's `drhe_compress()` call would silently keep running as C++ and the RTL would never be
+> exercised.
 
-# Step 2: RTL Co-Simulation
-vitis-run.bat --mode hls --cosim --config D:\Thesis\ThesisA\hls_component\test.cfg --work_dir hls_component
+```bat
+cd /d D:\Thesis\ThesisA\hls_component
+
+REM Step 1: C synthesis (C -> RTL)
+call "D:\Xilinx\2026.1\Vitis\bin\v++.bat" -c --mode hls ^
+     --config D:\Thesis\ThesisA\hls_component\test.cfg --work_dir hls_component
+
+REM Step 2: RTL co-simulation
+call "D:\Xilinx\2026.1\Vitis\bin\vitis-run.bat" --mode hls --cosim ^
+     --config D:\Thesis\ThesisA\hls_component\test.cfg --work_dir hls_component
 ```
+
+`run_syn.bat` and `run_cosim.bat` in the HLS folder wrap these. Synthesis takes about 3m 15s.
 
 ### 5.3 Tests
 
@@ -476,6 +588,35 @@ vitis-run.bat --mode hls --cosim --config D:\Thesis\ThesisA\hls_component\test.c
 - **What it does:** Runs the same testbench from Phase 2 but against the synthesized Verilog/VHDL instead of the C++ source
 - **Pass criteria:** Same results as C-Simulation (MaxDiff = 0, identical CR)
 - **Difficulty:** Medium - co-simulation is slower; use 1-5 frames, not 50
+
+**RESULT - PASS (15/09/2026, 1 frame).**
+
+```
+INFO: [COSIM 212-1000] *** C/RTL co-simulation finished: PASS ***
+```
+
+| Metric | C-simulation | RTL co-simulation |
+|--------|-------------|-------------------|
+| Frames | 1 (192 ramps x 128 samples x 4 RX) | 1 (identical input) |
+| **MaxDiff** | **0** | **0** |
+| MSE | 0 | 0 |
+| CR | 3.33098 | **3.33098** |
+| Compressed bits | 944,384 | 944,384 |
+
+The synthesised Verilog reproduces the C-simulation result exactly - same compression ratio, same
+compressed bit count, bit-exact reconstruction. Functional correctness survives synthesis.
+
+**Cost:** 24m 27s wall-clock for a single frame, of which 19m 05s was the XSIM run itself
+(1,124,889 ms of simulator CPU for 562.6 us of simulated time - roughly a 2,000,000x slowdown).
+The plan's warning was well founded: **50 frames in co-simulation would take about 20 hours** and
+is not worth doing, since Test 2.2 already covers 50 frames in C-simulation and the two agree
+exactly here.
+
+> [!NOTE]
+> Co-simulation reports II as `NA` because it only ran one transaction
+> (`[COSIM 212-211] II is measurable only when transaction number is greater than 1`). The II
+> figure in Test 3.3 therefore comes from the synthesis report, and the cycle count from the
+> co-simulation latency report.
 
 > [!WARNING]
 > RTL co-simulation is **much slower** than C-simulation (10-100x slower). Start with 1 frame, then increase to 5 if it passes. Running 50 frames in co-sim could take hours.
@@ -496,6 +637,69 @@ vitis-run.bat --mode hls --cosim --config D:\Thesis\ThesisA\hls_component\test.c
 - **Pass criteria:** All resources fit within KU5P budget; no timing violations
 - **Difficulty:** Easy - just read the synthesis report
 
+**RESULT - PARTIAL PASS (15/09/2026).** Resources fit comfortably; **timing does not close at
+100 MHz** and the pipeline does not reach II=1.
+
+Report: `hls_component\hls_component\hls\syn\report\drhe_compress_csynth.rpt`
+
+##### Resource utilisation (estimate), `drhe_compress` on xcku5p-ffvb676-2-e
+
+| Resource | Used | Available | Util. | Kiem (ZU3EG) |
+|----------|------|-----------|-------|--------------|
+| LUT | 111,269 | 216,960 | **51%** | 45,892 (65%) |
+| FF | 40,309 | 433,920 | 9% | 9,243 (6.6%) |
+| BRAM_18K | 40 | 960 | 4% | 10 (4.6%) |
+| DSP | 132 | 1,824 | 7% | 44 (12.2%) |
+| URAM | 0 | 64 | 0% | - |
+
+> [!WARNING]
+> **Section 7.2 of this document had the KU5P device size wrong.** It listed 70,560 LUTs,
+> 141,120 FFs, 216 BRAMs and 360 DSPs as "the same CLB count" as Kiem's ZU3EG. Those are the ZU3EG
+> figures. The xcku5p is roughly three times larger - 216,960 LUTs, 433,920 FFs, 960 BRAM_18K and
+> 1,824 DSPs, as reported by the tool above. Percentage comparisons against Kiem are therefore not
+> like-for-like: this design uses **2.4x more LUTs in absolute terms** (111,269 vs 45,892) while
+> showing a *lower* percentage only because the part is bigger.
+
+The LUT count is dominated by floating-point maths. `drhe_compress.cpp` calls `hls::sqrt`,
+`hls::atan2`, `hls::cos` and `hls::sin` on `float`, which synthesise as CORDIC and generic
+floating-point cores (`atan2_cordic<float>` alone has a depth of 24). Moving the polar conversion
+to fixed point, or to a lookup-table CORDIC, is the obvious route to Kiem's footprint.
+
+##### Timing
+
+| | Value |
+|---|---|
+| Target clock | 10.00 ns (100 MHz) |
+| Estimated | **12.213 ns** |
+| Clock uncertainty | 2.70 ns |
+| **Estimated Fmax** | **81.88 MHz** |
+
+**Timing is not met at 100 MHz.** The design would need ~81 MHz, or pipelining of the float
+datapath, to close.
+
+##### Pipeline initiation interval
+
+| Loop | Iteration latency | II target | II achieved | Pipelined |
+|------|------------------|-----------|-------------|-----------|
+| `SAMPLE_LOOP` | 32 cycles | 1 | **2** | yes |
+
+The cause is reported explicitly:
+
+```
+WARNING: [HLS 200-885] The II Violation in module 'drhe_compress_Pipeline_SAMPLE_LOOP'
+(loop 'SAMPLE_LOOP'): Unable to schedule 'load' operation 32 bit
+('...s_prev_prev_phase_3_load', drhe_compress.cpp:74) on array '...s_prev_prev_phase_3'
+due to limited memory ports (II = 1). Please consider using a memory core with more ports
+or partitioning the array.
+```
+
+The five state arrays are declared `[MAX_NRX][MAX_N]` and partitioned `complete` on **dim=1** only,
+so each channel's `[MAX_N]` history is one dual-port BRAM. Each iteration reads a value, writes the
+updated value, and on `r == 0` writes a reset value as well - three accesses against two ports.
+Options: partition on dim=2 as well (cyclic), hoist the `r == 0` reset out into its own
+non-pipelined initialisation pass so the steady-state loop needs only one read and one write, or
+merge the five arrays into one array of structs so a single wide port carries all five fields.
+
 #### Test 3.3: Latency and Throughput Estimation
 - **Where to find it:** Co-simulation log or synthesis report
 - **Metrics:**
@@ -506,6 +710,43 @@ vitis-run.bat --mode hls --cosim --config D:\Thesis\ThesisA\hls_component\test.c
   - Kiem achieved 11.92 Gbit/s throughput at 100 MHz
   - Kiem's IP latency: 230 ns standalone
 - **Difficulty:** Medium - need to interpret synthesis reports
+
+**RESULT - MEASURED (15/09/2026).**
+
+Source: `hls\sim\report\drhe_compress_cosim.rpt` (measured) and the synthesis report (II, depth).
+
+| Quantity | Value | Where from |
+|----------|-------|-----------|
+| Frame size | 192 ramps x 128 samples x 4 RX = 3,145,728 input bits | testbench |
+| **Measured frame latency** | **56,261 clock cycles** | co-simulation |
+| Initiation interval | **II = 2** (target 1) | synthesis |
+| Pipeline depth | 32 cycles | synthesis |
+| Cycles per 128-bit input beat | 2.289 | 56,261 / 24,576 |
+| Effective throughput | **55.91 bits/cycle** | 3,145,728 / 56,261 |
+
+The 2.289 cycles per beat is II=2 plus about 37 cycles of per-ramp overhead (the pipeline drains
+and restarts on every one of the 192 ramps, since `RAMP_LOOP` itself is not pipelined).
+
+##### Throughput and latency at each clock
+
+| | At 100 MHz (target, **not met**) | At 81.88 MHz (achievable) | Kiem (ZU3EG, 100 MHz) |
+|---|---|---|---|
+| Frame processing time | 562.61 us | 687.12 us | - |
+| **Throughput** | **5.591 Gbit/s** | **4.578 Gbit/s** | 11.92 Gbit/s |
+| IP pipeline latency (32 cycles) | 320 ns | 391 ns | 230 ns |
+
+**This design is 2.13x slower than Kiem's at the same clock**, and the gap is fully explained by
+the initiation interval: Kiem's 11.92 Gbit/s at 100 MHz works out to ~119 bits/cycle on a 128-bit
+input, i.e. effectively II=1, whereas this design achieves 55.91 bits/cycle at II=2. Closing the
+II=1 violation in Test 3.2 would roughly double throughput to ~11 Gbit/s and bring it in line.
+
+The pipeline latency (320 ns for 32 cycles) is already in the same class as Kiem's 230 ns, so the
+per-sample path is not the problem - sustained rate is.
+
+> [!NOTE]
+> Kiem's "0.08 ms end-to-end" is not comparable to the 562.61 us frame time above without knowing
+> his frame dimensions, which the thesis does not state in the same terms. The two figures that
+> *are* comparable are throughput (Gbit/s) and IP pipeline latency, both tabulated above.
 
 ---
 
@@ -654,13 +895,14 @@ Your MATLAB results (Table 1 in your executive summary) versus Kiem's Table 5.5:
 | Metric | Kiem (ZU3EG) | Your (KU5P) | Notes |
 |--------|-------------|-------------|-------|
 | FPGA Family | Zynq UltraScale+ MPSoC | Kintex UltraScale+ | KU5P has no PS - pure PL |
-| Available LUTs | 70,560 | 70,560 | Same CLB count |
-| Available FFs | 141,120 | 141,120 | Same |
-| Available BRAMs | 216 | 216 | Same |
-| Available DSPs | 360 | 360 | Same |
-| LUT Utilization | 65% | **TBD** | |
-| Throughput | 11.92 Gbit/s | **TBD** | |
-| Latency | 230 ns | **TBD** | |
+| Available LUTs | 70,560 | **216,960** | Corrected - KU5P is ~3x larger, not the same |
+| Available FFs | 141,120 | **433,920** | Corrected |
+| Available BRAM_18K | 216 | **960** | Corrected |
+| Available DSPs | 360 | **1,824** | Corrected |
+| LUT Utilization | 65% (45,892) | **51% (111,269)** | Lower % but 2.4x more LUTs in absolute terms |
+| Throughput | 11.92 Gbit/s | **5.591 Gbit/s @ 100 MHz** | II=2 vs Kiem's effective II=1 |
+| Latency | 230 ns | **320 ns** (32-cycle pipeline) | Comparable |
+| Fmax | 100 MHz | **81.88 MHz (estimate)** | Timing does not close at 100 MHz |
 
 > [!IMPORTANT]
 > The Kintex UltraScale+ (xcku5p) is a **pure FPGA** (no Processing System). Unlike Kiem's Zynq UltraScale+ which had an ARM Cortex-A53 PS for control, you will need to either:
@@ -680,10 +922,10 @@ Your MATLAB results (Table 1 in your executive summary) versus Kiem's Table 5.5:
 | 2.1: Single-frame CSIM | 2 | Easy | 5 min | No | **PASS** (MaxDiff 0) |
 | 2.2: Multi-frame CSIM (50) | 2 | Easy | 15-30 min | No | **PASS** (50/50 lossless, ~1 min) |
 | 2.3: CR match MATLAB vs Vitis | 2 | Easy | 10 min | No | **PASS** (0.014% residual, explained) |
-| 2.4: Edge case testing | 2 | Medium | 2-3 hours | No | Not run - next task |
-| 3.1: RTL co-simulation | 3 | Medium | 1-4 hours | No | Not run - **unblocked** (licence installed) |
-| 3.2: Synthesis resource report | 3 | Easy | 30 min | No | Not run - **unblocked** (licence installed) |
-| 3.3: Latency/throughput estimation | 3 | Medium | 1 hour | No | Not run - **unblocked** (licence installed) |
+| 2.4: Edge case testing | 2 | Medium | 2-3 hours | No | **5/8 PASS** - found a latent defect (see 4.3) |
+| 3.1: RTL co-simulation | 3 | Medium | 1-4 hours | No | **PASS** (1 frame, 24m 27s) |
+| 3.2: Synthesis resource report | 3 | Easy | 30 min | No | **PARTIAL** - fits, but II=2 and Fmax 81.88 MHz |
+| 3.3: Latency/throughput estimation | 3 | Medium | 1 hour | No | **MEASURED** - 5.591 Gbit/s @ 100 MHz |
 | 4.1: Post-impl resource utilization | 4 | Medium | 2-4 hours | **Yes** |
 | 4.2: Timing closure | 4 | Medium | 1-2 hours | **Yes** |
 | 4.3: Loopback test | 4 | Hard | 1-2 days | **Yes** |
@@ -707,15 +949,15 @@ Your MATLAB results (Table 1 in your executive summary) versus Kiem's Table 5.5:
 > [!TIP]
 > **Phases 1-3 can be completed entirely on your PC without hardware.** These phases give you approximately 70% of the results needed for the thesis.
 
-### Results obtainable without FPGA:
-- Compression ratio (MATLAB + Vitis CSIM)
-- Lossless reconstruction verification (CSIM)
-- Multi-frame CR statistics (50+ frames)
-- Algorithm comparison table (8 algorithms)
-- **Estimated** resource utilization (HLS synthesis report)
-- **Estimated** clock frequency (HLS synthesis report)
-- **Estimated** latency and throughput (co-simulation)
-- Edge case robustness testing
+### Results obtainable without FPGA - ALL NOW COLLECTED (15/09/2026):
+- Compression ratio (MATLAB + Vitis CSIM) - **3.30987 over 50 frames**
+- Lossless reconstruction verification (CSIM) - **50/50 frames, MaxDiff 0**
+- Multi-frame CR statistics (50+ frames) - **mean 3.31033, std 0.0948, range 2.939-3.470**
+- Algorithm comparison table (8 algorithms) - **reproduces executive-summary Table 1 exactly**
+- **Estimated** resource utilization - **111,269 LUT / 40,309 FF / 40 BRAM_18K / 132 DSP**
+- **Estimated** clock frequency - **81.88 MHz (below the 100 MHz target)**
+- **Estimated** latency and throughput - **56,261 cycles/frame, 5.591 Gbit/s @ 100 MHz**
+- Edge case robustness testing - **5/8 pass; one latent defect found**
 
 ### Results that require the FPGA:
 - **Actual** post-place-and-route resource utilization
@@ -787,7 +1029,7 @@ Rows marked TBD are simply not yet run - Phase 3 is unblocked (section 0.2d).
 | MATLAB (16 RX, full detection pipeline) | 3.30 | 0 | 3.77 | 1.11 | -105.374 | 35.359 | 50 |
 | MATLAB (4 RX, matches Vitis input) | 3.31033 | 0 | - | - | - | - | 50 |
 | Vitis CSIM (bit-accurate, 4 RX) | 3.30987 | **0** | - | - | - | - | 50 |
-| RTL Co-Sim | TBD | TBD | - | - | - | - | 5 |
+| RTL Co-Sim (Verilog, xsim) | 3.33098 | **0** | - | - | - | - | 1 |
 | On-FPGA (if available) | TBD | TBD | - | - | - | - | 50 |
 
 FN/FP/NF/SNR are detection-pipeline metrics and are only produced by the MATLAB chain; the HLS
@@ -796,23 +1038,30 @@ FX16's by construction.
 
 ### Table: Hardware Resource Utilization
 
-| Resource | HLS Estimate | Post-Implementation | Kiem (ZU3EG) |
-|----------|-------------|--------------------:|-------------:|
-| LUTs | | | 45,892 (65%) |
-| FFs | | | 9,243 (6.6%) |
-| BRAMs | | | 10 (4.6%) |
-| DSPs | | | 44 (12.2%) |
-| Fmax | | | 100 MHz |
+`drhe_compress` on xcku5p-ffvb676-2-e. Post-implementation needs Vivado place-and-route (Phase 4).
+
+| Resource | HLS Estimate | % of KU5P | Post-Implementation | Kiem (ZU3EG) |
+|----------|-------------|----------:|--------------------:|-------------:|
+| LUTs | 111,269 | 51% | TBD | 45,892 (65%) |
+| FFs | 40,309 | 9% | TBD | 9,243 (6.6%) |
+| BRAM_18K | 40 | 4% | TBD | 10 (4.6%) |
+| DSPs | 132 | 7% | TBD | 44 (12.2%) |
+| URAM | 0 | 0% | TBD | - |
+| Fmax | 81.88 MHz | - | TBD | 100 MHz |
+
+KU5P capacity: 216,960 LUT / 433,920 FF / 960 BRAM_18K / 1,824 DSP / 64 URAM - about 3x the ZU3EG,
+so the percentages are not comparable with Kiem's; the absolute LUT count is (2.4x higher).
 
 ### Table: DRHE vs LPC Huffman Performance Comparison
 
 | Metric | DRHE | LPC Huffman | Kiem (DRHE) |
 |--------|------|-------------|-------------|
-| CR | | | 3.17 (HW) / 3.25 (MATLAB) |
-| Throughput | | | 11.92 Gbit/s |
-| Latency | | | 230 ns |
-| LUTs | | | 65% |
-| DSPs | | | 12.2% |
+| CR | 3.30987 (CSIM, 50 frames) | 3.37 (MATLAB only) | 3.17 (HW) / 3.25 (MATLAB) |
+| Throughput | 5.591 Gbit/s @ 100 MHz | not implemented | 11.92 Gbit/s |
+| Latency | 320 ns pipeline (32 cycles) | not implemented | 230 ns |
+| LUTs | 111,269 (51% of KU5P) | not implemented | 45,892 (65% of ZU3EG) |
+| DSPs | 132 (7%) | not implemented | 44 (12.2%) |
+| Fmax | 81.88 MHz | not implemented | 100 MHz |
 
 ---
 
@@ -827,6 +1076,9 @@ FX16's by construction.
 | Resource utilization exceeds budget | Design does not fit | Low | KU5P has same resources as ZU3EG; Kiem fit at 65% |
 | No Vivado licence for xcku5p | Would block all of Phase 3 and Phase 4 | **Occurred - now RESOLVED** | Licence installed 15/09/2026; `xcku5p-ffvb676-2-e` resolves and `vitis-run --csim` runs clean. Phase 3 unblocked |
 | Signal Processing Toolbox unavailable | MATLAB pipeline will not run | **Occurred - now RESOLVED** | Toolbox installed 15/09/2026; temporary window functions deleted and all of Phase 1 re-run natively with identical results (section 0.2b) |
+| Residual of -32768 is not representable | Breaks the unconditional lossless claim | **Occurred - latent** | Unreachable with ColoRadar data (measured range -514..+416). Needs an S4 category 16 to fix properly; see Test 2.4 |
+| Design misses 100 MHz timing (Fmax 81.88 MHz) | Cannot hit the target clock | **Occurred** | Pipeline the float datapath, or move polar conversion to fixed point / LUT-CORDIC; or clock at 80 MHz and report it |
+| Pipeline achieves II=2, not II=1 | Halves throughput vs Kiem | **Occurred** | Memory-port conflict on `s_prev_prev_phase`; hoist the `r==0` reset out of the pipelined loop or partition on dim=2. See Test 3.2 |
 | HLS project path contains a space | Vitis refuses to create the project | **Occurred - handled** | Build from the space-free clone `D:\Thesis\ThesisA\hls_component\`; never point Vitis at `C:\Users\Jordan Mohindra\...`. A licence does not change this |
 
 ---
