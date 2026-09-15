@@ -1426,3 +1426,194 @@ so the percentages are not comparable with Kiem's; the absolute LUT count is (2.
 | `Matlab_Sim\phase2_matlab_vs_vitis_cr.csv` | Test 2.3 frame-by-frame MATLAB vs Vitis comparison |
 | `Matlab_Sim\_runlogs\` | Raw console logs for Tests 1.1, 1.2, 1.3 |
 
+
+---
+
+## 11. Correctness audit and the TDM-MIMO prediction-axis defect (15/09/2026)
+
+> **Summary.** Two things in this document were measured correctly but
+> **interpreted wrongly**, and one algorithmic defect was found that affects
+> every compression ratio reported above.
+>
+> 1. The headline CR is **not** mostly prediction gain. Coding the FX16 output
+>    with the same S4+Huffman coder and **no prediction at all** gives
+>    CR **3.489** - better than DRHE's 3.319 and LPC's 3.397. Both predictors
+>    were making the data *harder* to compress.
+> 2. The cause is the **prediction axis**. On a 12-TX TDM-MIMO cascade, ramp
+>    `m-1` is a different transmitter 11 times out of 12. Predicting from ramp
+>    `m-nTx` instead fixes it: DRHE CSIM goes **3.30987 -> 3.75082** (+13.3%)
+>    and LPC **3.38497 -> 3.69681** (+9.2%), both still bit-exact lossless.
+> 3. Kiem's "11.92 Gbit/s" is **gibibits**. In decimal it is
+>    **12.80 Gbit/s** = exactly **128 bits/cycle at 100 MHz**, i.e. full-rate
+>    AXI at II=1. Every throughput comparison above understates the gap by 7.4%.
+
+### 11.1 Where the compression ratio actually comes from
+
+`Matlab_Sim\audit_decomp.m` codes the raw FX16 values through the identical
+S4 + Huffman back end with no prediction, which isolates the entropy-coder
+contribution from the prediction contribution.
+
+| Configuration | bits/value | CR | gain vs no-prediction |
+|---|---:|---:|---:|
+| **No prediction (S4+Huffman only)** | **4.586** | **3.489** | 1.000x |
+| DRHE, lag 1 (as implemented) | 4.821 | 3.319 | **0.951x** |
+| LPC, lags 1,2 (as implemented) | 4.710 | 3.397 | **0.974x** |
+
+Supporting numbers from the same run:
+
+| Quantity | Value |
+|---|---|
+| Peak raw ADC sample | 914 of a possible 32767 |
+| Peak \|FX16 code\| | 436 -> only **9.8 of 16 bits** carry information |
+| Structurally unused headroom | **6.2 bits** |
+| Order-0 entropy, raw FX16 codes | 4.094 bits |
+| Order-0 entropy, DRHE residuals | 4.538 bits (**higher** than the raw codes) |
+| Huffman overhead vs entropy | +0.283 bits/value (6.2%) |
+| LPC coefficient sets passing stability | 100.00% |
+
+So CR 3.489 decomposes as **1.63x from unused container headroom**
+(`compress_fx16` fixes its scale factor to a full-scale ADC sinusoid, and this
+capture sits far below that) **x 2.14x from spectral sparsity**. Neither is
+Doppler redundancy. The ratios reported in sections 3-10 are therefore
+specific to this capture's gain setting.
+
+### 11.2 The prediction-axis defect
+
+`loadColoRadarFrame.m` flattens the ramp axis in TDM time order,
+`ramp = chirpLoop*nTx + txIndex`, with **TX varying fastest** (this is correct -
+it is the true transmit order). The consequence is that ramp `m` and ramp `m-1`
+belong to **different physical transmitters** 11 times out of 12, separated by
+the array baseline rather than by a PRI. DRHE's phase model is a double
+integrator that assumes a constant per-ramp phase increment; a per-ramp TX
+change makes that increment alternate on a period-12 pattern. LPC's lag-1/lag-2
+autocorrelations likewise measure the TX switching pattern, not target Doppler.
+
+`Matlab_Sim\audit_predaxis.m` evaluates the options (5 frames, 4 RX):
+
+| Configuration | bits/value | CR | pred. gain |
+|---|---:|---:|---:|
+| 0 no prediction | 4.586 | 3.489 | 1.000x |
+| 1 DRHE lag 1 (as implemented) | 4.821 | 3.319 | 0.951x |
+| **2 DRHE lag nTx=12 (per-TX state)** | **4.240** | **3.774** | **1.082x** |
+| 3 LPC lags 1,2 (as implemented) | 4.710 | 3.397 | 0.974x |
+| 4 LPC per-TX block, N=16 | 6.093 | 2.626 | 0.753x |
+| **5 LPC lags 12,24** | **4.269** | **3.748** | **1.074x** |
+
+Row 4 is the obvious alternative that does **not** work: splitting the frame
+into twelve independent 16-ramp blocks puts the predictor on the right axis but
+multiplies the coefficient overhead by 12 (1.04% -> 12.5% of the frame) and
+shortens each autocorrelation to 16 samples. Keeping **one** coefficient pair
+per (bin, channel, I/Q) and simply moving the lags to 12 and 24 costs no extra
+side information at all, which is why row 5 works.
+
+### 11.3 TDM-aware implementations
+
+New files in `hls_component\`, alongside the originals (the baselines are kept
+so both can be compared):
+
+| File | Purpose |
+|---|---|
+| `drhe_tdm_common.h` | `TDM_MAX_NTX = 12`, `TDM_MAX_N = 128`, flattened state index |
+| `drhe_tdm_compress.cpp` / `.h` | state indexed `[ch][tx*TDM_MAX_N + s]`, `tx = r % nTx`; reset when `r < nTx` |
+| `drhe_tdm_decompress.cpp` / `.h` | mirror of the above |
+| `drhe_tdm.cpp` | top wrapper |
+| `drhe_tdm_tb.cpp` | 50-frame testbench, `N_TX = 12` |
+| `lpc_tdm_common.h` | `LPC_TDM_MAX_NTX = 12`, `LPC_TDM_HIST = 24` |
+| `lpc_tdm_compress.cpp` / `.h` | lags nTx / 2nTx; autocorrelation moved into pass 2 via a 24-entry ring |
+| `lpc_tdm_decompress.cpp` / `.h` | reconstruction ring `[ch][bin][r % 2nTx]` |
+| `lpc_tdm.cpp`, `lpc_tdm_tb.cpp` | top wrapper and testbench |
+| `test_tdm.cfg`, `test_lpc_tdm.cfg` | build configs (work dirs `hls_tdm`, `hls_lpc_tdm`) |
+| `run_tdm_{csim,syn,cosim}.bat`, `run_lpc_tdm_{csim,syn,cosim}.bat` | build scripts |
+
+**The ring trick.** Both LPC passes need `x[m-nTx]` and `x[m-2nTx]`. A ring of
+exactly `2*nTx` entries gives both with no shifting: at ramp `m`, slot
+`k = m mod 2nTx` still holds the value from ramp `m-2nTx` (it is about to be
+overwritten), and slot `(k+nTx) mod 2nTx` holds the value from ramp `m-nTx`.
+
+#### Phase 2 results - CSIM, 50 frames, 4 RX
+
+| Design | Avg CR | MaxDiff | Delta |
+|---|---:|---:|---:|
+| DRHE, lag 1 | 3.30987 | 0 | - |
+| **DRHE, lag nTx** | **3.75082** | **0** | **+13.3%** |
+| LPC, lags 1,2 | 3.38497 | 0 | - |
+| **LPC, lags nTx,2nTx** | **3.69681** | **0** | **+9.2%** |
+
+All 50 frames lossless in every configuration. The measured DRHE-TDM 3.75082
+agrees with the 3.774 predicted by the 5-frame MATLAB study, within the
+frame-to-frame spread.
+
+#### Phase 3 results - synthesis on xcku5p at 100 MHz
+
+| Resource | DRHE lag 1 | **DRHE lag nTx** | LPC lags 1,2 | **LPC lags nTx,2nTx** |
+|---|---:|---:|---:|---:|
+| LUT | 115,532 | 115,736 | 80,528 | 86,298 |
+| FF | 57,105 | 57,263 | 17,393 | 23,154 |
+| BRAM_18K | 40 | **80** | 256 | **192** |
+| DSP | 132 | 132 | 168 | 156 |
+| Est. Fmax | 81.88 MHz | 81.88 MHz | 85.43 MHz | 85.43 MHz |
+| Worst loop II | 2 | 2 | 3 | **1 (all satisfied)** |
+
+- **DRHE: the fix is close to free.** +40 BRAM_18K (4% of the device) for +13.3%
+  compression, with LUT/FF/DSP/Fmax unchanged. (The state grows by nTx in
+  principle, but the baseline was dimensioned for MAX_N=1024 and the TDM version
+  for the 128 bins actually used, so realised growth is only 1.5x.)
+- **LPC: the fix pays for itself.** Moving the autocorrelation out of ingest
+  deleted six 64-bit accumulator arrays and four history arrays, so BRAM drops
+  25% (256 -> 192) and - the bigger win - **every loop now meets II=1**, where
+  the baseline was stuck at II=3 on accumulator port pressure. Cost: +7% LUT,
+  +33% FF for the 24-entry rings, plus one extra pass over the frame buffer.
+
+### 11.4 Throughput comparison - unit correction
+
+Kiem reports 11.92 "Gbit/s" at 100 MHz. Read as decimal that is 119.2
+bits/cycle on a 128-bit input - an odd number with no architectural meaning.
+Read as **gibibits**, `11.92 * 2^30 / 1e8 = 127.99` bits/cycle, i.e. **exactly
+128** - the full AXI4-Stream width at II=1.
+
+| | DRHE | LPC | Kiem (corrected) |
+|---|---:|---:|---:|
+| Effective bits/cycle | 51.4 | 15.9 | **128.0** |
+| Throughput @ 100 MHz | 5.14 Gbit/s | 1.60 Gbit/s | **12.80 Gbit/s** |
+
+Every comparison in sections 7-10 against "11.92 Gbit/s" therefore understates
+the gap by 7.4%. The gap is structural, not mysterious: Kiem reaches II=1,
+this DRHE reaches II=2 plus per-ramp drain.
+
+### 11.5 Metric definitions - corrections to section 2
+
+These do not change any number reported above, but they change what the numbers
+should be called and how much weight they carry.
+
+| Issue | Detail |
+|---|---|
+| **"False Positive Rate" is a false discovery rate** | `evaluateMetrics.m` computes `fp / totalTestDetections`. A false positive rate normalises by true negatives. FDR is a legitimate metric - it just is not what the name says. |
+| **No positional tolerance in detection matching** | `comparator.m` compares detection masks cell-by-cell. A target one range-Doppler cell off scores as both a miss and a false discovery. Both rates are inflated relative to a matched-detection criterion. |
+| **The 15 dB detection threshold is an unswept free parameter** | `peakDetection.m` uses `mean(lowest 75% of sorted dB) + 15 dB`. The detection metrics are sensitive to it and it is never varied. |
+| **Detection metrics do not measure compression** | FX16, DRHE and LPC are all exactly lossless w.r.t. the FX16 codes, so their detection metrics are identical to FX16's *by construction*. What they measure is the cost of quantisation. |
+| **Table 1 is 16 RX, the HLS path is 4 RX** | Already noted in Test 2.3; repeated here because it applies to every MATLAB-vs-Vitis CR comparison. |
+| **`rangeFFT.m` comment is wrong** | It says "real-valued input produces symmetric FFT". The input is complex I/Q; keeping the positive half is a deliberate choice, not a symmetry consequence. |
+
+### 11.6 What this means for the thesis
+
+1. **Report the no-prediction baseline.** Without it, CR 3.3 reads as a
+   prediction result when it is mostly an entropy-coding and gain-staging
+   result.
+2. **The TDM-aware predictor is a genuine contribution.** Kiem's DRHE is
+   specified for a radar where consecutive ramps are the same antenna. Applying
+   it unmodified to a TDM-MIMO cascade is a real and measurable error, and the
+   fix - nTx copies of the predictor state - is cheap.
+3. **Consider an adaptive FX16 scale factor.** Using 9.8 of 16 bits is leaving
+   both dynamic range and honest reporting on the table.
+4. **The remaining throughput work is identified, not open-ended:** DRHE's BRAM
+   port conflict (II=2 -> 1) and, for the baseline LPC, the residual-pass
+   channel unroll. The TDM LPC has already resolved its II=3.
+
+### 11.7 New audit scripts
+
+| Script | Purpose |
+|---|---|
+| `Matlab_Sim\audit_headroom.m` | first-pass headroom measurement (superseded by `audit_decomp.m`, which separates the effects properly) |
+| `Matlab_Sim\audit_decomp.m` | decomposes CR into container headroom, sparsity and prediction; reports entropy and the S4 histogram |
+| `Matlab_Sim\audit_order.m` | demonstrates the ramp-ordering effect three ways (as-shipped / chirp-fastest / single TX) |
+| `Matlab_Sim\audit_predaxis.m` | full prediction-axis study, six configurations, both algorithms |
