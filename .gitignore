@@ -19,3 +19,6 @@
 
 _ide/logs
 _ide/.wsdata
+# Local scratch from test runs (not part of the deliverable)
+ThesisA/Matlab_Sim/_runlogs/
+ThesisA/Matlab_Sim/_removed_shims/
