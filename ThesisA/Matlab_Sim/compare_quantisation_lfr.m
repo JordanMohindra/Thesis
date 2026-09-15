@@ -30,11 +30,23 @@ function out = compare_quantisation_lfr(frameIndex, makePlots)
 
     %% --- locate and load the frame ------------------------------------
     simDir  = fileparts(mfilename('fullpath'));
-    dataDir = fullfile(simDir, '..', '..', 'Jordan''s Thesis', ...
-                       'cascade', 'adc_samples', 'data');
-    binFile = fullfile(dataDir, sprintf('frame_%d.bin', frameIndex));
-    if exist(binFile, 'file') ~= 2
-        error('compare_quantisation_lfr:notFound', 'Frame not found: %s', binFile);
+    candidatePaths = { ...
+        fullfile(simDir, '..', '..', 'Jordan''s Thesis', 'cascade', 'adc_samples', 'data'), ...
+        'C:\Users\mohin\Downloads\12_21_2020_ec_hallways_run4\12_21_2020_ec_hallways_run4\cascade\adc_samples\data' ...
+    };
+
+    binFile = '';
+    for i = 1:length(candidatePaths)
+        testFile = fullfile(candidatePaths{i}, sprintf('frame_%d.bin', frameIndex));
+        if exist(testFile, 'file') == 2
+            binFile = testFile;
+            dataDir = candidatePaths{i};
+            break;
+        end
+    end
+
+    if isempty(binFile)
+        error('compare_quantisation_lfr:notFound', 'Frame frame_%d.bin not found in candidate directories.', frameIndex);
     end
 
     opts = struct('txSelect', 1:12, 'removeDC', true, 'fx16EffectiveBits', 16);

@@ -43,12 +43,25 @@ AZ_ZEROPAD     = 4;           % azimuth FFT zero-pad factor (1 = 16 bins, 4 = 64
 % ===================================================================
 
 %% --- locate frames -------------------------------------------------
-dataDir = fullfile(fileparts(mfilename('fullpath')), '..', '..', ...
-                   'Jordan''s Thesis', 'cascade', 'adc_samples', 'data');
-listing = dir(fullfile(dataDir, 'frame_*.bin'));
-if isempty(listing)
-    error('play_coloradar_video:noFrames', ...
-        'No frame_<N>.bin found in %s', dataDir);
+candidatePaths = { ...
+    fullfile(fileparts(mfilename('fullpath')), '..', '..', 'Jordan''s Thesis', 'cascade', 'adc_samples', 'data'), ...
+    'C:\Users\mohin\Downloads\12_21_2020_ec_hallways_run4\12_21_2020_ec_hallways_run4\cascade\adc_samples\data' ...
+};
+
+dataDir = '';
+for i = 1:length(candidatePaths)
+    if exist(candidatePaths{i}, 'dir')
+        files = dir(fullfile(candidatePaths{i}, 'frame_*.bin'));
+        if ~isempty(files)
+            dataDir = candidatePaths{i};
+            listing = files;
+            break;
+        end
+    end
+end
+
+if isempty(dataDir)
+    error('play_coloradar_video:noFrames', 'No frame_<N>.bin found in candidate directories.');
 end
 nums = zeros(numel(listing), 1);
 for k = 1:numel(listing)
