@@ -15,7 +15,12 @@
 > earlier workaround has been removed and every result below was produced by the standard tools.
 > Only Phase 4, which needs the physical board, remains.
 >
-> **Two findings need attention before the write-up:**
+> **LPC + Huffman is also implemented and tested** (Vitis HLS, Phases 2 and 3) - see section 10.
+> It reaches a higher compression ratio than DRHE (3.38497 vs 3.30987) on 30% fewer LUTs, but needs
+> a 3.1 Mbit frame buffer and is 3.2x slower, because Yule-Walker coefficients depend on the whole
+> frame so it cannot stream.
+>
+> **Findings that need attention before the write-up:**
 >
 > 1. Test 2.4 found a **latent correctness defect** - a residual of exactly `-32768` encoded
 >    identically to `+32767` - which is now **fixed**: the residual is clamped and the predictor
@@ -1013,6 +1018,8 @@ Your MATLAB results (Table 1 in your executive summary) versus Kiem's Table 5.5:
 | 3.1: RTL co-simulation | 3 | Medium | 1-4 hours | No | **PASS** (1 frame, 24m 27s) |
 | 3.2: Synthesis resource report | 3 | Easy | 30 min | No | **PARTIAL** - fits, but II=2 and Fmax 81.88 MHz |
 | 3.3: Latency/throughput estimation | 3 | Medium | 1 hour | No | **MEASURED** - 5.136 Gbit/s @ 100 MHz |
+| LPC 2.1-2.4: Phase 2 | 2 | - | - | No | **PASS** - 50/50 lossless, CR 3.38497, 8/8 edge cases |
+| LPC 3.1-3.3: Phase 3 | 3 | - | - | No | **PASS** - 80,528 LUT, 256 BRAM, 85.43 MHz, 197,277 cycles |
 | 4.1: Post-impl resource utilization | 4 | Medium | 2-4 hours | **Yes** |
 | 4.2: Timing closure | 4 | Medium | 1-2 hours | **Yes** |
 | 4.3: Loopback test | 4 | Hard | 1-2 days | **Yes** |
@@ -1063,23 +1070,244 @@ Your executive summary states the plan is to implement **both DRHE and LPC Huffm
 - Resource utilization
 
 ### 10.1 LPC Huffman Implementation Status
+
 - **MATLAB:** Complete (CR = 3.37, matching FX16 detection performance)
-- **Vitis HLS C++:** Not yet started
-- **Estimated effort:** 1-2 weeks (LPC requires division in the prediction loop, which is more complex to implement in HLS)
+- **Vitis HLS C++:** **Complete (15/09/2026).** `lpc_compress.cpp`, `lpc_decompress.cpp`,
+  `lpc_common.h`, with testbenches `lpc_tb.cpp` and `lpc_tb_edge.cpp` and configs `test_lpc.cfg`,
+  `test_lpc_edge.cfg`. Phases 2 and 3 have been run; results in 10.3-10.5.
 
-### 10.2 Additional Tests for LPC Huffman
+### 10.2 Architecture - why LPC is not a drop-in replacement for DRHE
 
-All Phase 2-4 tests above apply equally to LPC Huffman. In addition:
+This is the single most important structural difference, and it drives every result below.
 
-| Test | Purpose |
-|------|---------|
-| **DRHE vs LPC: CR comparison** | Compare CR on same 50 frames |
-| **DRHE vs LPC: Resource comparison** | Compare LUT/FF/BRAM/DSP usage |
-| **DRHE vs LPC: Latency comparison** | LPC division -> higher latency expected |
-| **DRHE vs LPC: Throughput comparison** | LPC may have lower throughput due to division |
+**DRHE is causal.** It predicts ramp `m` from an IIR filter over ramps `m-1` and `m-2`, so it
+streams: one pass, no frame storage, output begins as soon as input arrives.
+
+**LPC is not.** The 2nd-order Yule-Walker coefficients for each (range bin, RX channel, I/Q part)
+are derived from autocorrelations `R0`, `R1`, `R2` taken over **all** ramps. The coefficients for
+the first sample therefore depend on the last sample of the frame. The compressor cannot emit
+anything until the whole frame has arrived, so it is necessarily multi-pass:
+
+| Pass | What it does |
+|------|--------------|
+| 1. Ingest | Buffer the frame; accumulate `R0`/`R1`/`R2` per (bin, channel, part) on the fly |
+| 2. Solve + residual | Solve Yule-Walker per sequence; walk the ramps; rewrite the buffer in place as residuals |
+| 3. Emit | Write the coefficient table, then the residuals |
+
+The frame buffer is 4 x 192 x 128 x 32 bits = **3.1 Mbit**, and it is the reason `LPC_MAX_N`,
+`LPC_MAX_RAMPS` and `LPC_MAX_NRX` are compile-time constants in `lpc_common.h` whereas DRHE takes
+its dimensions at runtime.
+
+**The decompressor, by contrast, needs no frame buffer at all.** Residuals are emitted in the same
+raster order the samples arrived in, so the decoder reconstructs each sample as its residual
+arrives, holding only the coefficient table and two previous reconstructed samples per (channel,
+bin) - the same shape of state DRHE uses. The reordering cost is paid once, by the compressor that
+had to buffer anyway.
+
+#### Numerical design
+
+`R0`, `R1`, `R2` are exact 64-bit integer sums. The determinant and both numerators are formed
+**exactly in 128-bit integers before any division**:
+
+```
+det = R0^2 - R1^2 ,   n1 = R1*(R0 - R2) ,   n2 = R0*R2 - R1^2
+```
+
+Forming them exactly matters. For strongly correlated data `R1` approaches `R0`, so evaluating
+`R0^2 - R1^2` in floating point would lose most of its significant digits to cancellation -
+precisely in the regime the predictor exists to exploit.
+
+Coefficients are then quantised to **`ap_fixed<16,2>`** for `a1` (stability allows
+`|a1| < 1 - a2 <= 2`) and **`ap_fixed<16,1>`** for `a2` (`|a2| < 1`). That is exactly the 16 bits
+per coefficient the MATLAB overhead term already charges. Measured cost of the quantisation:
+**0.0000%** of compression ratio over 50 frames.
 
 > [!WARNING]
-> LPC Huffman's division operation makes HLS optimization harder. Consider using hls::divider or a lookup-table-based approximation to meet timing. This is a significant engineering challenge.
+> **A Vitis limitation had to be worked around.** `ap_int<128>` to `float` conversion is silently
+> wrong above about 64 significant bits - `(float)(ap_int<128>)(1 << 70)` evaluates to **0**, and a
+> determinant of 4.4e20 converted to `-1.2e18`. The three 128-bit quantities are therefore
+> normalised by a common arithmetic right shift into 62 bits before conversion, which leaves both
+> ratios unchanged and costs ~2^-61 relative - far below the 2^-14 quantisation step.
+>
+> This was **invisible on real data**, where correlations only reach 44 bits, and was caught by the
+> `max-amplitude` edge case in Test 2.4. Without edge testing it would have shipped.
+
+Both DRHE corrections carry over: the `-32768` residual is clamped, and the predictor is
+closed-loop so the clamp cannot desynchronise encoder and decoder.
+
+### 10.3 LPC Phase 2 results - ALL PASS (15/09/2026)
+
+Run with `test_lpc.cfg` (`syn.top=lpc_compress`) and `test_lpc_edge.cfg`, same 50 ColoRadar frames
+and same 4 RX channels as DRHE.
+
+| Test | Result |
+|------|--------|
+| 2.1 Single-frame lossless | **PASS** - MaxDiff 0, CR 3.40388, bits 3,145,728 -> 924,160 |
+| 2.2 50-frame CSIM | **PASS** - 50/50 lossless, average CR **3.38497**, aggregate 3.383 |
+| 2.3 MATLAB vs Vitis CR | **PASS** - see below |
+| 2.4 Edge cases | **PASS** - 8/8 within allowed error |
+
+#### Test 2.3 in detail - bit-exact agreement
+
+`Matlab_Sim\lpc_per_frame_cr.m` was added as the like-for-like reference. It reports three ratios
+per frame, which matters because **`compress_lpc_huffman.m` is not self-consistent**: it charges
+16 bits per coefficient in its overhead term but predicts using full 64-bit doubles.
+
+| Quantity | Value |
+|----------|-------|
+| MATLAB mean CR, double coefficients | 3.38541 |
+| MATLAB mean CR, 16-bit quantised coefficients | 3.38541 (quantisation cost **0.0000%**) |
+| MATLAB mean CR, quantised + 256-bit AXI padding | **3.38497** |
+| **Vitis CSIM measured** | **3.38497** |
+| Mean difference (quantised vs Vitis) | 0.00043 (**0.0128%**) |
+| Worst single frame | 0.00091 (tolerance +/- 0.01) |
+| Padding model vs Vitis | matches **50 / 50 frames** to 4.9e-06 |
+| Padding per frame | 1 - 252 bits, i.e. one partial 256-bit packet |
+
+Because the padding model reproduces the Vitis result on every frame, the HLS bit counts are
+**bit-exact** with the MATLAB reference - the entire residual is AXI packet padding. This is a
+tighter agreement than DRHE achieved.
+
+#### Test 2.4 edge cases
+
+| Case | CR | MaxDiff | Result |
+|------|-----|---------|--------|
+| all-zeros | 3.8400 | 0 | PASS |
+| dc-constant | 3.3758 | 0 | PASS |
+| random-int16 | 0.6000 | 0 | PASS |
+| tone-192ramp | 1.1006 | 0 | PASS |
+| tone-1ramp | 0.2771 | 0 | PASS |
+| max-amplitude | 0.9868 | 0 | PASS |
+| max-alternating | 0.9868 | 1 | PASS |
+| int16-min | 0.9868 | 1 | PASS |
+
+Two things worth noting, neither a fault:
+
+- **LPC's synthetic-case ratios are lower than DRHE's** largely because the 32,768-bit coefficient
+  table is charged whatever the data does. On `all-zeros`, DRHE reaches 4.00 and LPC 3.84 - exactly
+  the overhead, since the residual bits are identical.
+- **`tone-192ramp` only reaches 1.10** because this Yule-Walker variant estimates the tone poorly,
+  not because the implementation is wrong. The synthetic tone's period is ~209 ramps, longer than
+  the 192-ramp frame, so the autocorrelation estimate is bad. Running the MATLAB solver on the
+  identical sequence gives `a1 = 1.0377, a2 = -0.0484` against the ideal `a1 = 2cos(w) = 1.9991,
+  a2 = -1`, and MATLAB's stability check does *not* fire - so MATLAB would compress this tone just
+  as poorly. Real radar data is not a pure tone and reaches CR 3.38.
+
+### 10.4 LPC Phase 3 results (15/09/2026)
+
+#### Resource utilisation - `lpc_compress` on xcku5p, versus DRHE
+
+| Resource | **LPC** | **DRHE** | LPC / DRHE | Available |
+|----------|--------:|---------:|-----------:|----------:|
+| LUT | **80,528** (37%) | 115,532 (53%) | **0.70x** | 216,960 |
+| FF | **17,393** (4%) | 57,105 (13%) | **0.30x** | 433,920 |
+| BRAM_18K | **256** (26%) | 40 (4%) | **6.4x** | 960 |
+| DSP | **168** (9%) | 132 (7%) | 1.27x | 1,824 |
+| Estimated Fmax | **85.43 MHz** | 81.88 MHz | +4.3% | target 100 MHz |
+
+> [!IMPORTANT]
+> **This inverts the expectation in the original plan.** Section 10 predicted LPC would be the more
+> expensive design because of its division. It is not. LPC uses **30% fewer LUTs and 70% fewer
+> flip-flops** than DRHE, and even clocks slightly faster.
+>
+> The reason is that the two algorithms spend their resources in completely different places.
+> DRHE's cost is **arithmetic**: `hls::sqrt`, `hls::atan2`, `hls::cos` and `hls::sin` on `float`
+> synthesise as CORDIC and generic floating-point cores, evaluated for every one of the 98,304
+> samples per frame. LPC's cost is **memory**: its 3.1 Mbit frame buffer accounts for 240 of its
+> 256 BRAMs. Its division runs only 1,024 times per frame - once per (bin, channel, part) - and is
+> cheap by comparison, contributing a pipelined `lpc_solve_order2` of depth 26 at II=1.
+>
+> So the real trade is **LUTs and flip-flops (DRHE) against block RAM and latency (LPC)**, not
+> "LPC costs more because it divides".
+
+#### Pipeline behaviour
+
+| Loop | Depth | II achieved | II target |
+|------|------:|------------:|----------:|
+| `INGEST_RAMP / INGEST_SAMPLE` | 4 | **3** | 1 |
+| `lpc_solve_order2` (function) | 26 | 1 | 1 |
+| `SOLVE_BIN / RESIDUAL_RAMP` | 30 | **1** | 1 |
+| `EMIT_COEF_BIN` | 2 | 1 | 1 |
+| `EMIT_RAMP / EMIT_SAMPLE` | 5 | **1** | 1 |
+
+Note the residual and emit loops reach **II=1**, which DRHE's main loop does not (it is stuck at
+II=2 on a memory-port conflict). LPC's bottleneck is instead the ingest loop at II=3: each iteration
+reads and writes six 64-bit accumulators and four history values per channel, which exceeds the
+available BRAM ports. Partitioning the accumulators further, or packing `R0`/`R1`/`R2` into one
+wide word per (channel, bin), is the obvious remedy.
+
+#### Latency and throughput (measured in co-simulation, 1 frame)
+
+| | **LPC** | **DRHE** | Kiem (ZU3EG) |
+|---|--------:|---------:|-------------:|
+| Frame latency | **197,277 cycles** | 61,253 cycles | - |
+| Cycles per 128-bit input beat | 8.03 | 2.49 | ~1.07 |
+| Frame time @ 100 MHz | 1,972.8 us | 612.5 us | - |
+| **Throughput @ 100 MHz** | **1.595 Gbit/s** | 5.136 Gbit/s | 11.92 Gbit/s |
+| Throughput @ own Fmax | 1.362 Gbit/s (85.43 MHz) | 4.205 Gbit/s (81.88 MHz) | - |
+
+**LPC is 3.22x slower than DRHE**, and the cycle count decomposes exactly, which makes clear where
+the time goes and what to do about it:
+
+| Stage | Iterations | II | Cycles |
+|-------|-----------:|---:|-------:|
+| Ingest (r, s) | 24,576 | 3 | 73,728 |
+| Solve + residual (ch, bin, ramp) | 98,304 | 1 | 98,304 |
+| Emit coefficients (ch, bin) | 512 | 1 | 512 |
+| Emit residuals (r, s) | 24,576 | 1 | 24,576 |
+| | | | **197,120** (measured 197,277) |
+
+Two things stand out, and both are fixable:
+
+1. **The residual pass costs 98,304 cycles because it handles one channel at a time.** Ingest and
+   emit process all four RX channels per iteration, since they are driven by the 128-bit AXI word;
+   the residual pass is a scalar walk over (channel, bin, ramp). Unrolling the channel dimension
+   there would cut it to about 24,576 cycles.
+2. **Ingest sits at II=3** on accumulator port pressure, costing 73,728 cycles where 24,576 should
+   do.
+
+Fixing both would bring LPC to roughly 74,000 cycles - within about 20% of DRHE - without touching
+the algorithm. **The division is not the bottleneck**: the solve runs 1,024 times per frame and
+contributes 512 cycles out of 197,277.
+
+### 10.5 DRHE vs LPC - head to head
+
+Same 50 frames, same 4 RX channels, same target part, both lossless.
+
+| Metric | **DRHE** | **LPC Huffman** | Better |
+|--------|---------:|----------------:|--------|
+| Average CR (50 frames) | 3.30987 | **3.38497** | LPC, +2.3% |
+| Aggregate CR | 3.30708 | **3.383** | LPC |
+| Lossless | yes (50/50) | yes (50/50) | tie |
+| Agreement with MATLAB | 0.014% | **0.0128%, bit-exact** | LPC |
+| LUT | 115,532 (53%) | **80,528 (37%)** | LPC, 0.70x |
+| FF | 57,105 (13%) | **17,393 (4%)** | LPC, 0.30x |
+| BRAM_18K | **40 (4%)** | 256 (26%) | DRHE, 6.4x fewer |
+| DSP | **132 (7%)** | 168 (9%) | DRHE |
+| Estimated Fmax | 81.88 MHz | **85.43 MHz** | LPC |
+| Frame latency | **61,253 cycles** | 197,277 cycles | DRHE, 3.2x faster |
+| Throughput @ 100 MHz | **5.136 Gbit/s** | 1.595 Gbit/s | DRHE |
+| Streaming? | **yes** | no - buffers a frame | DRHE |
+| Compressor frame buffer | **none** | 3.1 Mbit | DRHE |
+| Decompressor frame buffer | none | none | tie |
+
+**How to read this for the thesis.** The two algorithms are not separated by one number; they sit at
+different points on the same trade curve:
+
+- **LPC compresses better and costs less logic** - 2.3% higher CR on 30% fewer LUTs and a third of
+  the flip-flops - because its arithmetic is integer multiply-accumulate plus one cheap division per
+  sequence, whereas DRHE evaluates four floating-point transcendental functions for every sample.
+- **DRHE is far better suited to a streaming sensor edge.** It needs no frame buffer, begins
+  emitting immediately, and is 3.2x faster. LPC must see an entire frame before it can emit a single
+  bit, which costs 3.1 Mbit of BRAM and adds a full frame of latency before the first output.
+
+For a compression IP sitting between the Range FFT and the memory bus - the use case in section 1 -
+**latency and streaming behaviour usually outrank a 2.3% compression gain**, so DRHE is the better
+fit despite LPC's better ratio. Where the frame is already resident in DDR, or an extra frame of
+latency is acceptable, LPC wins on both ratio and logic.
+
+The original expectation in this section - that LPC's division would make it the expensive,
+harder-to-optimise design - was wrong on both counts, and the measurements above replace it.
 
 ---
 
@@ -1117,6 +1345,8 @@ Rows marked TBD are simply not yet run - Phase 3 is unblocked (section 0.2d).
 | MATLAB (4 RX, matches Vitis input) | 3.31033 | 0 | - | - | - | - | 50 |
 | Vitis CSIM (bit-accurate, 4 RX) | 3.30987 | **0** | - | - | - | - | 50 |
 | RTL Co-Sim (Verilog, xsim) | 3.33098 | **0** | - | - | - | - | 1 |
+| LPC Vitis CSIM (4 RX) | 3.38497 | **0** | - | - | - | - | 50 |
+| LPC RTL Co-Sim | 3.40388 | **0** | - | - | - | - | 1 |
 | On-FPGA (if available) | TBD | TBD | - | - | - | - | 50 |
 
 FN/FP/NF/SNR are detection-pipeline metrics and are only produced by the MATLAB chain; the HLS
@@ -1143,12 +1373,15 @@ so the percentages are not comparable with Kiem's; the absolute LUT count is (2.
 
 | Metric | DRHE | LPC Huffman | Kiem (DRHE) |
 |--------|------|-------------|-------------|
-| CR | 3.30987 (CSIM, 50 frames) | 3.37 (MATLAB only) | 3.17 (HW) / 3.25 (MATLAB) |
-| Throughput | 5.136 Gbit/s @ 100 MHz | not implemented | 11.92 Gbit/s |
-| Latency | 580 ns pipeline (58 cycles) | not implemented | 230 ns |
-| LUTs | 111,269 (51% of KU5P) | not implemented | 45,892 (65% of ZU3EG) |
-| DSPs | 132 (7%) | not implemented | 44 (12.2%) |
-| Fmax | 81.88 MHz | not implemented | 100 MHz |
+| CR (CSIM, 50 frames) | 3.30987 | **3.38497** | 3.17 (HW) / 3.25 (MATLAB) |
+| Throughput @ 100 MHz | **5.136 Gbit/s** | 1.595 Gbit/s | 11.92 Gbit/s |
+| Frame latency | **61,253 cycles** | 197,277 cycles | - |
+| LUTs | 115,532 (53%) | **80,528 (37%)** | 45,892 (65% of ZU3EG) |
+| FFs | 57,105 (13%) | **17,393 (4%)** | 9,243 (6.6%) |
+| BRAM_18K | **40 (4%)** | 256 (26%) | 10 (4.6%) |
+| DSPs | **132 (7%)** | 168 (9%) | 44 (12.2%) |
+| Fmax | 81.88 MHz | **85.43 MHz** | 100 MHz |
+| Streaming | **yes** | no (buffers a frame) | - |
 
 ---
 
@@ -1184,6 +1417,11 @@ so the percentages are not comparable with Kiem's; the absolute LUT count is (2.
 | `Matlab_Sim\drhe_per_frame_cr.m` | **New.** Per-frame MATLAB DRHE CR on the same 4 RX channels the Vitis testbench sees; also predicts the AXI-padded CR. Supports Test 2.3 |
 | `Matlab_Sim\_removed_shims\` | Retired temporary `hann.m` / `hanning.m`, kept only for the record - the Signal Processing Toolbox is installed and is what the pipeline now uses (section 0.2b) |
 | `D:\Thesis\ThesisA\hls_component\` | **HLS project directory** - second, space-free clone of this repo; build and run CSIM here |
+| `lpc_compress.cpp`, `lpc_decompress.cpp`, `lpc_common.h` | **New.** LPC + Huffman HLS implementation (section 10) |
+| `lpc_tb.cpp`, `lpc_tb_edge.cpp` | LPC testbenches, mirroring the DRHE pair |
+| `test_lpc.cfg`, `test_lpc_edge.cfg` | LPC Vitis configs (`syn.top=lpc_compress`) |
+| `Matlab_Sim\lpc_per_frame_cr.m` | **New.** Per-frame MATLAB LPC reference with double, 16-bit-quantised and AXI-padded ratios |
+| `Matlab_Sim\phase2_lpc_matlab_vs_vitis_cr.csv` | LPC frame-by-frame MATLAB vs Vitis comparison |
 | `Matlab_Sim\drhe_per_frame_cr.csv` | Per-frame MATLAB CR output |
 | `Matlab_Sim\phase2_matlab_vs_vitis_cr.csv` | Test 2.3 frame-by-frame MATLAB vs Vitis comparison |
 | `Matlab_Sim\_runlogs\` | Raw console logs for Tests 1.1, 1.2, 1.3 |
