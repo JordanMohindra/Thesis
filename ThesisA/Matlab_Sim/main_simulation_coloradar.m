@@ -33,13 +33,24 @@ VEL_MAX_PLOT   = [];          % [m/s] velocity axis cap ([] = radar Nyquist)
 % ===================================================================
 
 %% --- locate the frame ---------------------------------------------
-dataDir = fullfile(fileparts(mfilename('fullpath')), '..', '..', ...
-                   'Jordan''s Thesis', 'cascade', 'adc_samples', 'data');
-binFile = fullfile(dataDir, sprintf('frame_%d.bin', FRAME_INDEX));
-if exist(binFile, 'file') ~= 2
+candidatePaths = { ...
+    fullfile(fileparts(mfilename('fullpath')), '..', '..', 'Jordan''s Thesis', 'cascade', 'adc_samples', 'data'), ...
+    'C:\Users\mohin\Downloads\12_21_2020_ec_hallways_run4\12_21_2020_ec_hallways_run4\cascade\adc_samples\data' ...
+};
+
+binFile = '';
+for i = 1:length(candidatePaths)
+    testFile = fullfile(candidatePaths{i}, sprintf('frame_%d.bin', FRAME_INDEX));
+    if exist(testFile, 'file') == 2
+        binFile = testFile;
+        dataDir = candidatePaths{i};
+        break;
+    end
+end
+
+if isempty(binFile)
     error('main_simulation_coloradar:notFound', ...
-          'Frame file not found: %s\n(Place frame_<N>.bin files under %s)', ...
-          binFile, dataDir);
+          'Frame file frame_%d.bin not found in candidate directories.', FRAME_INDEX);
 end
 
 fprintf('================================================================\n');
