@@ -19,14 +19,25 @@ clear; clc;
 
 %% ============ CONFIGURATION ==========================================
 MAX_FRAMES  = 50;            % Number of frames to export
+if ~isempty(getenv('DRHE_MAX_FRAMES'))   % optional override for scripted runs
+    MAX_FRAMES = str2double(getenv('DRHE_MAX_FRAMES'));
+end
 TX_SELECT   = 1:12;          % TX antennas (1:12 = all, gives 192 ramps)
 NRX_KEEP    = 4;             % Number of RX channels to keep (first N)
 REMOVE_DC   = true;
-OUTPUT_FILE = 'C:\Users\mohin\Vitis\hls_component\coloradar_multiframe.bin';
+% Vitis HLS refuses any project path containing a space, and this user profile
+% has one ("Jordan Mohindra"). D:\Thesis is a second clone of this repository on
+% a space-free path, so the HLS testbench data is written straight there.
+HLS_DIR = 'D:\Thesis\ThesisA\hls_component';
+if ~exist(HLS_DIR, 'dir')   % fall back to the hls_component beside this clone
+    HLS_DIR = fullfile(fileparts(mfilename('fullpath')), '..', 'hls_component');
+end
+OUTPUT_FILE = fullfile(HLS_DIR, 'coloradar_multiframe.bin');
 % =======================================================================
 
 %% --- Locate frames ---------------------------------------------------
 candidatePaths = { ...
+    fullfile(fileparts(mfilename('fullpath')), '..', '..', '..', 'Jordan''s Thesis', 'cascade', 'adc_samples', 'data'), ...
     fullfile(fileparts(mfilename('fullpath')), '..', '..', 'Jordan''s Thesis', 'cascade', 'adc_samples', 'data'), ...
     'C:\Users\mohin\Downloads\12_21_2020_ec_hallways_run4\12_21_2020_ec_hallways_run4\cascade\adc_samples\data' ...
 };
@@ -123,3 +134,5 @@ fprintf('  Output: %s\n', OUTPUT_FILE);
 fprintf('  Size  : %.2f MB (%d bytes)\n', info.bytes / 1024 / 1024, info.bytes);
 fprintf('  Frames: %d  Samples: %d  Ramps: %d  RX: %d\n', numFrames, nSampOut, nRampsOut, nRxUse);
 fprintf('================================================================\n');
+
+

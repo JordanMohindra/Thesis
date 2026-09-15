@@ -6,6 +6,9 @@ clear; clc; close all;
 
 %% ============ CONFIGURATION (edit these) ==========================
 MAX_FRAMES  = 1;             % Maximum number of frames to process (use inf for all)
+if ~isempty(getenv('DRHE_MAX_FRAMES'))   % optional override for scripted runs
+    MAX_FRAMES = str2double(getenv('DRHE_MAX_FRAMES'));
+end
 TX_SELECT   = 1:12;           % which TX antennas to use (1:12 = all)
 FX16_ENOB   = 16;             % effective FX16 bits (16 = lossless container)
 REMOVE_DC   = true;           % subtract per-ramp mean per channel
@@ -15,6 +18,7 @@ VEL_MAX_PLOT   = [];          % [m/s] velocity axis cap ([] = radar Nyquist)
 
 %% --- locate the frames --------------------------------------------
 candidatePaths = { ...
+    fullfile(fileparts(mfilename('fullpath')), '..', '..', '..', 'Jordan''s Thesis', 'cascade', 'adc_samples', 'data'), ...
     fullfile(fileparts(mfilename('fullpath')), '..', '..', 'Jordan''s Thesis', 'cascade', 'adc_samples', 'data'), ...
     'C:\Users\mohin\Downloads\12_21_2020_ec_hallways_run4\12_21_2020_ec_hallways_run4\cascade\adc_samples\data' ...
 };
@@ -157,3 +161,4 @@ fprintf('\n  Interpretation:\n');
 fprintf('   * These metrics represent the true global performance over a sequence of frames.\n');
 fprintf('   * False Positives and False Negatives are calculated as a percentage of the TOTAL\n');
 fprintf('     detections across the entire run, preventing single-frame anomalies from skewing results.\n');
+
