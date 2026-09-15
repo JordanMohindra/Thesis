@@ -17,13 +17,15 @@
 >
 > **Two findings need attention before the write-up:**
 >
-> 1. Test 2.4 found a **latent correctness defect**: a residual of exactly `-32768` encodes
->    identically to `+32767` and does not round-trip. It is unreachable with the ColoRadar data
->    (measured residual range is only -514 to +416), but it breaks the *unconditional* lossless
->    claim. Analysis and three options are in Test 2.4.
+> 1. Test 2.4 found a **latent correctness defect** - a residual of exactly `-32768` encoded
+>    identically to `+32767` - which is now **fixed**: the residual is clamped and the predictor
+>    made closed-loop, bounding the error to 1 LSB with no propagation (8/8 edge cases pass, real
+>    data bit-identical). The remaining caveat is that the codec is lossless for every residual
+>    *except* -32768, which costs 1 LSB. See Test 2.4.
 > 2. Test 3.2 shows the design **does not meet 100 MHz** (estimated Fmax 81.88 MHz) and runs at
->    **II=2** rather than the target II=1, making it 2.13x slower than Kiem's. The cause is a
->    memory-port conflict on one state array, identified precisely in Test 3.2.
+>    **II=2** rather than the target II=1, making it 2.32x slower than Kiem's. The cause is a
+>    memory-port conflict on one state array, identified precisely in Test 3.2, plus a per-ramp
+>    pipeline drain because `RAMP_LOOP` is not pipelined.
 
 ### 0.1 Current file locations
 
@@ -469,7 +471,10 @@ call "D:\Xilinx\2026.1\Vitis\bin\vitis-run.bat" --mode hls --csim ^
      --config D:\Thesis\ThesisA\hls_component\test_edge.cfg --work_dir hls_edge
 ```
 
-**RESULT - 5 / 8 PASS (15/09/2026).** A real defect was found.
+**RESULT - defect found, then fixed. 5/8 before the fix, 8/8 after (15/09/2026).**
+
+The run below is the *original* result, kept because it is the evidence for the defect. The fix and
+the re-run are in "Resolution" at the end of this test.
 
 | Case | Input | CR | MaxDiff | Result |
 |------|-------|-----|---------|--------|
@@ -540,9 +545,75 @@ is exactly why Tests 2.1-2.3 are lossless on 50/50 frames. **The defect is laten
    losslessness, but changes the bitstream format, so the decoder, the Huffman table and any
    already-generated results must all be regenerated.
 
-Option 3 is the only one that preserves the lossless claim. Since it changes the format and would
-invalidate the Phase 2 and Phase 3 numbers above, it has **not** been applied - this is a design
-decision for the author.
+##### Resolution - option 2 applied, with a correction
+
+Option 2 (saturate) was chosen. **Saturation on its own would have been actively harmful**, and the
+reason matters:
+
+`drhe_decompress.cpp` derives `curr_mag` / `curr_phase` from the **reconstructed** sample, while
+`drhe_compress.cpp` derived them from the **original** one. That is an *open-loop* predictor - it
+only agreed because reconstruction was exact. The moment the clamp fires, encoder and decoder
+prediction state diverge, and because the predictor is an IIR filter that divergence is carried
+forward through every remaining ramp. The result would have been drift far worse than the single
+aliased sample.
+
+The compressor therefore now reconstructs exactly what the decompressor will produce, and drives
+its state from that - proper closed-loop DPCM:
+
+```cpp
+// 3a. clamp the one unrepresentable residual
+if (diff_re == -32768) diff_re = -32767;
+if (diff_im == -32768) diff_im = -32767;
+
+// 3b. predict from the reconstruction, not the original
+int recon_re = wrap_int16(diff_re + pred_re);
+int recon_im = wrap_int16(diff_im + pred_im);
+float curr_mag   = hls::sqrt((float)recon_re * recon_re + (float)recon_im * recon_im);
+float curr_phase = hls::atan2((float)recon_im, (float)recon_re);
+```
+
+**Re-run of Test 2.4 after the fix - 8 / 8 PASS:**
+
+| Case | CR | MaxDiff before | MaxDiff after | Result |
+|------|-----|---------------:|--------------:|--------|
+| all-zeros | 4.0000 | 0 | 0 | PASS |
+| dc-constant | 3.5867 | 0 | 0 | PASS |
+| random-int16 | 0.6037 | 60475 | **1** | PASS |
+| tone-192ramp | 3.2777 | 0 | 0 | PASS |
+| tone-1ramp | 0.6214 | 0 | 0 | PASS |
+| max-amplitude | 3.0132 | 0 | 0 | PASS |
+| max-alternating | 3.0326 | 65535 | **1** | PASS |
+| int16-min | 3.0371 | 65535 | **1** | PASS |
+
+The `random-int16` case is the one that proves the closed loop works: the clamp fires repeatedly
+across all 192 ramps and the error still never exceeds **1 LSB**. Under the open-loop form it had
+reached 60,475. Compression ratios are unchanged in every case, confirming the bitstream format was
+not touched.
+
+**Effect on real data: none.** The 50-frame C-simulation after the fix still reports MaxDiff 0,
+average CR 3.30987 and aggregate CR 3.30708 - bit-identical to before. The clamp never fires on
+ColoRadar data, and where reconstruction is exact the closed-loop and open-loop forms are
+equivalent by construction.
+
+**Cost in hardware:** closing the loop puts `sqrt` and `atan2` *after* the prediction rather than
+alongside it, which lengthens the dependency chain. Pipeline depth rises from **32 to 58 cycles**
+and registers from 40,309 to 57,105 FF; II and Fmax are unchanged. Test 3.2 and Test 3.3 below
+report the post-fix figures.
+
+> [!IMPORTANT]
+> The guarantee is now: **lossless for every residual except exactly -32768, which is reproduced
+> with an error of 1 LSB, and that error does not propagate.** For the ColoRadar dataset the codec
+> is unconditionally lossless, since the clamp is never reached. If the thesis needs an
+> unconditional guarantee for arbitrary input, option 3 (an S4 category 16) remains the only route,
+> at the cost of a bitstream format change.
+
+> [!NOTE]
+> **The MATLAB model was deliberately left unchanged**, so it now diverges from the HLS in two
+> ways that only appear on pathological input: it is open-loop (predicts from the original sample)
+> and it applies no clamp. Neither matters for the ColoRadar data - residuals never approach
+> -32768, so the two remain bit-identical there, as Tests 2.2 and 2.3 confirm after the fix. If the
+> MATLAB is ever to be cited as a bit-exact model of the hardware for *arbitrary* input, the same
+> two changes belong in `compress_drhe.m`.
 
 ---
 
@@ -606,8 +677,11 @@ INFO: [COSIM 212-1000] *** C/RTL co-simulation finished: PASS ***
 The synthesised Verilog reproduces the C-simulation result exactly - same compression ratio, same
 compressed bit count, bit-exact reconstruction. Functional correctness survives synthesis.
 
-**Cost:** 24m 27s wall-clock for a single frame, of which 19m 05s was the XSIM run itself
-(1,124,889 ms of simulator CPU for 562.6 us of simulated time - roughly a 2,000,000x slowdown).
+Re-run after the Test 2.4 closed-loop fix: still **PASS**, MaxDiff 0, CR 3.33098, 944,384
+compressed bits - identical in every respect. The fix changed timing, not function.
+
+**Cost:** 24-26 min wall-clock for a single frame, most of it the XSIM run itself (over 1,100
+seconds of simulator CPU for ~600 us of simulated time - roughly a 2,000,000x slowdown).
 The plan's warning was well founded: **50 frames in co-simulation would take about 20 hours** and
 is not worth doing, since Test 2.2 already covers 50 frames in C-simulation and the two agree
 exactly here.
@@ -646,11 +720,14 @@ Report: `hls_component\hls_component\hls\syn\report\drhe_compress_csynth.rpt`
 
 | Resource | Used | Available | Util. | Kiem (ZU3EG) |
 |----------|------|-----------|-------|--------------|
-| LUT | 111,269 | 216,960 | **51%** | 45,892 (65%) |
-| FF | 40,309 | 433,920 | 9% | 9,243 (6.6%) |
+| LUT | 115,532 | 216,960 | **53%** | 45,892 (65%) |
+| FF | 57,105 | 433,920 | 13% | 9,243 (6.6%) |
 | BRAM_18K | 40 | 960 | 4% | 10 (4.6%) |
 | DSP | 132 | 1,824 | 7% | 44 (12.2%) |
 | URAM | 0 | 64 | 0% | - |
+
+(Post-fix figures. Before the Test 2.4 closed-loop change they were 111,269 LUT and 40,309 FF; the
+extra registers are the lengthened dependency chain.)
 
 > [!WARNING]
 > **Section 7.2 of this document had the KU5P device size wrong.** It listed 70,560 LUTs,
@@ -681,7 +758,9 @@ datapath, to close.
 
 | Loop | Iteration latency | II target | II achieved | Pipelined |
 |------|------------------|-----------|-------------|-----------|
-| `SAMPLE_LOOP` | 32 cycles | 1 | **2** | yes |
+| `SAMPLE_LOOP` | 58 cycles | 1 | **2** | yes |
+
+(Depth was 32 cycles before the Test 2.4 closed-loop fix. II and Fmax were unchanged by it.)
 
 The cause is reported explicitly:
 
@@ -718,30 +797,38 @@ Source: `hls\sim\report\drhe_compress_cosim.rpt` (measured) and the synthesis re
 | Quantity | Value | Where from |
 |----------|-------|-----------|
 | Frame size | 192 ramps x 128 samples x 4 RX = 3,145,728 input bits | testbench |
-| **Measured frame latency** | **56,261 clock cycles** | co-simulation |
+| **Measured frame latency** | **61,253 clock cycles** | co-simulation |
 | Initiation interval | **II = 2** (target 1) | synthesis |
-| Pipeline depth | 32 cycles | synthesis |
-| Cycles per 128-bit input beat | 2.289 | 56,261 / 24,576 |
-| Effective throughput | **55.91 bits/cycle** | 3,145,728 / 56,261 |
+| Pipeline depth | 58 cycles | synthesis |
+| Cycles per 128-bit input beat | 2.492 | 61,253 / 24,576 |
+| Effective throughput | **51.36 bits/cycle** | 3,145,728 / 61,253 |
 
-The 2.289 cycles per beat is II=2 plus about 37 cycles of per-ramp overhead (the pipeline drains
-and restarts on every one of the 192 ramps, since `RAMP_LOOP` itself is not pipelined).
+(Before the Test 2.4 closed-loop fix: 56,261 cycles, depth 32, 55.91 bits/cycle. The fix costs
+8.9% throughput - the price of bounding the -32768 error.)
+
+The 2.492 cycles per beat is II=2 plus about 63 cycles of per-ramp overhead: the pipeline drains
+and refills on every one of the 192 ramps, because `RAMP_LOOP` itself is not pipelined, so the
+58-cycle depth is paid 192 times. Pipelining `RAMP_LOOP`, or merging the two loops into one flat
+loop over `r * nSamples + s`, would recover most of that overhead independently of the II fix.
 
 ##### Throughput and latency at each clock
 
 | | At 100 MHz (target, **not met**) | At 81.88 MHz (achievable) | Kiem (ZU3EG, 100 MHz) |
 |---|---|---|---|
-| Frame processing time | 562.61 us | 687.12 us | - |
-| **Throughput** | **5.591 Gbit/s** | **4.578 Gbit/s** | 11.92 Gbit/s |
-| IP pipeline latency (32 cycles) | 320 ns | 391 ns | 230 ns |
+| Frame processing time | 612.53 us | 748.08 us | - |
+| **Throughput** | **5.136 Gbit/s** | **4.205 Gbit/s** | 11.92 Gbit/s |
+| IP pipeline latency (58 cycles) | 580 ns | 708 ns | 230 ns |
 
-**This design is 2.13x slower than Kiem's at the same clock**, and the gap is fully explained by
-the initiation interval: Kiem's 11.92 Gbit/s at 100 MHz works out to ~119 bits/cycle on a 128-bit
-input, i.e. effectively II=1, whereas this design achieves 55.91 bits/cycle at II=2. Closing the
-II=1 violation in Test 3.2 would roughly double throughput to ~11 Gbit/s and bring it in line.
+**This design is 2.32x slower than Kiem's at the same clock.** The gap is almost entirely the
+initiation interval: Kiem's 11.92 Gbit/s at 100 MHz works out to ~119 bits/cycle on a 128-bit input,
+i.e. effectively II=1, whereas this design achieves 51.36 bits/cycle at II=2 plus per-ramp drain.
+Fixing the II violation in Test 3.2 and pipelining `RAMP_LOOP` together would take it to roughly
+11-12 Gbit/s, in line with Kiem.
 
-The pipeline latency (320 ns for 32 cycles) is already in the same class as Kiem's 230 ns, so the
-per-sample path is not the problem - sustained rate is.
+The pipeline latency (580 ns for 58 cycles) is now about 2.5x Kiem's 230 ns, having been 320 ns
+before the Test 2.4 fix. If that latency matters for the thesis, it is the direct cost of bounding
+the -32768 error and could be recovered by adopting option 3 (S4 category 16) instead of the
+clamp.
 
 > [!NOTE]
 > Kiem's "0.08 ms end-to-end" is not comparable to the 562.61 us frame time above without knowing
@@ -899,9 +986,9 @@ Your MATLAB results (Table 1 in your executive summary) versus Kiem's Table 5.5:
 | Available FFs | 141,120 | **433,920** | Corrected |
 | Available BRAM_18K | 216 | **960** | Corrected |
 | Available DSPs | 360 | **1,824** | Corrected |
-| LUT Utilization | 65% (45,892) | **51% (111,269)** | Lower % but 2.4x more LUTs in absolute terms |
-| Throughput | 11.92 Gbit/s | **5.591 Gbit/s @ 100 MHz** | II=2 vs Kiem's effective II=1 |
-| Latency | 230 ns | **320 ns** (32-cycle pipeline) | Comparable |
+| LUT Utilization | 65% (45,892) | **53% (115,532)** | Lower % but 2.5x more LUTs in absolute terms |
+| Throughput | 11.92 Gbit/s | **5.136 Gbit/s @ 100 MHz** | II=2 plus per-ramp drain vs Kiem's effective II=1 |
+| Latency | 230 ns | **580 ns** (58-cycle pipeline) | 2.5x; 320 ns before the Test 2.4 fix |
 | Fmax | 100 MHz | **81.88 MHz (estimate)** | Timing does not close at 100 MHz |
 
 > [!IMPORTANT]
@@ -922,10 +1009,10 @@ Your MATLAB results (Table 1 in your executive summary) versus Kiem's Table 5.5:
 | 2.1: Single-frame CSIM | 2 | Easy | 5 min | No | **PASS** (MaxDiff 0) |
 | 2.2: Multi-frame CSIM (50) | 2 | Easy | 15-30 min | No | **PASS** (50/50 lossless, ~1 min) |
 | 2.3: CR match MATLAB vs Vitis | 2 | Easy | 10 min | No | **PASS** (0.014% residual, explained) |
-| 2.4: Edge case testing | 2 | Medium | 2-3 hours | No | **5/8 PASS** - found a latent defect (see 4.3) |
+| 2.4: Edge case testing | 2 | Medium | 2-3 hours | No | **8/8 PASS** after fixing the defect it found |
 | 3.1: RTL co-simulation | 3 | Medium | 1-4 hours | No | **PASS** (1 frame, 24m 27s) |
 | 3.2: Synthesis resource report | 3 | Easy | 30 min | No | **PARTIAL** - fits, but II=2 and Fmax 81.88 MHz |
-| 3.3: Latency/throughput estimation | 3 | Medium | 1 hour | No | **MEASURED** - 5.591 Gbit/s @ 100 MHz |
+| 3.3: Latency/throughput estimation | 3 | Medium | 1 hour | No | **MEASURED** - 5.136 Gbit/s @ 100 MHz |
 | 4.1: Post-impl resource utilization | 4 | Medium | 2-4 hours | **Yes** |
 | 4.2: Timing closure | 4 | Medium | 1-2 hours | **Yes** |
 | 4.3: Loopback test | 4 | Hard | 1-2 days | **Yes** |
@@ -954,10 +1041,10 @@ Your MATLAB results (Table 1 in your executive summary) versus Kiem's Table 5.5:
 - Lossless reconstruction verification (CSIM) - **50/50 frames, MaxDiff 0**
 - Multi-frame CR statistics (50+ frames) - **mean 3.31033, std 0.0948, range 2.939-3.470**
 - Algorithm comparison table (8 algorithms) - **reproduces executive-summary Table 1 exactly**
-- **Estimated** resource utilization - **111,269 LUT / 40,309 FF / 40 BRAM_18K / 132 DSP**
+- **Estimated** resource utilization - **115,532 LUT / 57,105 FF / 40 BRAM_18K / 132 DSP**
 - **Estimated** clock frequency - **81.88 MHz (below the 100 MHz target)**
-- **Estimated** latency and throughput - **56,261 cycles/frame, 5.591 Gbit/s @ 100 MHz**
-- Edge case robustness testing - **5/8 pass; one latent defect found**
+- **Estimated** latency and throughput - **61,253 cycles/frame, 5.136 Gbit/s @ 100 MHz**
+- Edge case robustness testing - **8/8 pass; one latent defect found and fixed**
 
 ### Results that require the FPGA:
 - **Actual** post-place-and-route resource utilization
@@ -1042,8 +1129,8 @@ FX16's by construction.
 
 | Resource | HLS Estimate | % of KU5P | Post-Implementation | Kiem (ZU3EG) |
 |----------|-------------|----------:|--------------------:|-------------:|
-| LUTs | 111,269 | 51% | TBD | 45,892 (65%) |
-| FFs | 40,309 | 9% | TBD | 9,243 (6.6%) |
+| LUTs | 115,532 | 53% | TBD | 45,892 (65%) |
+| FFs | 57,105 | 13% | TBD | 9,243 (6.6%) |
 | BRAM_18K | 40 | 4% | TBD | 10 (4.6%) |
 | DSPs | 132 | 7% | TBD | 44 (12.2%) |
 | URAM | 0 | 0% | TBD | - |
@@ -1057,8 +1144,8 @@ so the percentages are not comparable with Kiem's; the absolute LUT count is (2.
 | Metric | DRHE | LPC Huffman | Kiem (DRHE) |
 |--------|------|-------------|-------------|
 | CR | 3.30987 (CSIM, 50 frames) | 3.37 (MATLAB only) | 3.17 (HW) / 3.25 (MATLAB) |
-| Throughput | 5.591 Gbit/s @ 100 MHz | not implemented | 11.92 Gbit/s |
-| Latency | 320 ns pipeline (32 cycles) | not implemented | 230 ns |
+| Throughput | 5.136 Gbit/s @ 100 MHz | not implemented | 11.92 Gbit/s |
+| Latency | 580 ns pipeline (58 cycles) | not implemented | 230 ns |
 | LUTs | 111,269 (51% of KU5P) | not implemented | 45,892 (65% of ZU3EG) |
 | DSPs | 132 (7%) | not implemented | 44 (12.2%) |
 | Fmax | 81.88 MHz | not implemented | 100 MHz |
@@ -1076,7 +1163,7 @@ so the percentages are not comparable with Kiem's; the absolute LUT count is (2.
 | Resource utilization exceeds budget | Design does not fit | Low | KU5P has same resources as ZU3EG; Kiem fit at 65% |
 | No Vivado licence for xcku5p | Would block all of Phase 3 and Phase 4 | **Occurred - now RESOLVED** | Licence installed 15/09/2026; `xcku5p-ffvb676-2-e` resolves and `vitis-run --csim` runs clean. Phase 3 unblocked |
 | Signal Processing Toolbox unavailable | MATLAB pipeline will not run | **Occurred - now RESOLVED** | Toolbox installed 15/09/2026; temporary window functions deleted and all of Phase 1 re-run natively with identical results (section 0.2b) |
-| Residual of -32768 is not representable | Breaks the unconditional lossless claim | **Occurred - latent** | Unreachable with ColoRadar data (measured range -514..+416). Needs an S4 category 16 to fix properly; see Test 2.4 |
+| Residual of -32768 is not representable | Breaks the unconditional lossless claim | **Occurred - mitigated** | Clamped to -32767 and the predictor closed-loop, bounding the error to 1 LSB with no propagation. Unreachable with ColoRadar data anyway (range -514..+416). An S4 category 16 would remove the caveat entirely; see Test 2.4 |
 | Design misses 100 MHz timing (Fmax 81.88 MHz) | Cannot hit the target clock | **Occurred** | Pipeline the float datapath, or move polar conversion to fixed point / LUT-CORDIC; or clock at 80 MHz and report it |
 | Pipeline achieves II=2, not II=1 | Halves throughput vs Kiem | **Occurred** | Memory-port conflict on `s_prev_prev_phase`; hoist the `r==0` reset out of the pipelined loop or partition on dim=2. See Test 3.2 |
 | HLS project path contains a space | Vitis refuses to create the project | **Occurred - handled** | Build from the space-free clone `D:\Thesis\ThesisA\hls_component\`; never point Vitis at `C:\Users\Jordan Mohindra\...`. A licence does not change this |
