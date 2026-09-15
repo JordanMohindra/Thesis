@@ -1,0 +1,3 @@
+relativeroot=C:/Users/mohin/Vitis/hls_component
+original_argv=--mode hls --csim --config C:\Users\mohin\Vitis\hls_component\test.cfg --work_dir hls_component 
+

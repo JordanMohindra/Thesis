@@ -1,0 +1,53 @@
+  **** HLS Build v2026.1 6493734
+INFO: [HLS 200-2005] Using work_dir C:/Users/mohin/Vitis/hls_component/hls_component 
+INFO: [HLS 200-2176] Writing Vitis IDE component file C:/Users/mohin/Vitis/hls_component/hls_component/vitis-comp.json
+INFO: [HLS 200-10] Creating and opening component 'C:/Users/mohin/Vitis/hls_component/hls_component'.
+INFO: [HLS 200-2174] Applying component config ini file test.cfg
+INFO: [HLS 200-1465] Applying config ini 'syn.file=drhe_compress.cpp' from test.cfg(5)
+INFO: [HLS 200-10] Adding design file 'C:/Users/mohin/Vitis/hls_component/drhe_compress.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.file=drhe_decompress.cpp' from test.cfg(6)
+INFO: [HLS 200-10] Adding design file 'C:/Users/mohin/Vitis/hls_component/drhe_decompress.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.file=drhe.cpp' from test.cfg(7)
+INFO: [HLS 200-10] Adding design file 'C:/Users/mohin/Vitis/hls_component/drhe.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'tb.file=drhe_tb.cpp' from test.cfg(8)
+INFO: [HLS 200-10] Adding test bench file 'C:/Users/mohin/Vitis/hls_component/drhe_tb.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'tb.file=coloradar_frame0_rangefft.bin' from test.cfg(9)
+INFO: [HLS 200-10] Adding test bench file 'C:/Users/mohin/Vitis/hls_component/coloradar_frame0_rangefft.bin' to the project
+INFO: [HLS 200-1465] Applying config ini 'part=xcku5p-ffvb676-2-e' from test.cfg(1)
+INFO: [HLS 200-1611] Setting target device to 'xcku5p-ffvb676-2-e'
+INFO: [HLS 200-1465] Applying config ini 'clock=100MHz' from test.cfg(4)
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1465] Applying config ini 'package.output.format=ip_catalog' from test.cfg(11)
+INFO: [HLS 200-2176] Writing Vitis IDE component file C:/Users/mohin/Vitis/hls_component/hls_component/vitis-comp.json
+INFO: [SIM 211-2] *************** CSIM start ***************
+INFO: [HLS 200-2191] C-Simulation will use clang-16 as the compiler
+INFO: [HLS 200-2036] Building debug C Simulation binaries
+mingw32-make: 'csim.exe' is up to date.
+==========================================================
+ DRHE Compression & Decompression Vitis HLS Testbench     
+ Dataset: ColoRadar Cascade frame_0.bin Range-FFT Data     
+ Target FPGA: AMD Kintex UltraScale+ (xcku5p-ffvb676-2-e) 
+==========================================================
+[INFO] Loading ColoRadar frame_0 Range-FFT data from coloradar_frame0_rangefft.bin...
+[INFO] Data frame ready (192 ramps x 128 samples x 4 RX channels).
+[INFO] Executing DRHE Compression...
+       Compressed Packets (256-bit): 3687
+       Uncompressed Bit Count      : 3145728 bits (384 KB)
+       Compressed Bit Count        : 943872 bits (115 KB)
+       Achieved Compression Ratio  : 3.33279x
+[INFO] Executing DRHE Decompression...
+[INFO] Verifying Decompressed Output Accuracy...
+==========================================================
+ VERIFICATION RESULTS                                      
+==========================================================
+ Max LSB Difference : 0
+ Mean Squared Error  : 0
+ Signal-to-Noise Ratio: INFINITE (Lossless)
+ Compression Ratio   : 3.33279x
+==========================================================
+[SUCCESS] DRHE is LOSSLESS — perfect reconstruction!
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 24576
+INFO: [SIM 211-1] CSim done with 0 errors.
+INFO: [SIM 211-3] *************** CSIM finish ***************
+INFO: [HLS 200-112] Total CPU user time: 3 seconds. Total CPU system time: 3 seconds. Total elapsed time: 16.05 seconds; peak allocated memory: 143.672 MB.
+INFO: [vitis-run 60-791] Total elapsed time: 0h 0m 37s

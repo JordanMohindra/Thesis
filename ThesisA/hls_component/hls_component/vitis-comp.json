@@ -1,0 +1,9 @@
+{
+  "name": "hls_component",
+  "type": "HLS",
+  "configuration": {
+    "componentType": "HLS",
+    "configFiles": ["..\/test.cfg"],
+    "work_dir": "."
+  }
+}

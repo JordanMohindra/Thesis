@@ -1,0 +1,50 @@
+[
+  {
+    "directory": "C:\\Users\\mohin\\Vitis\\hls_component",
+    "arguments": [
+      "C:\\AMDDesignTools\\2026.1\\Vitis\\win64\\tools\\clang-16\\bin\\clang++.exe",
+      "--sysroot=C:\\AMDDesignTools\\2026.1\\Vitis\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "-fhls",
+      "-hls-syn-headers-dir=C:\\AMDDesignTools\\2026.1\\Vitis\\common\\technology\\autopilot",
+      "-c",
+      "C:\\Users\\mohin\\Vitis\\hls_component\\drhe_compress.cpp"
+    ],
+    "file": "C:\\Users\\mohin\\Vitis\\hls_component\\drhe_compress.cpp"
+  },
+  {
+    "directory": "C:\\Users\\mohin\\Vitis\\hls_component",
+    "arguments": [
+      "C:\\AMDDesignTools\\2026.1\\Vitis\\win64\\tools\\clang-16\\bin\\clang++.exe",
+      "--sysroot=C:\\AMDDesignTools\\2026.1\\Vitis\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "-fhls",
+      "-hls-syn-headers-dir=C:\\AMDDesignTools\\2026.1\\Vitis\\common\\technology\\autopilot",
+      "-c",
+      "C:\\Users\\mohin\\Vitis\\hls_component\\drhe.cpp"
+    ],
+    "file": "C:\\Users\\mohin\\Vitis\\hls_component\\drhe.cpp"
+  },
+  {
+    "directory": "C:\\Users\\mohin\\Vitis\\hls_component",
+    "arguments": [
+      "C:\\AMDDesignTools\\2026.1\\Vitis\\win64\\tools\\clang-16\\bin\\clang++.exe",
+      "--sysroot=C:\\AMDDesignTools\\2026.1\\Vitis\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "-fhls",
+      "-hls-syn-headers-dir=C:\\AMDDesignTools\\2026.1\\Vitis\\common\\technology\\autopilot",
+      "-c",
+      "C:\\Users\\mohin\\Vitis\\hls_component\\drhe_decompress.cpp"
+    ],
+    "file": "C:\\Users\\mohin\\Vitis\\hls_component\\drhe_decompress.cpp"
+  },
+  {
+    "directory": "C:\\Users\\mohin\\Vitis\\hls_component",
+    "arguments": [
+      "C:\\AMDDesignTools\\2026.1\\Vitis\\win64\\tools\\clang-16\\bin\\clang++.exe",
+      "--sysroot=C:\\AMDDesignTools\\2026.1\\Vitis\\tps\\mingw\\10.0.0\\win64.o\\nt",
+      "-fhls-tb",
+      "-hls-sim-headers-dir=C:\\AMDDesignTools\\2026.1\\Vitis\\include",
+      "-c",
+      "C:\\Users\\mohin\\Vitis\\hls_component\\drhe_tb.cpp"
+    ],
+    "file": "C:\\Users\\mohin\\Vitis\\hls_component\\drhe_tb.cpp"
+  }
+]
