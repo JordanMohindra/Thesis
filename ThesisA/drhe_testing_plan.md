@@ -1617,3 +1617,43 @@ should be called and how much weight they carry.
 | `Matlab_Sim\audit_decomp.m` | decomposes CR into container headroom, sparsity and prediction; reports entropy and the S4 histogram |
 | `Matlab_Sim\audit_order.m` | demonstrates the ramp-ordering effect three ways (as-shipped / chirp-fastest / single TX) |
 | `Matlab_Sim\audit_predaxis.m` | full prediction-axis study, six configurations, both algorithms |
+
+### 11.8 Co-simulation latency of the TDM variants — and a caution about cycle models
+
+RTL co-simulation was run on a **single-frame** export (`DRHE_MAX_FRAMES=1`),
+as for the baselines; the 50-frame file is restored afterwards.
+
+| Design | Frame latency (cycles) | vs baseline |
+|---|---:|---:|
+| LPC, lags 1,2 (baseline) | 197,277 | — |
+| **LPC, lags nTx,2nTx** | **325,166** | **1.65x slower** |
+
+**The simple cycle model does not survive this change.** Trip count x II,
+summed over loops, predicts 197,120 for the baseline against 197,277 measured
+(0.08% error) — but predicts 246,272 for the TDM variant against 325,166
+measured, a 32% error.
+
+The missing term is **pipeline drain**. Moving the autocorrelation into the
+per-bin pass replaced one long pipelined loop with **two short loops invoked
+512 times each**. Each invocation pays its pipeline depth once on entry — 71
+cycles for `CORR_RAMP`, 56 for `RESIDUAL_RAMP` — so 512 invocations contribute
+roughly **65,000 cycles of pure drain** that no II-based model accounts for.
+
+So the LPC TDM correction is a genuine trade, not a free win:
+
+| | LPC lags 1,2 | LPC lags nTx,2nTx |
+|---|---:|---:|
+| CR | 3.38497 | **3.69681** |
+| BRAM_18K | 256 | **192** |
+| Worst loop II | 3 | **1** |
+| Frame latency | **197,277** | 325,166 |
+| Throughput @ 100 MHz | **1.595 Gbit/s** | 0.967 Gbit/s |
+
+Better ratio, less memory, II=1 everywhere — at 1.65x the latency. The drain is
+structural rather than algorithmic: merging the two per-bin loops, or
+processing several bins per invocation so the drain amortises, would recover
+most of it.
+
+DRHE pays no such price. Indexing its state by transmitter changes *which*
+address is read, not *when*, so its schedule, II and pipeline depth are
+identical to the baseline.

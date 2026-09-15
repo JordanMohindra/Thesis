@@ -730,9 +730,10 @@ Table~\ref{tab:tdmsyn} gives the synthesis cost of the correction.
 
 \begin{table}[t]
 \centering
-\caption{Synthesis cost of the TDM correction, \texttt{xcku5p},
-\SI{100}{\mega\hertz} target. The DRHE state gains a transmitter dimension; the
-LPC restructure removes the ingest accumulator arrays.}
+\caption{Cost of the TDM correction, \texttt{xcku5p}, \SI{100}{\mega\hertz}
+target. Resources and $F_{\max}$ are from synthesis; frame latency is measured
+in RTL co-simulation. The DRHE state gains a transmitter dimension; the LPC
+restructure removes the ingest accumulator arrays.}
 \label{tab:tdmsyn}
 \small
 \setlength{\tabcolsep}{3pt}
@@ -748,6 +749,7 @@ BRAM\_18K & \num{40}     & \num{80}     & \num{256}   & \num{192}\\
 DSP       & \num{132}    & \num{132}    & \num{168}   & \num{156}\\
 $F_{\max}$ (MHz) & 81.88 & 81.88 & 85.43 & 85.43\\
 Worst loop II & 2 & 2 & 3 & \textbf{1}\\
+Latency (cyc) & \num{61253} & \num{61253} & \num{197277} & \num{325166}\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -761,18 +763,31 @@ version for the \num{128} actually used, the realised growth is only
 $1.5\times$.
 
 
-\paragraph{Latency.}
-The cycle model for these designs is simply the sum over loops of trip count
-times initiation interval, and it is accurate: for the baseline LPC it predicts
-\num{197120} cycles against \num{197277} measured in co-simulation, an error of
-\SI{0.08}{\percent}. DRHE's schedule is unchanged by the correction --- the
-state indexing changes which address is read, not when --- so its frame latency
-remains \num{61253} cycles. TDM-aware LPC trades its $\mathrm{II}=3$ ingest
-(\num{73728} cycles) for an $\mathrm{II}=1$ ingest (\num{24576}) plus a new
-correlation pass (\num{98304}), giving \num{246272} cycles, about
-\SI{25}{\percent} more than the baseline. That extra pass is the price of the
-deeper lags, and it is the one place where the corrected LPC is worse than the
-design it replaces.
+\paragraph{Latency, and a caution about cycle models.}
+For the baseline designs a simple cycle model --- trip count times initiation
+interval, summed over loops --- is accurate to \SI{0.08}{\percent}
+(\num{197120} predicted against \num{197277} measured for baseline LPC). For
+the corrected LPC that model predicts \num{246272} cycles, and RTL
+co-simulation measures \num{325166}: it is wrong by \SI{32}{\percent}.
+
+The discrepancy is pipeline drain, and it is worth spelling out because it is
+easy to miss. Moving the autocorrelation into the per-bin pass replaced one
+long pipelined loop with \emph{two short ones invoked \num{512} times each}.
+Each invocation of a pipelined loop pays its depth once on entry --- 71 cycles
+for the correlation loop, 56 for the residual loop --- so the \num{512}
+invocations contribute roughly \num{65000} cycles of pure drain that no
+II-based model sees. Corrected LPC is therefore \emph{slower} than the design
+it replaces, \num{325166} cycles against \num{197277}, a factor of \num{1.65}.
+
+This is a real cost and it is the price of the TDM correction on the LPC side.
+It is also structural rather than algorithmic: merging the two per-bin loops,
+or processing several bins per invocation so the drain amortises, would recover
+most of it. DRHE pays no such price: co-simulation measures exactly
+\num{61253} cycles for both the baseline and the TDM variant, because indexing
+the state by transmitter changes which address is read, not when. Both TDM
+variants pass RTL co-simulation with $\mathrm{MaxDiff} = 0$, so the entire
+\SI{13.3}{\percent} DRHE gain is bought with \num{40} BRAM\_18K and nothing
+else.
 
 For LPC the picture is more interesting, because moving the autocorrelation out
 of the ingest pass removed six 64-bit accumulator arrays and four history
@@ -942,8 +957,10 @@ recovers the gain the algorithms were designed to deliver: measured compression
 rises from \num{3.310} to \num{3.751} for DRHE and from \num{3.385} to
 \num{3.697} for LPC, in both cases with reconstruction still exact. For DRHE
 the cost is $n_{\mathrm{Tx}}$ copies of the predictor state --- \num{40}
-additional BRAM\_18K, or \SI{4}{\percent} of the device --- with logic and
-$F_{\max}$ essentially unchanged.
+additional BRAM\_18K, or \SI{4}{\percent} of the device --- with logic,
+$F_{\max}$ and measured frame latency all unchanged. For LPC the correction is
+a genuine trade: a better ratio, \SI{25}{\percent} less block RAM and
+$\mathrm{II}=1$ on every loop, against \num{1.65}$\times$ the frame latency.
 
 Two implementation defects were found and fixed: a residual of $-32768$ that
 the S4/APPEND code cannot represent and which aliased silently onto $+32767$,
