@@ -24,20 +24,32 @@ The project moved since this plan was first written; all paths in this document 
 | Project root | `C:\Users\Jordan Mohindra\OneDrive\Documents\Fifth_Year\Thesis\ThesisA\` |
 | MATLAB simulation | `...\Thesis\ThesisA\Matlab_Sim\` |
 | HLS sources (master copy) | `...\Thesis\ThesisA\hls_component\` |
-| ColoRadar dataset (450 frames) | `...\Fifth_Year\Jordan's Thesis\cascade\adc_samples\data\` |
+| ColoRadar dataset (450 frames) | `D:\Jordan's Thesis\cascade\adc_samples\data\` |
 | HLS project (build here) | `D:\Thesis\ThesisA\hls_component\` - second clone, space-free (see 0.2c) |
 | Toolchain | `D:\Xilinx\2026.1` (Vitis + Vivado, licensed) |
 
 ### 0.2 Environment issues and their current status
 
-**(a) Dataset path was two levels too shallow. [FIXED - permanent]**
-`Jordan's Thesis` now sits beside `Thesis`, not inside it, so the
-`fullfile(..., '..', '..', 'Jordan''s Thesis', ...)` candidate in every script resolved to a
-non-existent directory. A correct three-level-up candidate was prepended to the `candidatePaths`
-list in all seven affected scripts (`main_simulation_coloradar_batch.m`,
+**(a) Dataset location. [FIXED]**
+The ColoRadar dataset has moved twice. It was originally expected inside `Thesis\`, then sat beside
+it under `Fifth_Year\`, and it now lives on **`D:\Jordan's Thesis\cascade\adc_samples\data\`** -
+moved off OneDrive on 15/09/2026 (899 files, 3.06 GB, verified by file count, exact byte total and
+an MD5 spot-check; source removed).
+
+All seven scripts that load frames (`main_simulation_coloradar_batch.m`,
 `main_simulation_coloradar.m`, `main_simulation_enob_sweep.m`, `main_simulation_fft_comparison.m`,
-`compare_quantisation_lfr.m`, `play_coloradar_video.m`, `export_frames_for_vitis.m`). The old
-candidates were kept as fallbacks.
+`compare_quantisation_lfr.m`, `play_coloradar_video.m`, `export_frames_for_vitis.m`) now try, in
+order:
+
+1. `D:\Jordan's Thesis\cascade\adc_samples\data` - absolute, works from either clone
+2. three levels up from the script - which is what the `D:` clone resolves to naturally
+3. two levels up - the historical layout
+4. the original `C:\Users\mohin\Downloads\...` path
+
+Earlier candidates are kept as fallbacks, so the scripts keep working wherever the data sits.
+
+Only the Ancortek captures (`Jun_17_2026_*.bin`, 0.46 GB) and a few unrelated MATLAB files remain
+in the OneDrive `Jordan's Thesis` folder; nothing in this pipeline reads them.
 
 **(b) Signal Processing Toolbox - now installed. [RESOLVED - workaround removed]**
 The toolbox was initially missing, so `hann()` and `hanning()` were undefined and the pipeline
@@ -88,11 +100,12 @@ end
 OUTPUT_FILE = fullfile(HLS_DIR, 'coloradar_multiframe.bin');
 ```
 
-> [!IMPORTANT]
-> **The two clones have different jobs.** MATLAB must run from the OneDrive clone, because the
-> ColoRadar dataset lives under `Fifth_Year\Jordan's Thesis\` and is **not** present on `D:`.
-> Vitis must run from the `D:` clone, because of the space restriction. Keep both on the same
-> commit, or the HLS side will build stale sources.
+> [!TIP]
+> **`D:` is now self-sufficient.** Since the dataset moved to `D:\Jordan's Thesis\`, the `D:` clone
+> resolves it through its own three-level-up relative path (450 frames found), so MATLAB *and*
+> Vitis can both run entirely from `D:\Thesis\`. The OneDrive clone still works too - the absolute
+> `D:` candidate in the scripts covers it - but there is no longer any reason to split the work
+> across the two. If you do use both, keep them on the same commit.
 
 **(d) Vivado licence - now installed. [RESOLVED - workaround removed]**
 Previously the toolchain had no licence and rejected the target part outright
