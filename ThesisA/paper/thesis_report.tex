@@ -2315,7 +2315,7 @@ floating-point transcendental functions, four times over for four channels, on
 every one of \num{24576} beats per frame.
 
 Chapter~\ref{ch:results} shows the bill: these functions account for the bulk
-of \num{115532} LUTs, and the resulting combinational depth is why the design
+of \num{115534} LUTs, and the resulting combinational depth is why the design
 estimates \SI{81.88}{\mega\hertz} rather than meeting its \SI{100}{\mega\hertz}
 target. Replacing them with a fixed-point CORDIC would be the obvious
 optimisation and is left as future work.
@@ -2754,7 +2754,7 @@ comparable.}
 \toprule
 Resource & DRHE & LPC & Reference \cite{kiem2025}\\
 \midrule
-LUT              & \num{115532} (53\%) & \num{80528} (37\%) & \num{45892}\\
+LUT              & \num{115534} (53\%) & \num{80528} (37\%) & \num{45892}\\
 FF               & \num{57105} (13\%)  & \num{17393} (4\%)  & \num{9243}\\
 BRAM\_18K        & \num{40} (4\%)      & \num{256} (26\%)   & \num{10}\\
 DSP              & \num{132} (7\%)     & \num{168} (9\%)    & \num{44}\\
@@ -3136,7 +3136,7 @@ frame latency is measured in RTL co-simulation on a single frame.}
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}
 Resource & lag 1 & lag $n_{\mathrm{Tx}}$ & lags 1,\,2 & lags $n_{\mathrm{Tx}},2n_{\mathrm{Tx}}$\\
 \midrule
-LUT              & \num{115532} & \num{115736} & \num{80528} & \num{86298}\\
+LUT              & \num{115534} & \num{115736} & \num{80528} & \num{86298}\\
 FF               & \num{57105}  & \num{57263}  & \num{17393} & \num{23154}\\
 BRAM\_18K        & \num{40}     & \textbf{\num{80}}     & \num{256}   & \textbf{\num{192}}\\
 DSP              & \num{132}    & \num{132}    & \num{168}   & \num{156}\\

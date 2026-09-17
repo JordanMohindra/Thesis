@@ -725,7 +725,7 @@ Report: `hls_component\hls_component\hls\syn\report\drhe_compress_csynth.rpt`
 
 | Resource | Used | Available | Util. | Kiem (ZU3EG) |
 |----------|------|-----------|-------|--------------|
-| LUT | 115,532 | 216,960 | **53%** | 45,892 (65%) |
+| LUT | 115,534 | 216,960 | **53%** | 45,892 (65%) |
 | FF | 57,105 | 433,920 | 13% | 9,243 (6.6%) |
 | BRAM_18K | 40 | 960 | 4% | 10 (4.6%) |
 | DSP | 132 | 1,824 | 7% | 44 (12.2%) |
@@ -991,7 +991,7 @@ Your MATLAB results (Table 1 in your executive summary) versus Kiem's Table 5.5:
 | Available FFs | 141,120 | **433,920** | Corrected |
 | Available BRAM_18K | 216 | **960** | Corrected |
 | Available DSPs | 360 | **1,824** | Corrected |
-| LUT Utilization | 65% (45,892) | **53% (115,532)** | Lower % but 2.5x more LUTs in absolute terms |
+| LUT Utilization | 65% (45,892) | **53% (115,534)** | Lower % but 2.5x more LUTs in absolute terms |
 | Throughput | 11.92 Gbit/s | **5.136 Gbit/s @ 100 MHz** | II=2 plus per-ramp drain vs Kiem's effective II=1 |
 | Latency | 230 ns | **580 ns** (58-cycle pipeline) | 2.5x; 320 ns before the Test 2.4 fix |
 | Fmax | 100 MHz | **81.88 MHz (estimate)** | Timing does not close at 100 MHz |
@@ -1048,7 +1048,7 @@ Your MATLAB results (Table 1 in your executive summary) versus Kiem's Table 5.5:
 - Lossless reconstruction verification (CSIM) - **50/50 frames, MaxDiff 0**
 - Multi-frame CR statistics (50+ frames) - **mean 3.31033, std 0.0948, range 2.939-3.470**
 - Algorithm comparison table (8 algorithms) - **reproduces executive-summary Table 1 exactly**
-- **Estimated** resource utilization - **115,532 LUT / 57,105 FF / 40 BRAM_18K / 132 DSP**
+- **Estimated** resource utilization - **115,534 LUT / 57,105 FF / 40 BRAM_18K / 132 DSP**
 - **Estimated** clock frequency - **81.88 MHz (below the 100 MHz target)**
 - **Estimated** latency and throughput - **61,253 cycles/frame, 5.136 Gbit/s @ 100 MHz**
 - Edge case robustness testing - **8/8 pass; one latent defect found and fixed**
@@ -1199,7 +1199,7 @@ Two things worth noting, neither a fault:
 
 | Resource | **LPC** | **DRHE** | LPC / DRHE | Available |
 |----------|--------:|---------:|-----------:|----------:|
-| LUT | **80,528** (37%) | 115,532 (53%) | **0.70x** | 216,960 |
+| LUT | **80,528** (37%) | 115,534 (53%) | **0.70x** | 216,960 |
 | FF | **17,393** (4%) | 57,105 (13%) | **0.30x** | 433,920 |
 | BRAM_18K | **256** (26%) | 40 (4%) | **6.4x** | 960 |
 | DSP | **168** (9%) | 132 (7%) | 1.27x | 1,824 |
@@ -1280,7 +1280,7 @@ Same 50 frames, same 4 RX channels, same target part, both lossless.
 | Aggregate CR | 3.30708 | **3.383** | LPC |
 | Lossless | yes (50/50) | yes (50/50) | tie |
 | Agreement with MATLAB | 0.014% | **0.0128%, bit-exact** | LPC |
-| LUT | 115,532 (53%) | **80,528 (37%)** | LPC, 0.70x |
+| LUT | 115,534 (53%) | **80,528 (37%)** | LPC, 0.70x |
 | FF | 57,105 (13%) | **17,393 (4%)** | LPC, 0.30x |
 | BRAM_18K | **40 (4%)** | 256 (26%) | DRHE, 6.4x fewer |
 | DSP | **132 (7%)** | 168 (9%) | DRHE |
@@ -1359,7 +1359,7 @@ FX16's by construction.
 
 | Resource | HLS Estimate | % of KU5P | Post-Implementation | Kiem (ZU3EG) |
 |----------|-------------|----------:|--------------------:|-------------:|
-| LUTs | 115,532 | 53% | TBD | 45,892 (65%) |
+| LUTs | 115,534 | 53% | TBD | 45,892 (65%) |
 | FFs | 57,105 | 13% | TBD | 9,243 (6.6%) |
 | BRAM_18K | 40 | 4% | TBD | 10 (4.6%) |
 | DSPs | 132 | 7% | TBD | 44 (12.2%) |
@@ -1376,7 +1376,7 @@ so the percentages are not comparable with Kiem's; the absolute LUT count is (2.
 | CR (CSIM, 50 frames) | 3.30987 | **3.38497** | 3.17 (HW) / 3.25 (MATLAB) |
 | Throughput @ 100 MHz | **5.136 Gbit/s** | 1.595 Gbit/s | 11.92 Gbit/s |
 | Frame latency | **61,253 cycles** | 197,277 cycles | - |
-| LUTs | 115,532 (53%) | **80,528 (37%)** | 45,892 (65% of ZU3EG) |
+| LUTs | 115,534 (53%) | **80,528 (37%)** | 45,892 (65% of ZU3EG) |
 | FFs | 57,105 (13%) | **17,393 (4%)** | 9,243 (6.6%) |
 | BRAM_18K | **40 (4%)** | 256 (26%) | 10 (4.6%) |
 | DSPs | **132 (7%)** | 168 (9%) | 44 (12.2%) |
@@ -1547,7 +1547,7 @@ frame-to-frame spread.
 
 | Resource | DRHE lag 1 | **DRHE lag nTx** | LPC lags 1,2 | **LPC lags nTx,2nTx** |
 |---|---:|---:|---:|---:|
-| LUT | 115,532 | 115,736 | 80,528 | 86,298 |
+| LUT | 115,534 | 115,736 | 80,528 | 86,298 |
 | FF | 57,105 | 57,263 | 17,393 | 23,154 |
 | BRAM_18K | 40 | **80** | 256 | **192** |
 | DSP | 132 | 132 | 168 | 156 |

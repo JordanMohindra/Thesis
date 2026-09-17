@@ -117,7 +117,7 @@ TABLE 7 - Phase 3, synthesis resources and timing
           Device capacity: 216,960 LUT / 433,920 FF / 960 BRAM_18K / 1,824 DSP
 ================================================================================
                     DRHE-1     DRHE-n    LPC-1,2   LPC-n,2n   Kiem (ZU3EG)
-LUT                115,532    115,736     80,528     86,298        45,892
+LUT                115,534    115,736     80,528     86,298        45,892
   % of device          53%        53%        37%        40%   65% of ZU3EG
 FF                  57,105     57,263     17,393     23,154         9,243
 BRAM_18K                40         80        256        192            10

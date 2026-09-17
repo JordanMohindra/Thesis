@@ -145,7 +145,7 @@ HARDWARE (synthesis, xcku5p at 100 MHz)
 
                         DRHE            LPC         Kiem's design
   ----------------------------------------------------------------------
-  LUT                 115,532         80,528           45,892
+  LUT                 115,534         80,528           45,892
   Flip-flops           57,105         17,393            9,243
   Block RAM                40            256               10
   DSP slices              132            168               44
@@ -227,7 +227,7 @@ the same thing.
 
   Design               CR        MaxDiff    LUT      FF     BRAM   Latency
   ----------------------------------------------------------------------------
-  DRHE, original    3.30987         0    115,532  57,105     40    61,253
+  DRHE, original    3.30987         0    115,534  57,105     40    61,253
   DRHE, CORRECTED   3.75082         0    115,736  57,263     80    61,253
   LPC, original     3.38497         0     80,528  17,393    256   197,277
   LPC, CORRECTED    3.69681         0     86,298  23,154    192   325,166
