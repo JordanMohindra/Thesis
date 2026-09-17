@@ -1,0 +1,323 @@
+RESULTS PACK - all measured numbers
+Compression of radar range-FFT data on Kintex UltraScale+ (xcku5p-ffvb676-2-e) @ 100 MHz
+Dataset: ColoRadar cascade, 50 frames.   J. Mohindra z5418455, 17 Sep 2026
+
+Four designs throughout:
+  DRHE-1     DRHE as originally implemented  (predicts from ramp m-1)
+  DRHE-n     DRHE, TDM-corrected             (predicts from ramp m-12)
+  LPC-1,2    LPC as originally implemented   (lags 1 and 2)
+  LPC-n,2n   LPC, TDM-corrected              (lags 12 and 24)
+
+
+================================================================================
+TABLE 1 - Phase 1, single frame (frame_0), 16 RX, 190 reference detections
+================================================================================
+Algorithm      CR     FN%    FDR%    NF(dBFS)   SNR(dB)
+FP16          1.00    0.00    0.00   -105.858    36.256
+DRHEfp16      1.05    0.00    0.00   -105.858    36.256
+FX16          1.00    3.68    0.00   -105.591    36.150
+DRHE          3.32    3.68    0.00   -105.591    36.150
+BAQ           3.76    4.74    3.72   -106.039    36.562
+RDVLE         1.12   20.53    2.58   -102.476    33.791
+RDVLE_UDRE    2.56   26.32    2.78   -102.002    33.663
+LPC           3.39    3.68    0.00   -105.591    36.150
+
+
+================================================================================
+TABLE 2 - Phase 1, 50-frame average, 16 RX, 9,934 reference detections
+          *** HEADLINE BENCHMARK ***
+================================================================================
+Algorithm      CR     FN%    FDR%    NF(dBFS)   SNR(dB)
+FP16          1.00    0.00    0.00   -105.638    35.504
+DRHEfp16      1.04    0.05    0.01   -105.637    35.505
+FX16          1.00    3.77    1.11   -105.374    35.359
+DRHE          3.30    3.77    1.11   -105.374    35.359
+BAQ           3.76   10.44    9.69   -105.080    35.081
+RDVLE         1.12   24.01    4.62   -102.275    33.165
+RDVLE_UDRE    2.56   28.73    4.44   -101.782    33.004
+LPC           3.37    3.77    1.11   -105.374    35.359
+
+FX16, DRHE and LPC share detection metrics BY CONSTRUCTION - all three
+reconstruct the quantised data exactly, so the detector sees identical input.
+
+
+================================================================================
+TABLE 3 - Phase 2, bit-exact verification
+          Vitis HLS C-simulation, 50 frames, 4 RX, 157,286,400 complex samples
+================================================================================
+Design       Mean CR    MaxDiff   MSE   Frames lossless
+DRHE-1       3.30987        0      0       50 / 50
+DRHE-n       3.75082        0      0       50 / 50
+LPC-1,2      3.38497        0      0       50 / 50
+LPC-n,2n     3.69681        0      0       50 / 50
+
+EVERY DESIGN RECONSTRUCTS EVERY SAMPLE EXACTLY.
+
+
+================================================================================
+TABLE 4 - Phase 2, agreement between MATLAB and hardware
+================================================================================
+LPC: MATLAB, double-precision coefficients        3.38541
+LPC: MATLAB, 16-bit quantised coefficients        3.38541
+     cost of coefficient quantisation             0.0000 %
+LPC: MATLAB, quantised + 256-bit AXI padding      3.38497
+LPC: Vitis HLS measured                           3.38497
+     frames where padding model matches           50 / 50  (to 4.9e-6)
+     worst single frame                           0.00091  (tolerance +/-0.01)
+
+DRHE: hardware bits above MATLAB, per frame       15-252 (mean 134)
+      one AXI packet                              256 bits
+
+=> For LPC the entire residual difference is packet padding; the underlying
+   bit counts are identical.
+
+
+================================================================================
+TABLE 5 - Phase 2.4, DRHE synthetic edge cases
+          First run: 5/8 pass. After the -32768 fix: 8/8 pass.
+================================================================================
+Case             Input                          CR      MaxDiff   MaxDiff  Result
+                                                        (before)  (after)
+all-zeros        every sample 0               4.0000        0        0     PASS
+dc-constant      Re=1000, Im=-500 everywhere  3.5867        0        0     PASS
+random-int16     uniform random int16         0.6037    60475        1     PASS
+tone-192ramp     correlated tone, 192 ramps   3.2777        0        0     PASS
+tone-1ramp       same tone, 1 ramp            0.6214        0        0     PASS
+max-amplitude    all +32767                   3.0132        0        0     PASS
+max-alternating  +32767/-32768 per ramp       3.0326    65535        1     PASS
+int16-min        all -32768                   3.0371    65535        1     PASS
+
+random-int16 is the proof the closed loop works: the clamp fires repeatedly
+across all 192 ramps and the error still never exceeds 1 LSB.
+
+
+================================================================================
+TABLE 6 - Phase 2.4, LPC synthetic edge cases (all 8 pass)
+================================================================================
+Case                 CR     MaxDiff  Result
+all-zeros          3.8400      0     PASS
+dc-constant        3.3758      0     PASS
+random-int16       0.6000      0     PASS
+tone-192ramp       1.1006      0     PASS
+tone-1ramp         0.2771      0     PASS
+max-amplitude      0.9868      0     PASS
+max-alternating    0.9868      1     PASS
+int16-min          0.9868      1     PASS
+
+LPC's synthetic ratios are lower because the 32,768-bit coefficient table is
+charged whatever the data does. On all-zeros the residual bits are identical
+and the 4.00 vs 3.84 gap is exactly that overhead.
+
+NOTE on random-int16: CR < 1 is correct behaviour, not a fault. A Huffman/
+append coder cannot leave incompressible data unchanged - it expands it.
+
+
+================================================================================
+TABLE 7 - Phase 3, synthesis resources and timing
+          Device capacity: 216,960 LUT / 433,920 FF / 960 BRAM_18K / 1,824 DSP
+================================================================================
+                    DRHE-1     DRHE-n    LPC-1,2   LPC-n,2n   Kiem (ZU3EG)
+LUT                115,532    115,736     80,528     86,298        45,892
+  % of device          53%        53%        37%        40%   65% of ZU3EG
+FF                  57,105     57,263     17,393     23,154         9,243
+BRAM_18K                40         80        256        192            10
+DSP                    132        132        168        156            44
+Est. Fmax        81.88 MHz  81.88 MHz  85.43 MHz  85.43 MHz       100 MHz
+Worst loop II            2          2          3          1             1
+Pipeline depth          58         58          -          -             -
+Frame latency       61,253     61,253    197,277    325,166             -
+  (cycles, measured in RTL co-simulation)
+Frame buffer          none       none   3.1 Mbit   3.1 Mbit             -
+
+
+================================================================================
+TABLE 8 - Phase 3, throughput
+================================================================================
+                              DRHE          LPC     Kiem (corrected)
+Effective II                     2            3            1
+bits per cycle                51.4         15.9        128.0
+Throughput @ 100 MHz    5.14 Gbit/s  1.60 Gbit/s  12.80 Gbit/s
+Throughput @ own Fmax   4.21 Gbit/s  1.36 Gbit/s            -
+IP pipeline latency          580 ns            -       230 ns
+
+UNIT CORRECTION: Kiem's published 11.92 Gbit/s is in GIBIBITS.
+11.92 x 2^30 / 1e8 = 127.99 bits/cycle = exactly 128 = the full AXI bus width
+at II=1. Decimal equivalent 12.80 Gbit/s. Comparisons against 11.92 understate
+the gap by 7.4%.
+
+
+================================================================================
+TABLE 9 - LPC-1,2 cycle breakdown
+================================================================================
+Stage                Iterations   II     Cycles
+Ingest                   24,576    3     73,728
+Solve + residual         98,304    1     98,304
+Emit coefficients           512    1        512
+Emit residuals           24,576    1     24,576
+                                       --------
+Model total                             197,120
+MEASURED (co-simulation)                197,277     -> model accurate to 0.08%
+
+For LPC-n,2n the same model predicts 246,272 against 325,166 measured. The 32%
+gap is pipeline drain from 512 short loop invocations: 512 x (71+56) ~ 65,000.
+
+
+================================================================================
+TABLE 10 - THE NO-PREDICTION BASELINE  *** KEY RESULT ***
+           Raw FX16 coded through the IDENTICAL S4+Huffman back end with no
+           predictor. 5 frames, 4 RX.
+================================================================================
+Configuration                        bits/value      CR     vs no prediction
+NO PREDICTION (entropy coder only)        4.586    3.489           -
+DRHE-1  (as implemented)                  4.821    3.319      0.951x  WORSE
+LPC-1,2 (as implemented)                  4.710    3.397      0.974x  WORSE
+
+Both predictors as implemented perform WORSE than doing nothing.
+
+
+================================================================================
+TABLE 11 - Entropy check (independent of the coder)
+================================================================================
+Order-0 entropy, raw FX16 codes              4.094 bits
+Order-0 entropy, DRHE-1 residuals            4.538 bits   <- HIGHER
+Achieved bits/value, no prediction           4.586 bits
+Huffman overhead above entropy               0.283 bits (6.2%)
+
+The predictor was INCREASING the information content of the data.
+
+
+================================================================================
+TABLE 12 - Decomposition of the compression ratio
+================================================================================
+Source                        Factor   Evidence
+Unused container headroom     x 1.63   peak raw ADC sample 914 of 32,767;
+                                       peak FX16 code 436 => 9.8 of 16 bits used
+Spectral sparsity             x 2.14   9.8 -> 4.59 bits, genuine
+                             --------
+Subtotal, no prediction       x 3.489
+Prediction, as implemented    x 0.95   negative contribution
+Prediction, corrected         x 1.08
+
+
+================================================================================
+TABLE 13 - PREDICTION AXIS STUDY  *** KEY RESULT ***
+           5 frames, 4 RX, 128 bins, 192 ramps.
+           Gain is relative to no prediction; below 1.000 = predictor is
+           doing harm.
+================================================================================
+Configuration                             bits/value      CR      gain
+No prediction                                  4.586    3.489    1.000
+DRHE, lag 1        (as implemented)            4.821    3.319    0.951
+DRHE, lag nTx                                  4.240    3.774    1.082
+LPC, lags 1,2      (as implemented)            4.710    3.397    0.974
+LPC, per-TX blocks, N=16                       6.093    2.626    0.753
+LPC, lags nTx,2nTx                             4.269    3.748    1.074
+
+Row 5 is the obvious alternative that fails: per-transmitter blocks multiply
+the coefficient overhead by 12 (1.04% -> 12.5% of the frame) and shorten each
+fit from 192 samples to 16.
+
+
+================================================================================
+TABLE 14 - HEADLINE BEFORE / AFTER (hardware, all 50 frames)
+================================================================================
+Design        CR        MaxDiff   dCR      Cost of the correction
+DRHE-1     3.30987         0        -      -
+DRHE-n     3.75082         0     +13.3%    +40 BRAM (4% of device);
+                                           logic, Fmax, latency UNCHANGED
+LPC-1,2    3.38497         0        -      -
+LPC-n,2n   3.69681         0      +9.2%    -64 BRAM, II 3->1,
+                                           but 1.65x latency
+
+Still exactly lossless in both corrected designs.
+
+
+================================================================================
+TABLE 15 - Bit budget by S4 category (one frame, 4 RX, 196,608 values)
+================================================================================
+             no prediction      DRHE-1          DRHE-n
+S4   cost   %val    %bits    %val   %bits    %val   %bits
+ 0      4  16.71   14.61    11.78    9.81   18.85   17.87
+ 1      4  28.57   24.97    22.01   18.33   32.94   31.22
+ 2      4  31.45   27.49    31.95   26.60   34.40   32.60
+ 3      5  14.66   16.02    22.21   23.12   11.31   13.40
+ 4      6   4.31    5.65     6.46    8.07    1.49    2.12
+ 5     10   1.75    3.82     2.36    4.92    0.50    1.18
+ 6     12   1.15    3.01     1.43    3.58    0.29    0.82
+ 7     14   1.14    3.47     1.09    3.17    0.18    0.59
+ 8     16   0.19    0.66     0.65    2.17    0.03    0.13
+ 9     18   0.07    0.29     0.06    0.23    0.01    0.05
+-----------------------------------------------------------
+bits/value      4.576           4.803           4.220
+CR              3.497           3.331           3.792
+
+Under DRHE-1, categories 5-8 are 5.53% of values but 13.84% of bits.
+
+
+================================================================================
+TABLE 16 - Residual magnitude distribution (5 frames, 4 RX)
+================================================================================
+Configuration              median |d|   99th pct |d|   bits/value
+No prediction                     2.0           80.6        4.586
+DRHE, lag 1                       2.2          102.4        4.821
+DRHE, lag nTx                     1.6           15.8        4.240
+LPC, lags 1,2                     2.0           63.4        4.543 *
+LPC, lags nTx,2nTx                1.0            8.2        4.102 *
+
+* residual bits only; add 0.167 bits/value for the coefficient table.
+
+
+================================================================================
+TABLE 17 - WORKED EXAMPLE
+           16 consecutive ramps of range bin 75, channel 1, frame 0, traced
+           through the SAME DRHE predictor at two lags. Real part shown.
+           ONLY THE LAG DIFFERS.
+================================================================================
+                    from ramp m-1              from ramp m-nTx
+  m  TX      x    pred     d   S4  bits     pred     d   S4  bits
+168   0    -69      67  -136    8    16      -72     3    2     4
+169   1    -52     -75    23    5    10      -49    -3    2     4
+170   2     59      81   -22    5    10       59     0    0     4
+171   3     -6      64   -70    7    14       -5    -1    1     4
+172   4    -29      24   -53    6    12      -30     1    1     4
+173   5    -15     -29    14    4     6      -18     3    2     4
+174   6     59      -6    65    7    14       63    -4    3     5
+175   7    -20     -83    63    6    12      -23     3    2     4
+176   8    -69     -93    24    5    10      -68    -1    1     4
+177   9    -73     -65    -8    4     6      -71    -2    2     4
+178  10    -45     -44    -1    1     4      -44    -1    1     4
+179  11     84      28    56    6    12       84     0    0     4
+180   0    -73      70  -143    8    16      -71    -2    2     4
+181   1    -50     -75    25    5    10      -54     4    3     5
+182   2     59      81   -22    5    10       60    -1    1     4
+183   3     -5      67   -72    7    14       -6     1    1     4
+                            ----------                    --------
+        TOTAL BITS                  176                         66
+        bits per value            11.00                       4.12
+        compression ratio         1.455                      3.879
+
+
+================================================================================
+TABLE 18 - The same window in polar coordinates (the mechanism)
+================================================================================
+Quantity over ramps 168-183          vs ramp m-1      vs ramp m-nTx
+Magnitude change, range            -21.8 to +20.3    -4.0 to +3.4
+Phase step (rad), range          -2.263 to +2.622  -0.040 to +0.043
+Phase step, mean |dtheta| (rad)             1.104            0.018
+
+Against ramp m-1 the phase step is unpredictable; against ramp m-nTx it is
+essentially zero - a stationary target seen by the same antenna.
+
+
+================================================================================
+FIGURES (in results_pack.pdf)
+================================================================================
+Fig 1  Decomposition of the compression ratio (waterfall)
+Fig 2  The 16-sample worked example: residual magnitude + bit cost
+Fig 3  Per-frame compression ratio, all 50 frames, four designs
+Fig 4  S4 category distribution, three configurations
+Fig 5  99th percentile of residual magnitude
+Fig 6  Bits per value, five configurations, with the no-prediction baseline
+Fig 7  Share of total bits by S4 category
+Fig 8  Resource usage, four designs, against device capacity
+================================================================================
