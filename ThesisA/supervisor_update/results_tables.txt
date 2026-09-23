@@ -120,7 +120,7 @@ TABLE 7 - Phase 3, synthesis resources and timing
 LUT                115,534    115,736     80,528     86,298        45,892
   % of device          53%        53%        37%        40%   65% of ZU3EG
 FF                  57,105     57,263     17,393     23,154         9,243
-BRAM_18K                40         80        256        192            10
+BRAM_18K                40         80        256        192            20 *
 DSP                    132        132        168        156            44
 Est. Fmax        81.88 MHz  81.88 MHz  85.43 MHz  85.43 MHz       100 MHz
 Worst loop II            2          2          3          1             1
@@ -129,14 +129,18 @@ Frame latency       61,253     61,253    197,277    325,166             -
   (cycles, measured in RTL co-simulation)
 Frame buffer          none       none   3.1 Mbit   3.1 Mbit             -
 
+  * Kiem reports 10 BRAM in 36 Kb tiles = 20 BRAM_18K. Our numbers are HLS
+    estimates; Kiem's are post-implementation (Vivado).
+
 
 ================================================================================
 TABLE 8 - Phase 3, throughput
 ================================================================================
-                              DRHE          LPC     Kiem (corrected)
-Effective II                     2            3            1
-bits per cycle                51.4         15.9        128.0
-Throughput @ 100 MHz    5.14 Gbit/s  1.60 Gbit/s  12.80 Gbit/s
+                              DRHE          LPC         Kiem
+Worst loop II                    2            3            1
+Theoretical @ 100 MHz   6.40 Gbit/s  4.27 Gbit/s  12.80 Gbit/s  (128 x f / II)
+Measured @ 100 MHz      5.14 Gbit/s  1.60 Gbit/s  not reported  (co-sim)
+Measured bits per cycle       51.4         15.9            -
 Throughput @ own Fmax   4.21 Gbit/s  1.36 Gbit/s            -
 IP pipeline latency          580 ns            -       230 ns
 
@@ -144,6 +148,27 @@ UNIT CORRECTION: Kiem's published 11.92 Gbit/s is in GIBIBITS.
 11.92 x 2^30 / 1e8 = 127.99 bits/cycle = exactly 128 = the full AXI bus width
 at II=1. Decimal equivalent 12.80 Gbit/s. Comparisons against 11.92 understate
 the gap by 7.4%.
+SECOND CORRECTION: that figure is THEORETICAL (bus width x clock), not measured.
+Compare theoretical with theoretical: 6.40 vs 12.80 = a factor of 2, all from II.
+
+
+================================================================================
+TABLE 8b - What the numbers are judged against  (report Chapter 7)
+================================================================================
+ColoRadar: 128 bins x 192 ramps, ramp 78.5 us, acquisition 15.07 ms, 5 Hz.
+Kiem's sensor: 512 bins x 1024 ramps, ramp ~20.5 us, compression budget 15 ms.
+                                              DRHE-n              LPC-n,2n
+Headroom vs 4 RX rate (0.209 Gbit/s)      24.6x (20.1x@Fmax)   4.6x (4.0x@Fmax)
+Headroom vs 16 RX rate (0.835 Gbit/s)      6.2x  (5.0x@Fmax)   1.16x (0.99x@Fmax)
+Headroom vs Kiem's sensor (3.2 Gbit/s)     1.6x  (1.3x@Fmax)   -
+Cycles per ramp used / 7,850 available     319 (4.1%)          ingest 128
+Added latency after last ramp @100 MHz     3.2 us              3.01 ms
+Added latency scaled to Kiem's frame       ~11 us              ~53 ms (> 15 ms budget)
+Frame buffer scaled to Kiem's frame        none                67 Mbit (> on-chip BRAM)
+LUT as % of Kiem's ZU3EG (70,560)          164%                122%
+LUT / FF / BRAM / DSP vs Kiem              2.5/6.2/4.0/3.0x    1.9/2.5/9.6/3.5x
+BRAM used vs theoretical minimum           80 vs 53            192 vs 171
+CR vs no-prediction baseline (3.489)       +7.5%               +6.0%
 
 
 ================================================================================

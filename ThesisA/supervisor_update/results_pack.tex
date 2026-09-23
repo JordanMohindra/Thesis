@@ -217,7 +217,9 @@ possible.\normalsize
 \begin{minipage}{0.98\textwidth}\centering
 \captionof{table}{Post-synthesis resources and timing, all four designs. Device
 capacity: \num{216960} LUT, \num{433920} FF, \num{960} BRAM\_18K, \num{1824}
-DSP. Frame latency is measured in RTL co-simulation, not estimated.}
+DSP. Frame latency is measured in RTL co-simulation, not estimated. Our
+resources are HLS estimates; Kiem's are post-implementation. Kiem's BRAM is
+reported as 10 \SI{36}{\kilo bit} tiles, shown here as 20 BRAM\_18K.}
 \centering\small
 \begin{tabular}{@{}lrrrrr@{}}
 \toprule
@@ -226,7 +228,7 @@ DSP. Frame latency is measured in RTL co-simulation, not estimated.}
 LUT              & \num{115534} & \num{115736} & \num{80528} & \num{86298} & \num{45892}\\
 \quad \% device  & 53\% & 53\% & 37\% & 40\% & 65\% (of ZU3EG)\\
 FF               & \num{57105}  & \num{57263}  & \num{17393} & \num{23154} & \num{9243}\\
-BRAM\_18K        & \num{40}     & \tno{\num{80}} & \num{256} & \tno{\num{192}} & \num{10}\\
+BRAM\_18K        & \num{40}     & \tno{\num{80}} & \num{256} & \tno{\num{192}} & \num{20}\\
 DSP              & \num{132}    & \num{132}    & \num{168}   & \num{156} & \num{44}\\
 Est.\ $F_{\max}$ & \SI{81.88}{\mega\hertz} & \SI{81.88}{\mega\hertz}
                  & \SI{85.43}{\mega\hertz} & \SI{85.43}{\mega\hertz} & \SI{100}{\mega\hertz}\\
@@ -241,20 +243,50 @@ Frame buffer     & none & none & \SI{3.1}{\mebi bit} & \SI{3.1}{\mebi bit} & ---
 
 \begin{center}
 \begin{minipage}{0.98\textwidth}\centering
-\captionof{table}{Throughput. \textbf{Unit correction:} Kiem's published
-\SI{11.92}{Gbit\per\second} is in \emph{gibibits}; $11.92 \times 2^{30} / 10^8 =
-127.99$ bits/cycle, i.e.\ exactly \num{128} --- the full AXI bus width at
-II\,=\,1. Its decimal equivalent is \SI{12.80}{Gbit\per\second}.}
+\captionof{table}{Throughput. \textbf{Two corrections:} Kiem's published
+\SI{11.92}{Gbit\per\second} is in \emph{gibibits} ($11.92 \times 2^{30} / 10^8 =
+127.99$ bits/cycle, decimal \SI{12.80}{Gbit\per\second}), and it is
+\emph{theoretical} --- bus width $\times$ clock --- not measured. Compare
+theoretical with theoretical (a factor of 2, all from II).}
 \centering\small
 \begin{tabular}{@{}lrrr@{}}
 \toprule
-& DRHE & LPC & Kiem (corrected)\\
+& DRHE & LPC & Kiem\\
 \midrule
-Effective II                        & 2 & 3 & 1\\
-bits per cycle                      & 51.4 & 15.9 & \tno{128.0}\\
-Throughput @ \SI{100}{\mega\hertz}  & \SI{5.14}{Gbit\per\second} & \SI{1.60}{Gbit\per\second} & \SI{12.80}{Gbit\per\second}\\
+Worst loop II                       & 2 & 3 & 1\\
+Theoretical @ \SI{100}{\mega\hertz} ($128f/\mathrm{II}$) & \SI{6.40}{Gbit\per\second} & \SI{4.27}{Gbit\per\second} & \SI{12.80}{Gbit\per\second}\\
+Measured @ \SI{100}{\mega\hertz} (co-sim) & \SI{5.14}{Gbit\per\second} & \SI{1.60}{Gbit\per\second} & not reported\\
+Measured bits per cycle             & 51.4 & 15.9 & ---\\
 Throughput @ own $F_{\max}$         & \SI{4.21}{Gbit\per\second} & \SI{1.36}{Gbit\per\second} & ---\\
 IP pipeline latency                 & \SI{580}{\nano\second} & --- & \SI{230}{\nano\second}\\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
+
+\begin{center}
+\begin{minipage}{0.98\textwidth}\centering
+\captionof{table}{What the numbers are judged against (report Chapter 7).
+ColoRadar: 128 bins, 192 ramps, ramp interval \SI{78.5}{\micro\second}, frame
+acquisition \SI{15.07}{\milli\second}, \SI{5}{\hertz}. Kiem's sensor: 512 bins,
+1024 ramps, \SI{\approx 20.5}{\micro\second} ramps, \SI{15}{\milli\second}
+compression budget. LPC figures are for lags $n_{\mathrm{Tx}}, 2n_{\mathrm{Tx}}$.}
+\centering\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Yardstick & DRHE-$n$ & LPC-$n$,$2n$\\
+\midrule
+Required rate, 4 RX (\SI{0.209}{Gbit\per\second}) --- headroom @ 100 MHz / $F_{\max}$ & 24.6$\times$ / 20.1$\times$ & 4.6$\times$ / 4.0$\times$\\
+Required rate, 16 RX (\SI{0.835}{Gbit\per\second}) --- headroom & 6.2$\times$ / 5.0$\times$ & 1.16$\times$ / 0.99$\times$\\
+Kiem's sensor rate (\SI{3.2}{Gbit\per\second}) --- headroom & 1.6$\times$ / 1.3$\times$ & ---\\
+Cycles per ramp used / available (\num{7850}) & 319 (4.1\%) & ingest 128\\
+Added latency after last ramp @ 100 MHz & \SI{3.2}{\micro\second} & \SI{3.01}{\milli\second}\\
+Added latency scaled to Kiem's frame (budget \SI{15}{\milli\second}) & $\approx$\SI{11}{\micro\second} & $\approx$\SI{53}{\milli\second} (fails)\\
+Frame buffer scaled to Kiem's frame & none & \SI{67}{\mega bit} (exceeds on-chip)\\
+LUT as \% of Kiem's ZU3EG (\num{70560}) & 164\% & 122\%\\
+LUT / FF / BRAM / DSP vs Kiem & 2.5 / 6.2 / 4.0 / 3.0$\times$ & 1.9 / 2.5 / 9.6 / 3.5$\times$\\
+BRAM used vs theoretical minimum & 80 vs 53 & 192 vs 171\\
+CR vs no-prediction baseline (3.489) & +7.5\% & +6.0\%\\
 \bottomrule
 \end{tabular}
 \end{minipage}

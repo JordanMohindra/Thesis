@@ -3,6 +3,7 @@
 \usepackage[a4paper,left=30mm,right=25mm,top=25mm,bottom=25mm]{geometry}
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
+\usepackage{array}
 \usepackage{longtable}
 \usepackage{graphicx}
 \usepackage{microtype}
@@ -422,6 +423,11 @@ and the two defects.
 
 \textbf{Chapter~\ref{ch:results}} reports results, and is where the audit and
 the prediction-axis correction appear.
+
+\textbf{Chapter~\ref{ch:interpret}} explains what each hardware number means:
+what it represents, why it is measured, what it should be compared against ---
+the reference design where that is valid, the sensor, the link and the device
+where it is not --- and at what point it becomes a problem.
 
 \textbf{Chapter~\ref{ch:discussion}} discusses what the numbers support and what
 they do not, and \textbf{Chapter~\ref{ch:conclusion}} concludes.
@@ -2747,7 +2753,9 @@ on the \texttt{xcku5p}.
 device, which has \num{216960} LUT, \num{433920} FF, \num{960} BRAM\_18K and
 \num{1824} DSP. The reference column is Kiem's ZU3EG design \cite{kiem2025},
 which is a device roughly three times smaller, so only absolute counts are
-comparable.}
+comparable. The reference figures are post-implementation, ours are HLS
+estimates, and the reference's BRAM figure of 10 is in \SI{36}{\kilo bit}
+tiles, i.e.\ 20 BRAM\_18K (Section~\ref{sec:resinterp}).}
 \label{tab:resources}
 \small
 \begin{tabular}{@{}lrrr@{}}
@@ -2756,7 +2764,7 @@ Resource & DRHE & LPC & Reference \cite{kiem2025}\\
 \midrule
 LUT              & \num{115534} (53\%) & \num{80528} (37\%) & \num{45892}\\
 FF               & \num{57105} (13\%)  & \num{17393} (4\%)  & \num{9243}\\
-BRAM\_18K        & \num{40} (4\%)      & \num{256} (26\%)   & \num{10}\\
+BRAM\_18K        & \num{40} (4\%)      & \num{256} (26\%)   & \num{20}\\
 DSP              & \num{132} (7\%)     & \num{168} (9\%)    & \num{44}\\
 Est.\ $F_{\max}$ & \SI{81.88}{\mega\hertz} & \SI{85.43}{\mega\hertz} & \SI{100}{\mega\hertz}\\
 Frame latency    & \num{61253} cyc & \num{197277} cyc & ---\\
@@ -3292,6 +3300,8 @@ headroom, \num{2.14}$\times$ from spectral sparsity, and \num{1.08}$\times$
 from prediction once it is applied correctly.
 \end{enumerate}
 
+\input{ch_interpret}
+
 % ===================================================================
 \chapter{Discussion}
 \label{ch:discussion}
@@ -3315,7 +3325,15 @@ flip-flops, block RAM and DSP slices.
 Percentage utilisations are therefore meaningless as a comparison, and only
 absolute counts mean anything. In absolute terms this DRHE implementation uses
 \num{2.5}$\times$ the LUTs of the reference. That is a worse result than the
-percentage comparison suggested, and it is the correct one.
+percentage comparison suggested, and it is the correct one --- with the caveat,
+developed in Section~\ref{sec:numsource}, that it compares an HLS estimate with
+a post-implementation figure.
+
+A second unit error concerned block RAM. The reference reports 10 BRAM, but
+counts \SI{36}{\kilo bit} tiles; in the \SI{18}{\kilo bit} units used here that
+is 20. The baseline DRHE's 40 is therefore twice the reference, not four times,
+which is what storing 32-bit floating-point state instead of narrower
+fixed-point words would predict.
 
 \subsection{Throughput units}
 
@@ -3335,22 +3353,32 @@ binary units, and its decimal equivalent is
 \SI{12.80}{Gbit\per\second}.
 
 This matters because any comparison against \num{11.92} understates the gap by
-\SI{7.4}{\percent}. Table~\ref{tab:throughput} gives the corrected comparison.
+\SI{7.4}{\percent}.
+
+The same calculation exposes something more important: the figure is
+\emph{theoretical}. It is the stream width multiplied by the clock --- the rate
+the design would reach if it accepted a word every cycle without pause --- and
+not a rate measured on the hardware. The fair comparison is therefore
+theoretical against theoretical, and measured figures should be judged against
+the sensor instead (Section~\ref{sec:thrinterp}). Table~\ref{tab:throughput}
+separates the two.
 
 \begin{table}[t]
 \centering
-\caption[Throughput comparison]{Throughput comparison at \SI{100}{\mega\hertz}.
-The reference column restates the published figure in decimal units. Both
-designs here are the baselines; the corrected DRHE is identical in throughput.}
+\caption[Throughput comparison]{Throughput comparison at \SI{100}{\mega\hertz},
+decimal units. ``Theoretical'' is $128 f/\mathrm{II}$; ``measured'' is from RTL
+co-simulation. The reference publishes only a theoretical figure. Both designs
+here are the baselines; the corrected DRHE is identical in throughput.}
 \label{tab:throughput}
 \small
 \begin{tabular}{@{}lrrr@{}}
 \toprule
 & DRHE & LPC & Reference \cite{kiem2025}\\
 \midrule
-Effective II                & 2 & 3 & 1\\
-bits per cycle              & 51.4 & 15.9 & \textbf{128.0}\\
-Throughput                  & \SI{5.14}{Gbit/s} & \SI{1.60}{Gbit/s} & \SI{12.80}{Gbit/s}\\
+Worst loop II               & 2 & 3 & 1\\
+Theoretical throughput      & \SI{6.40}{Gbit/s} & \SI{4.27}{Gbit/s} & \SI{12.80}{Gbit/s}\\
+Measured throughput         & \SI{5.14}{Gbit/s} & \SI{1.60}{Gbit/s} & not reported\\
+Measured bits per cycle     & 51.4 & 15.9 & ---\\
 IP pipeline latency         & \SI{580}{\nano\second} & --- & \SI{230}{\nano\second}\\
 \bottomrule
 \end{tabular}
@@ -3358,16 +3386,22 @@ IP pipeline latency         & \SI{580}{\nano\second} & --- & \SI{230}{\nano\seco
 
 \subsection{The gap is structural, not mysterious}
 
-Being \num{2.5}$\times$ slower than the reference sounds alarming until it is
-decomposed, at which point it becomes a list of known, fixable things.
+Set against the reference's theoretical figure, this design's measured
+throughput looks \num{2.5}$\times$ slower. Theoretical against theoretical the
+gap is exactly \num{2}, and it decomposes into a list of known, fixable things.
 
-The reference achieves $\mathrm{II} = 1$. This DRHE achieves $\mathrm{II} = 2$
-on the block-RAM port conflict described in Section~\ref{sec:drheimpl}, and
-loses a further \SI{20}{\percent} to per-ramp pipeline drain. Fixing the port
+The reference is scheduled at $\mathrm{II} = 1$. This DRHE achieves
+$\mathrm{II} = 2$ on the block-RAM port conflict described in
+Section~\ref{sec:drheimpl}; that is the whole theoretical gap. Its measured
+figure loses a further \SI{20}{\percent} to per-ramp pipeline drain, a loss
+that a theoretical figure would not show even if the reference design had it
+too. Fixing the port
 conflict --- by partitioning the state arrays cyclically on the bin dimension,
 or by hoisting the first-ramp reset out of the pipelined loop --- would bring
-this design to \SI{11}{} to \SI{12}{Gbit\per\second}, in line with the
-reference.
+this design to \SI{11}{} to \SI{12}{Gbit\per\second} measured, close to the
+reference's theoretical rate. None of this is needed to keep up with the sensor:
+Chapter~\ref{ch:interpret} shows the current design already has
+\num{24.6}$\times$ headroom.
 
 LPC's inefficiencies are similarly addressable, and
 Section~\ref{sec:tdmresults} showed that the TDM restructure has already
@@ -3600,6 +3634,9 @@ Separately, a throughput figure widely quoted for this class of design was
 found to be expressed in gibibits rather than gigabits: \SI{11.92}{Gibit\per\second}
 is \SI{12.80}{Gbit\per\second} decimal, which is exactly \num{128} bits per
 cycle at \SI{100}{\mega\hertz} --- a full-rate AXI4-Stream at $\mathrm{II} = 1$.
+It is a theoretical rate, not a measured one, and its BRAM figure is in
+\SI{36}{\kilo bit} tiles; both corrections halve the apparent gap to this
+design (Chapter~\ref{ch:interpret}).
 A detection metric conventionally labelled a false positive rate was identified
 as a false discovery rate, and two source citations were corrected.
 
@@ -3621,6 +3658,7 @@ measurement. The division runs \num{1024} times per frame and contributes
 \texttt{atan2} and the sine/cosine pair, not division.
 
 \section{Future work}
+\label{sec:futurework}
 
 \subsection{Immediate}
 
@@ -3641,9 +3679,11 @@ floating-point transcendentals per sample dominate DRHE's LUT count and its
 critical path. A CORDIC implementation should address both the resource usage
 and the \SI{81.88}{\mega\hertz} $F_{\max}$.
 
-\item \textbf{Complete Phase 4.} Place-and-route and on-silicon measurement to
-replace the estimates in Table~\ref{tab:resources}, including power, which no
-simulation here reports.
+\item \textbf{Complete Phase 4.} Place-and-route (\texttt{vitis-run --impl})
+and on-silicon measurement to replace the estimates in
+Table~\ref{tab:resources} with post-implementation figures directly comparable
+with the reference, including power (\texttt{report\_power} with co-simulation
+switching activity), which no simulation here reports.
 \end{enumerate}
 
 \subsection{Longer term}

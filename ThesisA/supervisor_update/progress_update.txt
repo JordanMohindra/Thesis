@@ -147,11 +147,21 @@ HARDWARE (synthesis, xcku5p at 100 MHz)
   ----------------------------------------------------------------------
   LUT                 115,534         80,528           45,892
   Flip-flops           57,105         17,393            9,243
-  Block RAM                40            256               10
+  Block RAM (18 Kb)        40            256               20 *
   DSP slices              132            168               44
   Max clock          81.9 MHz       85.4 MHz         100 MHz
   Frame latency    61,253 cyc    197,277 cyc              -
   Frame buffer           none       3.1 Mbit              -
+  * Kiem reports 10 in 36 Kb tiles. Ours are HLS estimates; his are
+    post-implementation.
+
+HOW TO READ THESE NUMBERS: each needs a yardstick (the report now has a chapter
+on this). DRHE accepts data 24.6x faster than four ColoRadar channels produce
+it, uses 319 of the 7,850 cycles available per ramp, and adds only 3.2 us after
+the last ramp of a frame (LPC adds 3 ms). It passes every PERFORMANCE
+requirement by a wide margin. It falls short on COST: 2.5x Kiem's LUTs, which
+would not fit his ZU3EG at all (164%), and 81.9 MHz against a 100 MHz system
+clock. Both come from the floating-point datapath.
 
 The surprise here was that LPC is the CHEAPER design, not the more expensive
 one. I had expected its division to dominate. It does not - the division runs
@@ -325,7 +335,10 @@ mine and should be fixed before submission.
      cycle on a 128-bit bus - an odd number. Read as GIBIBITS it is 127.99,
      i.e. exactly 128 - the full bus width at one sample per cycle. The figure
      is binary; its decimal equivalent is 12.80 Gbit/s. Every comparison
-     against 11.92 understates the gap by 7.4%.
+     against 11.92 understates the gap by 7.4%. It is also THEORETICAL (bus
+     width x clock), not measured - compare it with our theoretical 6.4 Gbit/s
+     (a factor of 2, from II), not our measured 5.14. Likewise his 10 BRAM are
+     36 Kb tiles = 20 in our units: our baseline uses 2x, not 4x.
 
   2. OUR "FALSE POSITIVE RATE" IS A FALSE DISCOVERY RATE.
      It divides by the number of REPORTED detections, not by the number of true
@@ -380,8 +393,9 @@ HIGH VALUE, LOW EFFORT
   2. FIX DRHE'S INITIATION INTERVAL. The design currently accepts one sample
      every TWO cycles instead of every cycle, because of a memory port conflict
      caused by a reset that runs on one ramp in 192. Hoisting that reset out of
-     the loop should roughly double throughput, to 11-12 Gbit/s - in line with
-     Kiem.
+     the loop should roughly double throughput, to 11-12 Gbit/s - close to
+     Kiem's theoretical 12.8. Not needed to keep up with the sensor (already
+     24.6x over); it matters for one instance serving all 16 channels.
 
   3. RECOVER LPC'S LATENCY. The corrected LPC makes two short passes where it
      used to make one long one, and pays a pipeline start-up cost 512 times

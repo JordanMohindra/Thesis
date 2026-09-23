@@ -225,14 +225,30 @@ system.
 \midrule
 LUT           & \num{115534} & \num{80528} & \num{45892}\\
 Flip-flops    & \num{57105}  & \num{17393} & \num{9243}\\
-Block RAM     & \num{40}     & \num{256}   & \num{10}\\
+Block RAM (18\,Kb) & \num{40}     & \num{256}   & \num{20}$^{*}$\\
 DSP slices    & \num{132}    & \num{168}   & \num{44}\\
 Max clock     & \SI{81.9}{\mega\hertz} & \SI{85.4}{\mega\hertz} & \SI{100}{\mega\hertz}\\
 Frame latency & \num{61253} cycles & \num{197277} cycles & ---\\
 Frame buffer  & none & \SI{3.1}{\mebi bit} & ---\\
 \bottomrule
 \end{tabular}
+
+\smallskip
+{\footnotesize $^{*}$Kiem reports 10 in 36\,Kb tiles. Our figures are HLS
+estimates; his are post-implementation.}
 \end{table}
+
+\noindent
+\textbf{How to read these numbers.} On their own they say little; each needs a
+yardstick, and the report now has a chapter giving one for every metric. The
+short version: DRHE accepts data \num{24.6} times faster than four ColoRadar
+channels produce it, uses \num{319} of the \num{7850} cycles available per
+ramp, and adds only \SI{3.2}{\micro\second} after the last ramp of a frame
+(LPC adds \SI{3}{\milli\second}). So it passes every \emph{performance}
+requirement by a wide margin. Where it falls short is \emph{cost}: 2.5 times
+Kiem's LUTs, which would not fit his ZU3EG at all (\SI{164}{\percent}), and
+\SI{81.9}{\mega\hertz} against a \SI{100}{\mega\hertz} system clock. Both
+shortfalls come from the floating-point datapath.
 
 \noindent
 The surprise here was that \textbf{LPC is the cheaper design}, not the more
@@ -471,7 +487,11 @@ bits per clock cycle on a 128-bit bus --- an odd number. Read as
 \emph{gibibits} it is \num{127.99}, i.e.\ exactly \num{128} --- the full bus
 width at one sample per cycle. The figure is binary; its decimal equivalent is
 \SI{12.80}{Gbit\per\second}. Every comparison against \num{11.92} understates
-the gap by \SI{7.4}{\percent}.
+the gap by \SI{7.4}{\percent}. It is also a \emph{theoretical} figure (bus
+width $\times$ clock), not a measurement, so it should be compared with our
+theoretical \SI{6.4}{Gbit\per\second} (a factor of 2, from II) rather than our
+measured \SI{5.14}{}. Likewise his 10 BRAM are 36\,Kb tiles, i.e.\ 20 in our
+units: our baseline uses 2 times as much, not 4 times.
 
 \item \textbf{Our ``false positive rate'' is a false discovery rate.} It
 divides by the number of \emph{reported} detections, not by the number of true
@@ -538,7 +558,10 @@ recording. Probably the single highest-value change remaining.
 sample every \emph{two} cycles instead of every cycle, because of a memory port
 conflict caused by a reset that runs on one ramp in \num{192}. Hoisting that
 reset out of the loop should roughly double throughput, to
-\SI{11}{}--\SI{12}{Gbit\per\second} --- in line with Kiem.
+\SI{11}{}--\SI{12}{Gbit\per\second} --- close to Kiem's theoretical
+\SI{12.8}{}. This is not needed to keep up with the sensor, which the current
+design already does 24.6 times over; it matters for serving all 16 channels
+from one instance, or for larger sensors.
 
 \item \textbf{Recover LPC's latency.} The corrected LPC makes two short passes
 where it used to make one long one, and pays a pipeline start-up cost
