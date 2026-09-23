@@ -1,0 +1,19 @@
+\begin{table}[htbp]
+\centering
+\caption[Testing explanations for the gap to Kiem's LUT and FF counts]{Testing explanations for the gap between the replica and Kiem's published LUT and flip-flop counts. Each row is the replica with one thing changed, implemented and routed on the \texttt{xcku5p}. ``Share'' is the change from the replica as a fraction of the gap to Kiem (\num{28751} LUTs, \num{4193} flip-flops).}
+\label{tab:kiemgap}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+Variant & Tests & LUT & FF & LUT share & FF share\\
+\midrule
+Replica, speed grade $-2$ & the reference point & \num{17141} & \num{5050} & --- & ---\\
+Replica, speed grade $-1$ & Kiem's speed grade & \num{17228} & \num{5598} & 0\,\% & 13\,\%\\
+Replica, literal packer & four inserts, \texttt{int} offset & \num{18576} & \num{6214} & 5\,\% & 28\,\%\\
+Replica, 23-cycle pipeline & Kiem's reported depth & \num{17060} & \num{5217} & 0\,\% & 4\,\%\\
+\midrule
+Kiem, published \cite{kiem2025} & in system, 2022.2 & \num{45892} & \num{9243} & 100\,\% & 100\,\%\\
+\bottomrule
+\end{tabular}
+\end{table}

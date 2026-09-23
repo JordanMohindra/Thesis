@@ -37,13 +37,16 @@
 
 \newcommand{\tno}[1]{\textbf{#1}}
 
+\input{hw_numbers}
+\providecommand{\kiemcite}{[Kiem 2025]}
+\renewcommand{\cite}[1]{\kiemcite}
 \begin{document}
 
 \begin{center}
 \begin{minipage}{0.98\textwidth}\centering
 {\Large\bfseries Results Pack}\\[3pt]
 {\small Compression of radar range--FFT data on Kintex UltraScale+ ---
-all measured results, 17 September 2026}\\[2pt]
+all measured results, updated 24 September 2026 with placed-and-routed hardware}\\[2pt]
 {\footnotesize Jordan Mohindra (z5418455) \quad$\cdot$\quad
 Dataset: ColoRadar cascade, 50 frames \quad$\cdot$\quad
 Device: \texttt{xcku5p-ffvb676-2-e} @ \SI{100}{\mega\hertz}}
@@ -111,7 +114,7 @@ RDVLE\_UDRE   & 2.56 & 28.73 & 4.44 & $-101.782$ & 33.004\\
 
 \begin{center}
 \begin{minipage}{0.98\textwidth}\centering
-\captionof{table}{Vitis HLS C-simulation, all 50 frames, 4 RX, \num{157286400} complex
+\captionof{table}{Vitis HLS C-simulation, all 50 frames, 4 RX, \num{4915200} complex
 samples. \textbf{Every design reconstructs every sample exactly.}}
 \centering\small
 \begin{tabular}{@{}lrrrr@{}}
@@ -211,35 +214,39 @@ expands it. A deployment needs a raw-passthrough fallback if such data is
 possible.\normalsize
 
 % ================================================================
-\section{4\quad Phase 3 --- synthesis and RTL co-simulation}
+\section{4\quad Phase 3 --- synthesis, implementation and RTL co-simulation}
 
 \begin{center}
 \begin{minipage}{0.98\textwidth}\centering
-\captionof{table}{Post-synthesis resources and timing, all four designs. Device
-capacity: \num{216960} LUT, \num{433920} FF, \num{960} BRAM\_18K, \num{1824}
-DSP. Frame latency is measured in RTL co-simulation, not estimated. Our
-resources are HLS estimates; Kiem's are post-implementation. Kiem's BRAM is
-reported as 10 \SI{36}{\kilo bit} tiles, shown here as 20 BRAM\_18K.}
+\captionof{table}{Resources and timing of all four designs, placed and routed
+(Vivado 2026.1, out of context) on the \texttt{xcku5p-ffvb676-2-e} at
+\SI{10}{\nano\second}. Device capacity: \num{216960} LUT, \num{433920} FF,
+\num{960} BRAM\_18K, \num{1824} DSP. Frame latency is measured in RTL
+co-simulation. Kiem's figures are post-route on an \texttt{XCZU3CG-SFVC784-1-e};
+his BRAM is 10 \SI{36}{\kilo bit} tiles, shown as 20 BRAM\_18K. The HLS
+estimates used in earlier versions of this pack are in Table~\ref{tab:hlsvsimpl}.}
 \centering\small
 \begin{tabular}{@{}lrrrrr@{}}
 \toprule
-& DRHE-1 & DRHE-$n$ & LPC-1,2 & LPC-$n$,$2n$ & Kiem (ZU3EG)\\
+& DRHE-1 & DRHE-$n$ & LPC-1,2 & LPC-$n$,$2n$ & Kiem\\
 \midrule
-LUT              & \num{115534} & \num{115736} & \num{80528} & \num{86298} & \num{45892}\\
-\quad \% device  & 53\% & 53\% & 37\% & 40\% & 65\% (of ZU3EG)\\
-FF               & \num{57105}  & \num{57263}  & \num{17393} & \num{23154} & \num{9243}\\
-BRAM\_18K        & \num{40}     & \tno{\num{80}} & \num{256} & \tno{\num{192}} & \num{20}\\
-DSP              & \num{132}    & \num{132}    & \num{168}   & \num{156} & \num{44}\\
-Est.\ $F_{\max}$ & \SI{81.88}{\mega\hertz} & \SI{81.88}{\mega\hertz}
-                 & \SI{85.43}{\mega\hertz} & \SI{85.43}{\mega\hertz} & \SI{100}{\mega\hertz}\\
+LUT              & \HW{drheone}{LUT} & \HW{drhen}{LUT} & \HW{lpcone}{LUT} & \HW{lpcn}{LUT} & \num{45892}\\
+FF               & \HW{drheone}{FF}  & \HW{drhen}{FF}  & \HW{lpcone}{FF}  & \HW{lpcn}{FF}  & \num{9243}\\
+BRAM\_18K        & \HW{drheone}{BRAM} & \tno{\HW{drhen}{BRAM}} & \HW{lpcone}{BRAM} & \tno{\HW{lpcn}{BRAM}} & \num{20}\\
+DSP              & \HW{drheone}{DSP} & \HW{drhen}{DSP} & \HW{lpcone}{DSP} & \HW{lpcn}{DSP} & \num{44}\\
+Routed $F_{\max}$ (MHz) & \HW{drheone}{fmax} & \HW{drhen}{fmax} & \HW{lpcone}{fmax} & \HW{lpcn}{fmax} & ${\geq}100$\\
+WNS at \SI{10}{\nano\second} & \HW{drheone}{wns} & \HW{drhen}{wns} & \HW{lpcone}{wns} & \HW{lpcn}{wns} & ---\\
+Dynamic power (W)& \HW{drheone}{pdyn} & \HW{drhen}{pdyn} & \HW{lpcone}{pdyn} & \HW{lpcn}{pdyn} & ---\\
 Worst loop II    & 2 & 2 & 3 & \tno{1} & 1\\
-Pipeline depth   & 58 & 58 & --- & --- & ---\\
+Pipeline depth   & 58 & 58 & --- & --- & 23\\
 Frame latency (cyc) & \num{61253} & \tno{\num{61253}} & \num{197277} & \num{325166} & ---\\
-Frame buffer     & none & none & \SI{3.1}{\mebi bit} & \SI{3.1}{\mebi bit} & ---\\
+Frame buffer     & none & none & \SI{3.0}{\mebi bit} & \SI{3.0}{\mebi bit} & ---\\
 \bottomrule
 \end{tabular}
 \end{minipage}
 \end{center}
+
+\input{../thesis/tab_hlsvsimpl}
 
 \begin{center}
 \begin{minipage}{0.98\textwidth}\centering
@@ -257,7 +264,7 @@ Worst loop II                       & 2 & 3 & 1\\
 Theoretical @ \SI{100}{\mega\hertz} ($128f/\mathrm{II}$) & \SI{6.40}{Gbit\per\second} & \SI{4.27}{Gbit\per\second} & \SI{12.80}{Gbit\per\second}\\
 Measured @ \SI{100}{\mega\hertz} (co-sim) & \SI{5.14}{Gbit\per\second} & \SI{1.60}{Gbit\per\second} & not reported\\
 Measured bits per cycle             & 51.4 & 15.9 & ---\\
-Throughput @ own $F_{\max}$         & \SI{4.21}{Gbit\per\second} & \SI{1.36}{Gbit\per\second} & ---\\
+Throughput @ routed $F_{\max}$      & \SI{6.96}{Gbit\per\second} & \SI{1.89}{Gbit\per\second} & ---\\
 IP pipeline latency                 & \SI{580}{\nano\second} & --- & \SI{230}{\nano\second}\\
 \bottomrule
 \end{tabular}
@@ -276,15 +283,15 @@ compression budget. LPC figures are for lags $n_{\mathrm{Tx}}, 2n_{\mathrm{Tx}}$
 \toprule
 Yardstick & DRHE-$n$ & LPC-$n$,$2n$\\
 \midrule
-Required rate, 4 RX (\SI{0.209}{Gbit\per\second}) --- headroom @ 100 MHz / $F_{\max}$ & 24.6$\times$ / 20.1$\times$ & 4.6$\times$ / 4.0$\times$\\
-Required rate, 16 RX (\SI{0.835}{Gbit\per\second}) --- headroom & 6.2$\times$ / 5.0$\times$ & 1.16$\times$ / 0.99$\times$\\
-Kiem's sensor rate (\SI{3.2}{Gbit\per\second}) --- headroom & 1.6$\times$ / 1.3$\times$ & ---\\
+Required rate, 4 RX (\SI{0.209}{Gbit\per\second}) --- headroom @ 100 MHz / routed $F_{\max}$ & 24.6$\times$ / 32.2$\times$ & 4.6$\times$ / 4.9$\times$\\
+Required rate, 16 RX (\SI{0.835}{Gbit\per\second}) --- headroom & 6.2$\times$ / 8.1$\times$ & 1.16$\times$ / 1.23$\times$\\
+Kiem's sensor rate (\SI{3.2}{Gbit\per\second}) --- headroom & 1.6$\times$ / 2.1$\times$ & ---\\
 Cycles per ramp used / available (\num{7850}) & 319 (4.1\%) & ingest 128\\
 Added latency after last ramp @ 100 MHz & \SI{3.2}{\micro\second} & \SI{3.01}{\milli\second}\\
 Added latency scaled to Kiem's frame (budget \SI{15}{\milli\second}) & $\approx$\SI{11}{\micro\second} & $\approx$\SI{53}{\milli\second} (fails)\\
 Frame buffer scaled to Kiem's frame & none & \SI{67}{\mega bit} (exceeds on-chip)\\
-LUT as \% of Kiem's ZU3EG (\num{70560}) & 164\% & 122\%\\
-LUT / FF / BRAM / DSP vs Kiem & 2.5 / 6.2 / 4.0 / 3.0$\times$ & 1.9 / 2.5 / 9.6 / 3.5$\times$\\
+LUT as \% of Kiem's XCZU3CG (\num{70560}), routed & 49\% & 49\%\\
+LUT / FF / BRAM / DSP vs Kiem, routed & \HW{drhen}{vsKLUT} / \HW{drhen}{vsKFF} / 4.0 / 3.0$\times$ & \HW{lpcn}{vsKLUT} / \HW{lpcn}{vsKFF} / 10.8 / 3.6$\times$\\
 BRAM used vs theoretical minimum & 80 vs 53 & 192 vs 171\\
 CR vs no-prediction baseline (3.489) & +7.5\% & +6.0\%\\
 \bottomrule
@@ -317,6 +324,57 @@ Model total       & & & \num{197120}\\
 \end{center}
 
 % ================================================================
+% ================================================================
+\section{4b\quad Accounting for every difference from Kiem (report Chapter 7)}
+
+\noindent\small
+Kiem's design was rebuilt from his thesis (Section~4.3.4: his fixed-point types
+and functions, 58-bit packer, open loop, $\mathrm{II} = 1$) in the same tool,
+for the same device, and joined to DRHE-1 by a ladder of single-change
+variants. Every row below is a lossless compressor (C-simulation on ColoRadar;
+step~3 also in RTL co-simulation), placed and routed.
+\normalsize
+
+\input{../thesis/tab_replica}
+\input{../thesis/tab_ladder}
+
+\begin{center}
+\begin{minipage}{0.98\textwidth}\centering
+\captionof{table}{Side experiments. ``Fixed-point DRHE-1'' changes only the
+arithmetic of DRHE-1. The replica variants test explanations for the gap
+between the replica and Kiem's published LUT and FF counts.}
+\centering\small
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Variant & LUT & FF & DSP & BRAM\_18K & Depth & MHz\\
+\midrule
+DRHE-1 (control)                & \HW{drheone}{LUT} & \HW{drheone}{FF} & \HW{drheone}{DSP} & \HW{drheone}{BRAM} & 58 & \HW{drheone}{fmax}\\
+Fixed-point DRHE-1 (II 2, closed loop) & \HW{ablf}{LUT} & \HW{ablf}{FF} & \HW{ablf}{DSP} & \HW{ablf}{BRAM} & \HW{ablf}{hDepth} & \HW{ablf}{fmax}\\
+Replica                         & \HW{ablk}{LUT} & \HW{ablk}{FF} & \HW{ablk}{DSP} & \HW{ablk}{BRAM} & \HW{ablk}{hDepth} & \HW{ablk}{fmax}\\
+Replica, speed grade $-1$       & \HW{ablksgone}{LUT} & \HW{ablksgone}{FF} & \HW{ablksgone}{DSP} & \HW{ablksgone}{BRAM} & \HW{ablksgone}{hDepth} & \HW{ablksgone}{fmax}\\
+Replica, literal packer         & \HW{ablkpkthree}{LUT} & \HW{ablkpkthree}{FF} & \HW{ablkpkthree}{DSP} & \HW{ablkpkthree}{BRAM} & \HW{ablkpkthree}{hDepth} & \HW{ablkpkthree}{fmax}\\
+Replica, 23-cycle pipeline      & \HW{ablktwothree}{LUT} & \HW{ablktwothree}{FF} & \HW{ablktwothree}{DSP} & \HW{ablktwothree}{BRAM} & \HW{ablktwothree}{hDepth} & \HW{ablktwothree}{fmax}\\
+Kiem, published                 & \num{45892} & \num{9243} & 44 & 20 & 23 & ${\geq}100$\\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
+
+\noindent\small
+\textbf{Reading.} Block RAM $2\times$: 32-bit state words (the replica
+matches Kiem exactly). DSP $3\times$: every DSP is a float operator; $6\times$
+at $\mathrm{II} = 1$ (step 3, \HW{ablptwor}{DSP}). II~2: one extra state write
+per cycle (step 3 reaches II~1; measured throughput
+\HW{ablptwor}{thrmeas}\,Gbit/s against 5.14). Depth 58: 26 cycles of closed
+loop plus float operator latency. LUT and FF: float operators are
+\HW{drheone}{fopLUTpct}\,\% of DRHE-1's LUTs and \HW{drheone}{fopFFpct}\,\% of
+its FFs; the packer another \num{4200} LUTs. The replica against Kiem's own
+build (\HW{ablk}{KLUTratio}$\times$ LUT, \HW{ablk}{KFFratio}$\times$ FF): speed
+grade, literal packer and pipeline depth together explain about
+\SI{45}{\percent} of the FF gap and \SI{5}{\percent} of the LUT gap; the rest is
+not a property of the design his thesis describes.
+\normalsize
+
 \section{5\quad The audit --- what the compression ratio measures}
 
 \begin{center}
@@ -596,8 +654,9 @@ spending into the three four-bit categories.}
 \begin{center}
 \begin{minipage}{0.98\textwidth}\centering
 \includegraphics[width=\textwidth]{fig_resources.pdf}
-\captionof{figure}{Resource usage, four designs, against device capacity (dotted). DRHE
-trades block RAM for logic; LPC the reverse.}
+\captionof{figure}{Resource usage, four designs, post-route (solid) against the
+HLS estimate (dashed outline). Implemented, the designs use similar logic and
+differ in memory.}
 \end{minipage}
 \end{center}
 

@@ -4,7 +4,7 @@ Comparison and Implementation of Data Compression Methods for SoC-based
 Radar Systems
 
 Jordan Mohindra (z5418455)   |   Supervisor: A/Prof. Beena Ahmed
-17 September 2026
+17 September 2026 (hardware sections updated 24 September 2026)
 ================================================================================
 
 
@@ -13,8 +13,9 @@ THE SHORT VERSION
 Since the Thesis A report I have built, verified and characterised complete
 hardware implementations of TWO lossless radar compression algorithms - DRHE
 and LPC - on the Kintex UltraScale+ FPGA, each with a matching decompressor.
-Both reconstruct real radar data perfectly: zero error across 157 million
-samples, confirmed three separate ways.
+Both reconstruct real radar data perfectly: zero error across 50 frames
+(4.9 million complex samples, 157 million bits), confirmed three separate ways.
+Both are now also placed and routed in Vivado.
 
 Then I audited the results, and found something I was not expecting.
 
@@ -43,11 +44,12 @@ STATUS AT A GLANCE
   Phase 1  MATLAB reference .............. 100%  50 frames, 8 algorithms
   Phase 2  HLS C-simulation .............. 100%  4 designs, all bit-exact
   Phase 3  Synthesis + RTL co-sim ........ 100%  4 designs, exact latency
+  Phase 3b Vivado place and route ........ 100%  4 designs + replica of Kiem + 9 variants
   Phase 4  On silicon ....................   0%  needs board access
 
   Objective 1  Mitigate quantisation error   35%  root cause found, fix pending
   Objective 2  Broaden algorithm comparison  65%  LPC + no-prediction baseline
-  Objective 3  Full compress + decompress    85%  verified in simulation
+  Objective 3  Full compress + decompress    90%  verified; placed and routed
 
 
 1. WHAT I BUILT
@@ -78,7 +80,7 @@ Both then feed their differences into the same entropy coder, which assigns
 short bit patterns to common values and long ones to rare values.
 
 DELIVERABLES
-  - DRHE compressor and decompressor in Vitis HLS (C++), synthesised for xcku5p
+  - DRHE compressor and decompressor in Vitis HLS (C++), synthesised, placed and routed for xcku5p
   - LPC compressor and decompressor, likewise
   - TDM-corrected versions of both, kept alongside the originals so every
     comparison is like-for-like
@@ -141,36 +143,40 @@ Two points worth making to anyone reading this table:
     misses nearly three times as many real targets and invents nearly nine
     times as many false ones. Not a trade worth taking in a braking system.
 
-HARDWARE (synthesis, xcku5p at 100 MHz)
+HARDWARE (xcku5p at 100 MHz, PLACED AND ROUTED in Vivado)
 
-                        DRHE            LPC         Kiem's design
-  ----------------------------------------------------------------------
-  LUT                 115,534         80,528           45,892
-  Flip-flops           57,105         17,393            9,243
-  Block RAM (18 Kb)        40            256               20 *
-  DSP slices              132            168               44
-  Max clock          81.9 MHz       85.4 MHz         100 MHz
-  Frame latency    61,253 cyc    197,277 cyc              -
-  Frame buffer           none       3.1 Mbit              -
-  * Kiem reports 10 in 36 Kb tiles. Ours are HLS estimates; his are
-    post-implementation.
+                     DRHE-1     DRHE-n   LPC-n,2n   Replica of Kiem   Kiem, published
+  ------------------------------------------------------------------------------------
+  LUT                35,343     34,804     34,503        17,141           45,892
+  Flip-flops         23,546     23,514     20,186         5,050            9,243
+  Block RAM (18 Kb)      40         80        216            20               20 *
+  DSP slices            132        132        158            48               44
+  Routed Fmax (MHz)   135.5      131.0      106.3         129.5             >=100
+  II                      2          2          1             1                1
+  * Kiem reports 10 in 36 Kb tiles. All our numbers are now post-route, the
+    same kind of number as his.
 
-HOW TO READ THESE NUMBERS: each needs a yardstick (the report now has a chapter
-on this). DRHE accepts data 24.6x faster than four ColoRadar channels produce
-it, uses 319 of the 7,850 cycles available per ramp, and adds only 3.2 us after
-the last ramp of a frame (LPC adds 3 ms). It passes every PERFORMANCE
-requirement by a wide margin. It falls short on COST: 2.5x Kiem's LUTs, which
-would not fit his ZU3EG at all (164%), and 81.9 MHz against a 100 MHz system
-clock. Both come from the floating-point datapath.
+WHAT CHANGED WHEN THE DESIGNS WERE ACTUALLY BUILT. The previous version said
+DRHE used 2.5x Kiem's LUTs, would not fit his ZU3EG (actually an XCZU3CG), and
+missed timing at 81.9 MHz. All three came from HLS estimates. Implemented,
+DRHE-1 uses 0.77x his LUTs, fits his device at half its logic, and closes at
+135.5 MHz. LPC is not much cheaper in logic after all: the corrected designs
+are within a few per cent of each other.
 
-The surprise here was that LPC is the CHEAPER design, not the more expensive
-one. I had expected its division to dominate. It does not - the division runs
-1,024 times per frame and accounts for 0.26% of the cycles. What actually costs
-is DRHE's four floating-point transcendental functions (sqrt, atan2, sin, cos)
-evaluated for every sample of every channel. The real trade is LOGIC (DRHE)
-against MEMORY AND LATENCY (LPC).
-
-Neither design closes timing at 100 MHz. Both fixes are identified (section 9).
+EVERY DIFFERENCE FROM KIEM, EXPLAINED. I rebuilt his design from his thesis
+(his fixed-point types and functions, 58-bit packer, open loop) and went from
+our design to it one decision at a time, implementing every step:
+  - Block RAM 2x : 32-bit float state words vs his 16-bit (replica = his 10 tiles).
+  - DSPs 3x      : every DSP is a float operator; 6x without II=2 channel sharing.
+  - II 2 vs 1    : one extra state write per cycle; changed to a read -> II 1.
+  - Depth 58/23  : 26 cycles are our closed loop; the rest is float latency.
+  - LUT/FF       : mostly the float datapath (69% of LUTs), which buys 0.07% CR;
+                   our packer costs ~4,200 LUTs more than his.
+One thing does not close: Kiem's own build uses 2.68x the LUTs of the replica.
+His speed grade, a literal reading of his packer and his pipeline depth explain
+about half of his extra flip-flops and almost none of his extra LUTs. The rest
+is most likely the older tool (2022.2) or logic his thesis does not describe;
+I report it as unexplained.
 
 
 4. THE MAIN FINDING: WE WERE PREDICTING ALONG THE WRONG AXIS
@@ -318,7 +324,7 @@ On real data the numbers involved only reach 44 bits, so this was entirely
 unreachable with our dataset.
 
   METHODOLOGICAL POINT WORTH RECORDING
-  Fifty frames of real data - 157 million samples - found neither bug. An
+  Fifty frames of real data - 157 million input bits - found neither bug. An
   eight-case synthetic suite found both in minutes. Conversely, the synthetic
   suite would never have found the prediction-axis error, because synthetic
   data has no transmitter structure to get wrong. The two kinds of testing find
@@ -392,10 +398,9 @@ HIGH VALUE, LOW EFFORT
 
   2. FIX DRHE'S INITIATION INTERVAL. The design currently accepts one sample
      every TWO cycles instead of every cycle, because of a memory port conflict
-     caused by a reset that runs on one ramp in 192. Hoisting that reset out of
-     the loop should roughly double throughput, to 11-12 Gbit/s - close to
-     Kiem's theoretical 12.8. Not needed to keep up with the sensor (already
-     24.6x over); it matters for one instance serving all 16 channels.
+     caused by a reset that runs on one ramp in 192. DEMONSTRATED: reading the
+     state as zero instead gives II=1 and +71% measured throughput (8.76 Gbit/s),
+     but doubles the float arithmetic. Not needed for the sensor (24.6x over).
 
   3. RECOVER LPC'S LATENCY. The corrected LPC makes two short passes where it
      used to make one long one, and pays a pipeline start-up cost 512 times
@@ -403,17 +408,17 @@ HIGH VALUE, LOW EFFORT
 
 MEDIUM EFFORT
 
-  4. REPLACE THE POLAR CONVERSION WITH A FIXED-POINT CORDIC. The four
-     floating-point transcendentals dominate DRHE's logic usage AND its
-     critical path, so this addresses both the resource count and the 81.9 MHz
-     clock ceiling in one change.
+  4. MOVE DRHE TO FIXED POINT. Measured: changing only DRHE-1's arithmetic to
+     Kiem's fixed point removes 42% of LUTs, 61% of FFs, 67% of DSPs (down to
+     exactly Kiem's 44) and half the BRAM, for 0.07% CR. Replaces the earlier
+     CORDIC suggestion, which targeted a timing problem that does not exist.
 
   5. RE-DERIVE THE HUFFMAN DICTIONARY. After the correction, 86% of differences
      fall into the three cheapest categories, which is a more concentrated
      distribution than the current fixed dictionary assumes.
 
-  6. PLACE-AND-ROUTE, THEN PHASE 4 ON THE BOARD. Real Fmax, real resource
-     counts, power measurement, end-to-end latency.
+  6. PHASE 4 ON THE BOARD. Place-and-route is done; measured power, in-system
+     timing and end-to-end latency remain.
 
 IF TIME ALLOWS
 
@@ -427,12 +432,11 @@ IF TIME ALLOWS
   * BOARD ACCESS IS THE CRITICAL PATH FOR PHASE 4. Everything else can proceed
     in simulation, but power and real timing cannot.
 
-  * TIMING CLOSURE. Neither design meets 100 MHz today. The CORDIC change
-    should fix it; if not, the fallback is to report an 80 MHz clock honestly,
-    which still leaves useful throughput.
+  * TIMING CLOSURE IS NO LONGER A RISK. Every design meets 100 MHz after
+    routing; the tightest (LPC-n) has 0.595 ns of slack.
 
-  * ALL HARDWARE NUMBERS ARE PRE-IMPLEMENTATION ESTIMATES. Post-route Fmax is
-    typically lower than the synthesis estimate.
+  * HARDWARE NUMBERS ARE POST-ROUTE, NOT SILICON. Power is a vectorless
+    estimate; in-system routing could be slightly worse than out of context.
 
   * SCOPE. Objective 2 is only partly done. I would rather finish the
     quantisation work (Objective 1) properly than add two more algorithms to

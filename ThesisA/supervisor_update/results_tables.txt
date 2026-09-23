@@ -1,6 +1,6 @@
 RESULTS PACK - all measured numbers
 Compression of radar range-FFT data on Kintex UltraScale+ (xcku5p-ffvb676-2-e) @ 100 MHz
-Dataset: ColoRadar cascade, 50 frames.   J. Mohindra z5418455, 17 Sep 2026
+Dataset: ColoRadar cascade, 50 frames.   J. Mohindra z5418455, 17 Sep 2026; hardware updated 24 Sep 2026
 
 Four designs throughout:
   DRHE-1     DRHE as originally implemented  (predicts from ramp m-1)
@@ -43,7 +43,7 @@ reconstruct the quantised data exactly, so the detector sees identical input.
 
 ================================================================================
 TABLE 3 - Phase 2, bit-exact verification
-          Vitis HLS C-simulation, 50 frames, 4 RX, 157,286,400 complex samples
+          Vitis HLS C-simulation, 50 frames, 4 RX, 4,915,200 complex samples (157,286,400 bits)
 ================================================================================
 Design       Mean CR    MaxDiff   MSE   Frames lossless
 DRHE-1       3.30987        0      0       50 / 50
@@ -113,24 +113,26 @@ append coder cannot leave incompressible data unchanged - it expands it.
 
 
 ================================================================================
-TABLE 7 - Phase 3, synthesis resources and timing
+TABLE 7 - Phase 3, resources and timing, PLACED AND ROUTED (Vivado 2026.1, OOC)
           Device capacity: 216,960 LUT / 433,920 FF / 960 BRAM_18K / 1,824 DSP
 ================================================================================
-                    DRHE-1     DRHE-n    LPC-1,2   LPC-n,2n   Kiem (ZU3EG)
-LUT                115,534    115,736     80,528     86,298        45,892
-  % of device          53%        53%        37%        40%   65% of ZU3EG
-FF                  57,105     57,263     17,393     23,154         9,243
-BRAM_18K                40         80        256        192            20 *
-DSP                    132        132        168        156            44
-Est. Fmax        81.88 MHz  81.88 MHz  85.43 MHz  85.43 MHz       100 MHz
-Worst loop II            2          2          3          1             1
-Pipeline depth          58         58          -          -             -
-Frame latency       61,253     61,253    197,277    325,166             -
-  (cycles, measured in RTL co-simulation)
-Frame buffer          none       none   3.1 Mbit   3.1 Mbit             -
+                           DRHE-1     DRHE-n    LPC-1,2   LPC-n,2n  Kiem (XCZU3CG)
+LUT routed                 35,343     34,804     29,772     34,503          45,892
+  LUT, HLS estimate       115,534    115,736     80,528     86,298               -
+FF routed                  23,546     23,514     13,601     20,186           9,243
+  FF, HLS estimate         57,105     57,263     17,393     23,154               -
+BRAM_18K                       40         80        244        216            20 *
+DSP                           132        132        168        158              44
+Routed Fmax (MHz)           135.5      131.0      118.6      106.3           >=100
+  HLS estimate (MHz)        81.88      81.88      85.43      85.43               -
+WNS @ 10 ns (ns)            2.621      2.367      1.569      0.595               -
+Dynamic power (W)           0.562      0.657      0.709      0.555               -
+Worst loop II                   2          2          3          1               1
+Frame latency (cyc)        61,253     61,253    197,277    325,166               -
 
-  * Kiem reports 10 BRAM in 36 Kb tiles = 20 BRAM_18K. Our numbers are HLS
-    estimates; Kiem's are post-implementation (Vivado).
+  * Kiem reports 10 BRAM in 36 Kb tiles = 20 BRAM_18K. All our numbers above are
+    now post-route, the same kind of number as Kiem's. The HLS estimates over-
+    stated LUTs ~3x and put every design below 100 MHz; every design meets it.
 
 
 ================================================================================
@@ -141,7 +143,7 @@ Worst loop II                    2            3            1
 Theoretical @ 100 MHz   6.40 Gbit/s  4.27 Gbit/s  12.80 Gbit/s  (128 x f / II)
 Measured @ 100 MHz      5.14 Gbit/s  1.60 Gbit/s  not reported  (co-sim)
 Measured bits per cycle       51.4         15.9            -
-Throughput @ own Fmax   4.21 Gbit/s  1.36 Gbit/s            -
+Throughput @ routed Fmax 6.96 Gbit/s 1.89 Gbit/s            -
 IP pipeline latency          580 ns            -       230 ns
 
 UNIT CORRECTION: Kiem's published 11.92 Gbit/s is in GIBIBITS.
@@ -158,15 +160,15 @@ TABLE 8b - What the numbers are judged against  (report Chapter 7)
 ColoRadar: 128 bins x 192 ramps, ramp 78.5 us, acquisition 15.07 ms, 5 Hz.
 Kiem's sensor: 512 bins x 1024 ramps, ramp ~20.5 us, compression budget 15 ms.
                                               DRHE-n              LPC-n,2n
-Headroom vs 4 RX rate (0.209 Gbit/s)      24.6x (20.1x@Fmax)   4.6x (4.0x@Fmax)
-Headroom vs 16 RX rate (0.835 Gbit/s)      6.2x  (5.0x@Fmax)   1.16x (0.99x@Fmax)
-Headroom vs Kiem's sensor (3.2 Gbit/s)     1.6x  (1.3x@Fmax)   -
+Headroom vs 4 RX rate (0.209 Gbit/s)      24.6x (32.2x@Fmax)   4.6x (4.9x@Fmax)
+Headroom vs 16 RX rate (0.835 Gbit/s)      6.2x  (8.1x@Fmax)   1.16x (1.23x@Fmax)
+Headroom vs Kiem's sensor (3.2 Gbit/s)     1.6x  (2.1x@Fmax)   -
 Cycles per ramp used / 7,850 available     319 (4.1%)          ingest 128
 Added latency after last ramp @100 MHz     3.2 us              3.01 ms
 Added latency scaled to Kiem's frame       ~11 us              ~53 ms (> 15 ms budget)
 Frame buffer scaled to Kiem's frame        none                67 Mbit (> on-chip BRAM)
-LUT as % of Kiem's ZU3EG (70,560)          164%                122%
-LUT / FF / BRAM / DSP vs Kiem              2.5/6.2/4.0/3.0x    1.9/2.5/9.6/3.5x
+LUT as % of Kiem's XCZU3CG (70,560)        49% (routed)        49% (routed)
+LUT / FF / BRAM / DSP vs Kiem (routed)     0.76/2.54/4.0/3.0x  0.75/2.18/10.8/3.6x
 BRAM used vs theoretical minimum           80 vs 53            192 vs 171
 CR vs no-prediction baseline (3.489)       +7.5%               +6.0%
 
@@ -185,6 +187,38 @@ MEASURED (co-simulation)                197,277     -> model accurate to 0.08%
 
 For LPC-n,2n the same model predicts 246,272 against 325,166 measured. The 32%
 gap is pipeline drain from 512 short loop invocations: 512 x (71+56) ~ 65,000.
+
+
+================================================================================
+TABLE 9b - FROM DRHE-1 TO A REPLICA OF KIEM'S DESIGN, ONE CHANGE PER STEP
+           every row lossless, placed and routed, xcku5p-2, 10 ns (report Ch. 7)
+================================================================================
+Step Change from row above                       LUT       FF   DSP  BRAM  II Depth     MHz
+0    DRHE-1 as built                          35,343   23,546   132    40   2    58   135.5
+1    packer shift offset unsigned             33,502   24,423   132    40   2    58   128.4
+2    Kiem's 58-bit per-channel packer         31,124   21,261   127    40   2    62   120.6
+3    state cleared by read, not write         52,432   30,373   264    40   1    59   131.4
+4    Kiem's fixed-point arithmetic            16,882    5,380    48    20   1    16   133.3
+5    open loop = replica of Kiem              17,141    5,050    48    20   1    12   129.5
+-    Kiem, published                          45,892    9,243    44    20   1    23   >=100
+
+Side experiments:
+     fixed-point DRHE-1 (only arithmetic changed)   20,549    9,230    44    20   2    12   102.8
+     replica, speed grade -1                  17,228    5,598    48    20   1    14   125.0
+     replica, literal packer (4 inserts, int)   18,576    6,214    46    20   1    12   134.8
+     replica, 23-cycle pipeline               17,060    5,217    48    20   1    23   132.2
+
+Measured throughput, co-sim @100 MHz: DRHE-1 5.14, step 3 (II=1) 8.76, replica 11.54 Gbit/s
+
+WHAT EACH DIFFERENCE FROM KIEM IS:
+  BRAM 2x   : 32-bit float state words vs his 16-bit. Replica = his 10 tiles exactly.
+  DSP 3x    : every DSP is a float operator; 6x (264) at II=1 without sharing.
+  II 2 vs 1 : one extra state write per cycle (3 accesses, 2 ports). Step 3 -> II 1.
+  Depth 58  : 26 cycles closed loop + float operator latency (open-loop float = 32).
+  LUT/FF    : float operators = 69% of DRHE-1 LUTs, 54% of FFs; packer ~4,200 LUTs.
+  Replica vs Kiem's own build (2.68x LUT, 1.83x FF): speed grade + literal packer +
+  23-cycle depth explain ~45% of the FF gap and ~5% of the LUT gap. The rest is not
+  a property of the design he describes (tool 2022.2, or undescribed logic).
 
 
 ================================================================================

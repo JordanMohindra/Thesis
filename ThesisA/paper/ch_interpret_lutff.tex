@@ -1,0 +1,212 @@
+\subsection{LUTs and flip-flops: two gaps, not one}
+\label{sec:acc_lutff}
+
+\paragraph{The difference.} DRHE-1 uses \HW{drheone}{LUT} LUTs and
+\HW{drheone}{FF} flip-flops. Kiem reports \num{45892} and \num{9243}. So
+against his published figures our design uses \emph{fewer} LUTs
+(\HW{drheone}{vsKLUT}$\times$) but \emph{more} flip-flops
+(\HW{drheone}{vsKFF}$\times$), which looks contradictory: a design with more
+registers would be expected to have more logic too.
+
+\paragraph{Why one comparison cannot explain it.} The two ratios mix two
+separate gaps. The first is between DRHE-1 and the replica: both built in the
+same tool for the same device, differing only in the design decisions the
+ladder changes. The second is between the replica and Kiem's published build:
+the same design, as far as his description goes, built in a different tool
+version, in a different system, from code we have not seen. Measured against
+the replica, DRHE-1 uses \HW{drheone}{vsRLUT}$\times$ the LUTs and
+\HW{drheone}{vsRFF}$\times$ the flip-flops, both larger, and there is no
+contradiction. The contradiction comes from the second gap, which is large for
+LUTs (Kiem's build uses \HW{ablk}{KLUTratio}$\times$ the replica's) and
+smaller for flip-flops (\HW{ablk}{KFFratio}$\times$). This subsection accounts
+for the first gap completely and for the second as far as experiments can.
+
+\paragraph{The first gap, module by module.} The routed hierarchy report lists
+every module in DRHE-1 with its own LUTs and flip-flops
+(Table~\ref{tab:lutffmodules}). The floating-point operators, which HLS
+instantiates as separate modules, are \HW{drheone}{fopLUTpct}\,\% of the LUTs
+and \HW{drheone}{fopFFpct}\,\% of the flip-flops. The two arctangent units
+alone are \HW{drheone}{atanLUT} LUTs, a third of the design, because a
+single-precision \texttt{atan2} is a 43-bit CORDIC with range reduction around
+it. The rest is the loop body --- the packer, the S4 and Huffman encoding, the
+residual arithmetic, and the registers that carry each value down a 58-stage
+pipeline until it is used --- plus the AXI interfaces.
+
+\begin{table}[htbp]
+\centering
+\caption[Where DRHE-1's LUTs and flip-flops go]{Where DRHE-1's LUTs and
+flip-flops go, from the routed hierarchical utilisation report.}
+\label{tab:lutffmodules}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Module & Instances & LUT & FF\\
+\midrule
+float arctangent (\texttt{atan2})         & \HW{drheone}{atanN}   & \HW{drheone}{atanLUT}   & \HW{drheone}{atanFF}\\
+float sine/cosine                         & \HW{drheone}{sincosN} & \HW{drheone}{sincosLUT} & \HW{drheone}{sincosFF}\\
+float add/subtract                        & \HW{drheone}{faddN}   & \HW{drheone}{faddLUT}   & \HW{drheone}{faddFF}\\
+float multiply                            & \HW{drheone}{fmulN}   & \HW{drheone}{fmulLUT}   & \HW{drheone}{fmulFF}\\
+float square root, int-to-float, rounding & 10 & \num{2672} & \num{1354}\\
+\midrule
+\emph{all floating-point operators}       & & \HW{drheone}{fopLUT} & \HW{drheone}{fopFF}\\
+loop body (packer, coder, residual, pipeline registers) & 1 & \HW{drheone}{bodyLUT} & \HW{drheone}{bodyFF}\\
+AXI-Stream and AXI-Lite interfaces        & 3 & \HW{drheone}{ioLUT} & \HW{drheone}{ioFF}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{The first gap, decision by decision.} The ladder of
+Table~\ref{tab:abl} turns the module view into costs. Each step's change is the
+cost of one decision, and the five changes add up exactly to the difference
+between DRHE-1 and the replica.
+
+\begin{description}
+\item[Step 1, the shift offset (\HW{ablpone}{dLUT} \HW{ablpone}{dLUTsign} LUTs,
+\HW{ablpone}{pLUT}\,\%).] DRHE-1's packer shifts each code into the output
+buffer by \texttt{bit\_count}, a signed \texttt{int}. A shift by a signed
+amount has to handle negative amounts too, so every one of the eight inserts
+carries logic for a right shift that never happens, and Vivado keeps it,
+since nothing in the netlist shows that the counter is never negative. Making the counter an
+unsigned 10-bit number removes that logic. Flip-flops move by \HW{ablpone}{dFF} (\HW{ablpone}{dFFsign}), a small change
+that was not investigated further; run-to-run variation was not measured, so
+changes of this size are not interpreted.
+
+\item[Step 2, the packer (\HW{ablptwo}{dLUT} \HW{ablptwo}{dLUTsign} LUTs,
+\HW{ablptwo}{dFF} \HW{ablptwo}{dFFsign} flip-flops).] Kiem's packer joins
+each channel's real and imaginary codes into one 58-bit word, joins the four
+words into one 232-bit word, and inserts that once. Eight variable-offset
+inserts into a 512-bit buffer become three small shifts inside a 232-bit word
+and one insert. The loop body, which holds the packer, falls from
+\HW{ablpone}{bodyLUT} to \HW{ablptwo}{bodyLUT} LUTs and from
+\HW{ablpone}{bodyFF} to \HW{ablptwo}{bodyFF} flip-flops. Together, steps 1
+and 2 show that DRHE-1's packer costs about \num{4200} LUTs more than it needs
+to, \SI{12}{\percent} of the design.
+
+\item[Step 3, the initiation interval (\HW{ablptwor}{dLUT}
+\HW{ablptwor}{dLUTsign} LUTs, \HW{ablptwor}{dFF} \HW{ablptwor}{dFFsign}
+flip-flops).] Removing the extra state write lets the loop run at
+$\mathrm{II} = 1$ (Section~\ref{sec:acc_ii}). At $\mathrm{II} = 2$ each
+floating-point unit was shared by two channels; at $\mathrm{II} = 1$ each
+channel needs its own. The floating-point operators grow from
+\HW{ablptwo}{fopLUT} to \HW{ablptwor}{fopLUT} LUTs, which is the whole of the
+step's increase, and the DSP count doubles, to \HW{ablptwor}{DSP}. This is the
+only step that makes the design larger, and it is the price of doubling the
+throughput with floating-point arithmetic.
+
+\item[Step 4, fixed-point arithmetic (\HW{ablfxc}{dLUT} \HW{ablfxc}{dLUTsign}
+LUTs, \HW{ablfxc}{pLUT}\,\%; \HW{ablfxc}{dFF} \HW{ablfxc}{dFFsign}
+flip-flops, \HW{ablfxc}{pFF}\,\%).] Kiem's types replace every
+floating-point operator with fixed-point logic: 16-bit multiplies in single DSP
+slices, additions in carry chains, and fixed-point \texttt{sqrt},
+\texttt{atan2}, \texttt{sin} and \texttt{cos} built by HLS directly into the
+loop body. The flip-flops fall further than the LUTs because both of their
+causes shrink at once: the values carried down the pipeline are 16 bits wide
+instead of 32, and the pipeline is \HW{ablfxc}{hDepth} stages deep instead of
+59, so there are fewer, narrower values to hold for fewer cycles.
+
+\item[Step 5, the open loop (\HW{ablk}{dLUT} \HW{ablk}{dLUTsign} LUTs,
+\HW{ablk}{dFF} \HW{ablk}{dFFsign} flip-flops).] Driving the state from the
+input sample instead of the reconstruction shortens the pipeline by four
+stages and removes \HW{ablk}{dFF} flip-flops; the LUT change is small (\SI{2}{\percent}). In fixed point, the closed loop that makes DRHE-1 immune to
+encoder--decoder divergence is almost free.
+\end{description}
+
+\noindent
+The order of the steps matters for their sizes, though not for their sum. The
+fixed-point step is measured at $\mathrm{II} = 1$, where the float design has
+twice as many operators as DRHE-1 does, so it saves more than the same change
+would save at $\mathrm{II} = 2$. To measure that directly, one more
+variant changes \emph{only} the arithmetic of DRHE-1, keeping its packer, its
+state write and so its $\mathrm{II} = 2$, and its closed loop. It uses
+\HW{ablf}{LUT} LUTs (\HW{ablf}{pDLUT}\,\% fewer than DRHE-1),
+\HW{ablf}{FF} flip-flops (\HW{ablf}{pDFF}\,\% fewer), \HW{ablf}{DSP} DSPs
+--- exactly Kiem's count --- and \HW{ablf}{BRAM} BRAM\_18K, with a pipeline
+\HW{ablf}{hDepth} cycles deep. It reconstructs ColoRadar losslessly and meets
+\SI{100}{\mega\hertz}, if only just (\HW{ablf}{fmax}\,MHz): with the loop
+closed and only 12 stages, the fixed-point arithmetic feeding the state write
+is now the critical path (Section~\ref{sec:fmaxinterp}). This is the saving available to DRHE-1 as it stands. It still carries DRHE-1's
+expensive packer, which in the float design cost about \num{4200} LUTs more
+than Kiem's (steps 1 and 2); its cost in fixed point was not measured
+separately.
+
+\paragraph{So why does DRHE-1 have more flip-flops than Kiem, but fewer LUTs?}
+Because the two gaps go in opposite directions for LUTs and the same direction
+for flip-flops. DRHE-1 needs \HW{drheone}{vsRFF}$\times$ the replica's
+flip-flops, for the reasons of steps 2 to 5: a 58-stage pipeline of 32-bit values, the
+registers inside each floating-point operator, and the packer. Kiem's build
+needs only \HW{ablk}{KFFratio}$\times$ the replica's, so DRHE-1 ends up with
+more than he has. DRHE-1 needs \HW{drheone}{vsRLUT}$\times$ the replica's
+LUTs, but Kiem's build needs \HW{ablk}{KLUTratio}$\times$, so DRHE-1 ends up
+with fewer. Both ratios against Kiem are therefore the product of a gap we can
+account for and one that we can only partly explain, which is the subject of
+the rest of this subsection.
+
+
+\paragraph{The second gap: the replica against Kiem's build.}
+Section~\ref{sec:replicaval} left the replica \num{28751} LUTs and \num{4193}
+flip-flops short of Kiem's published figures. His thesis does not give enough
+detail to reconstruct the difference, but three explanations can be tested, and
+each was: the replica was changed in one respect at a time and implemented
+again (Table~\ref{tab:kiemgap}).
+
+\input{tab_kiemgap}
+
+\paragraph{Speed grade.} Kiem's device is speed grade $-1$, ours $-2$. HLS
+schedules for the part it is given: for the slower part it inserts two more
+pipeline stages (\HW{ablksgone}{hDepth} against \HW{ablk}{hDepth}), which adds
+\HW{ablksgone}{dkFF} flip-flops, \SI{13}{\percent} of the flip-flop gap, and
+almost no LUTs. This is the effect Kiem describes in his Section~4.4.1, where
+he split arithmetic into extra registered steps to meet timing, measured.
+
+\paragraph{The packer.} Kiem describes his packer in one sentence: each
+channel's 58-bit word is ``combined'' into the 256-bit buffer. The replica
+joins the four words first and inserts once. The most literal alternative
+reading inserts each channel's word in turn, with a signed \texttt{int} bit
+counter, as DRHE-1 does. That costs \HW{ablkpkthree}{dkLUT} more LUTs and
+\HW{ablkpkthree}{dkFF} more flip-flops: \HW{ablkpkthree}{gapLUTpct}\,\% of the
+LUT gap and \HW{ablkpkthree}{gapFFpct}\,\% of the flip-flop gap. So a less
+careful packer would account for about a quarter of his extra flip-flops, but
+no plausible packer accounts for his LUTs. DRHE-1's own packer, the most
+expensive one measured in this work, costs about \num{4200} LUTs more than
+Kiem's (steps 1 and 2), still a small fraction of \num{28751}.
+
+\paragraph{Pipeline depth.} Kiem reports 23 cycles where the replica
+schedules 12. Forcing the replica's loop to 23 stages with an HLS latency
+constraint adds only \HW{ablktwothree}{dkFF} flip-flops, because HLS places
+the extra stages where few values are live. Depth by itself therefore does not
+explain his flip-flop count; where his extra stages sit, inside the 32-bit
+intermediate arithmetic his Section~4.3.4 describes, is what would matter, and
+that cannot be reproduced without his code.
+
+\paragraph{What is left.} If their effects add, the three tested explanations
+account for about \SI{45}{\percent} of the flip-flop gap but only about
+\SI{5}{\percent} of the LUT gap. Two explanations could not be tested:
+\begin{itemize}
+\item \textbf{The tool version.} Kiem used Vitis HLS 2022.2. The replica's
+logic is dominated by the fixed-point \texttt{sqrt}, \texttt{atan2},
+\texttt{sin} and \texttt{cos} that HLS builds from its math library into the
+loop body (the loop body, which also holds the packer, coder and residual
+logic, is \HW{ablk}{bodyLUT} of the replica's \HW{ablk}{LUT} LUTs), and that
+library's fixed-point implementations are the part of the flow most likely to
+have changed in four years. Only 2026.1 was available, so this is a hypothesis
+rather than a finding.
+\item \textbf{Code or debug logic his thesis does not describe.} His
+Section~4.2.1 and Figure~5.4 show an integrated logic analyser probing the
+compressor's internal signals in the implemented system. Signals marked for
+debug are kept through optimisation, so a build with probes can be larger than
+one without; his thesis does not say whether the build he reports had them,
+nor describe his control logic in detail.
+\end{itemize}
+In-system implementation, the other difference, is unlikely to matter: Vivado
+synthesises each IP in a block design out of context by default, exactly as
+here, and placement and routing change LUT counts only slightly.
+
+\paragraph{What this means for the comparison.} The difference between
+DRHE-1 and Kiem's published LUT count is \emph{not} a property of either
+algorithm or of any design decision described in either thesis: the same
+design, rebuilt, needs \HW{ablk}{LUT} LUTs. The honest statement is therefore
+the one Section~\ref{sec:replicaval} made: Kiem's published figure measures
+his build; the replica measures his design; and against his design, DRHE-1's extra cost is fully accounted for by its four distinctive decisions:
+floating-point arithmetic, its packer, the extra state write and the closed
+loop.
+

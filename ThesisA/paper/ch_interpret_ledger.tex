@@ -1,0 +1,82 @@
+% -------------------------------------------------------------------
+\section{Every difference from Kiem, accounted for}
+\label{sec:kiemledger}
+
+Table~\ref{tab:kiemledger} closes the chapter's account. It lists every number
+in which our design and Kiem's differ, says whether the comparison is valid as
+published, names the cause of the difference and points to the measurement
+that shows it. Where the cause is one design decision, the evidence is the step
+of the ladder that changes only that decision. Where it is not, the table says
+so.
+
+\begin{table}[p]
+\centering
+\caption[Every difference from Kiem's design: cause and evidence]{Every
+difference between DRHE-1 and Kiem's published design, with its cause and the
+evidence for it. ``Valid'' says whether the two published numbers measure the
+same thing. Replica figures are post-route on the \texttt{xcku5p}; the replica
+is the fair yardstick for what our design decisions cost.}
+\label{tab:kiemledger}
+\scriptsize
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}>{\raggedright}p{0.09\textwidth}>{\raggedleft}p{0.085\textwidth}>{\raggedleft}p{0.08\textwidth}>{\raggedleft}p{0.08\textwidth}>{\raggedright}p{0.075\textwidth}>{\raggedright}p{0.30\textwidth}>{\raggedright\arraybackslash}p{0.16\textwidth}@{}}
+\toprule
+Metric & DRHE-1 & Replica & Kiem & Valid & Cause of the difference & Evidence\\
+\midrule
+LUT & \HW{drheone}{LUT} & \HW{ablk}{LUT} & \num{45892} & yes &
+DRHE-1 against the replica: floating-point operators (\HW{drheone}{fopLUTpct}\,\% of DRHE-1's LUTs), then the packer. The replica against Kiem: about \SI{5}{\percent} explained (Table~\ref{tab:kiemgap}). &
+ladder steps 1, 2, 4; Table~\ref{tab:kiemgap}\\
+FF & \HW{drheone}{FF} & \HW{ablk}{FF} & \num{9243} & yes &
+Registers inside float operators (\HW{drheone}{fopFFpct}\,\%) and along a 58-stage pipeline. Kiem's extra over the replica: about \SI{45}{\percent} explained (speed grade, packer, depth), the rest not. &
+ladder steps 4, 5; Table~\ref{tab:kiemgap}\\
+DSP & 132 & \HW{ablk}{DSP} & 44 & yes &
+Every DSP belongs to a float operator; each float multiply needs 3, each sine/cosine 13. Sharing at $\mathrm{II}=2$ halves the count. &
+Table~\ref{tab:dspcount}; step~3 (\HW{ablptwor}{DSP} at $\mathrm{II}=1$)\\
+BRAM (36\,Kb) & \HW{drheone}{BRAMT} & \HW{ablk}{BRAMT} & 10 & yes, in tiles &
+32-bit state words need a full tile per array; 16-bit words need half. &
+Table~\ref{tab:memtable}; replica matches exactly\\
+II & 2 & 1 & 1 & yes &
+One extra write per cycle to clear the state; three accesses on two ports. &
+HLS~200-885; step~3 reaches II~1\\
+Depth (cycles) & 58 & \HW{ablk}{hDepth} & 23 & yes, both HLS &
+Closed loop: polar conversion waits for the prediction (26 cycles); the rest is float operator latency. & Figure~\ref{fig:sched}; open-loop float schedule (depth 32); steps 4, 5\\
+$F_{\max}$ (MHz) & \HW{drheone}{fmax} & \HW{ablk}{fmax} & ${\geq}100$ & partly &
+Both meet \SI{100}{\mega\hertz}; Kiem reports only that he met it. His part is speed grade $-1$. &
+routed timing; $-1$ runs\\
+Throughput (Gbit/s) & 6.40 th., 5.14 meas. & 12.80 th., \HW{ablk}{thrmeas} meas. & 12.80 th. & theoretical only &
+II~2 against II~1. Kiem's 11.92 is binary units and theoretical. &
+Eq.~5.1 of \cite{kiem2025}; co-simulation\\
+Latency & 580\,ns pipeline & --- & 230\,ns pipeline; 0.08\,ms system & pipeline only &
+Pipeline: the depth above. His 0.08\,ms spans FFT, DMA and interrupts. &
+Section~\ref{sec:latency}\\
+Power & \HW{drheone}{pdyn}\,W dyn. & \HW{ablk}{pdyn}\,W dyn. & not reported & --- &
+Scales with switching resources; float design $\approx 2\times$ replica. &
+Table~\ref{tab:power}\\
+Compression ratio & 3.310 (50 frames; 3.321 on the first 10) & 3.319 (first 10 frames) & 3.17 & no &
+Different sensor and data scaling; the float and fixed designs differ by \SI{0.07}{\percent} on the same data. &
+Section~\ref{sec:crinterp}\\
+Device fraction & 50\,\% of ZU3CG LUTs & 24\,\% & 65\,\% & yes &
+Follows from the LUT row. &
+Table~\ref{tab:resdevice}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{The story in one paragraph.} The published comparison said our
+design was two and a half times larger than Kiem's, slower, and too big for his
+device. None of that survives. The size and clock figures came from HLS
+estimates set against his post-route figures; implemented, DRHE-1 uses fewer
+LUTs than his IP, meets the same clock with a quarter of the period to spare, and
+fits his device at half its logic. Against a replica of his design built in the
+same tool, DRHE-1 is larger, and by exactly the amounts its four distinctive
+decisions cost: floating-point arithmetic (most of the logic and registers,
+every extra DSP, twice the block RAM), a less economical packer (about
+\num{4200} LUTs), a closed loop (26 cycles of depth in floating point, almost
+nothing in fixed point), and one extra state write (II~2, which halves
+throughput but also halves the arithmetic). The closed loop buys a guarantee
+that the encoder and decoder can never diverge, and II~2 buys a smaller design
+the sensor does not notice; the float datapath buys only \SI{0.07}{\percent} of
+compression ratio. What remains unexplained is the
+replica's distance from Kiem's own LUT count, and Table~\ref{tab:kiemgap}
+shows how much of it the testable explanations cover.

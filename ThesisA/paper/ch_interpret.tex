@@ -1,99 +1,208 @@
 % ===================================================================
-\chapter{Making Sense of the Hardware Numbers}
+\chapter{Accounting for the Hardware Numbers}
 \label{ch:interpret}
 
-Chapter~\ref{ch:results} reported many hardware numbers: \num{115736} LUTs,
-\num{80} block RAMs, \SI{81.88}{\mega\hertz}, \num{61253} cycles and so on.
-On their own these are just numbers. A LUT count does not say whether a design
-is large or small, and a latency in cycles does not say whether it is fast
-enough. Each one needs a yardstick before it means anything.
+Chapter~\ref{ch:results} reported many hardware numbers, and Kiem's thesis
+reports a comparable set for his design \cite{kiem2025}. Put side by side, the
+two sets differ on almost every line: resources, clock, latency, throughput.
+A difference on its own explains nothing. This chapter's job is to account for
+every one of them: to say what each number represents, what it should be
+compared against, and, wherever our design and Kiem's differ, exactly why.
 
-This chapter supplies the yardsticks. For every metric it answers four
-questions, in the same order each time:
+The accounting is done in three steps, and each step rests on a measurement
+rather than an argument.
 
 \begin{enumerate}
-\item \textbf{What does the number physically represent?}
-\item \textbf{Why is it measured at all?} Which decision would change if it
-were different?
-\item \textbf{What should it be compared against?} This is Kiem's design
-\cite{kiem2025} where the comparison is like-for-like. Where it is not, the
-comparison is against the sensor, the system, the link or the device.
-\item \textbf{At what point does it become a problem?}
+\item \textbf{Put the numbers on the same footing.} Kiem's resource and clock
+figures are measured after Vivado has placed and routed the circuit. Every hardware figure in
+Chapter~\ref{ch:results} was first obtained as an HLS estimate, made before the
+circuit existed. We therefore ran the full Vivado implementation on all four
+designs (Section~\ref{sec:hlsvsimpl}). The estimates turned out to be wrong by
+a factor of three in logic, and wrong about whether the designs meet timing.
+\item \textbf{Rebuild the reference in our tool flow.} Two designs built with
+different tools, for different devices, from different code differ in many ways
+at once. To separate them, we rebuilt Kiem's design from his description, in
+our tool, for our device (Section~\ref{sec:replica}).
+\item \textbf{Change one thing at a time.} Starting from our design and ending
+at the rebuilt reference, we changed one design decision per step and
+implemented every step (Section~\ref{sec:abl}). The change in each number at
+each step is the cost of that one decision.
 \end{enumerate}
 
 \noindent
-The chapter also corrects three comparisons with the reference design that
-earlier drafts of this work got wrong. They are flagged where they occur, and
-Table~\ref{tab:kiemvalid} collects them in one place.
+The rest of the chapter then reads each metric against the yardsticks that give
+it meaning: the sensor, the system's time budget, the link and the device, as
+well as Kiem's design where the comparison is like-for-like.
 
+% -------------------------------------------------------------------
+\section{Two ways of counting the same circuit}
+\label{sec:hlsvsimpl}
+
+HLS reports what it \emph{expects} a circuit to cost, before the circuit has
+been built. Vivado reports what the circuit \emph{did} cost, once it has been
+synthesised into device primitives, optimised, placed and routed. Kiem's
+figures are the second kind; ours, at first, were the first.
+
+\subsection{Running the implementation}
+
+\texttt{vitis-run --mode hls --impl} takes the RTL that HLS generated and runs
+the complete Vivado flow on it: logic synthesis, optimisation, placement,
+routing and post-route reporting. It is the flow AMD calls ``export and
+implement'', and its reports are the same kind of number as Kiem's Table~5.3.
+Four lines were added to each design's configuration file and nothing else was
+changed:
+\begin{center}
+\small
+\texttt{vivado.flow=impl}\qquad
+\texttt{vivado.clock=10}\qquad
+\texttt{vivado.report\_level=2}\qquad
+\texttt{vivado.max\_timing\_paths=10}
+\end{center}
+Each design is implemented as a standalone block (``out of context'')
+constrained to a \SI{10}{\nano\second} clock on the same
+\texttt{xcku5p-ffvb676-2-e}. One run takes about \SI{45}{\minute}. It leaves
+behind a post-route utilisation report (total and per module), a timing report
+with the worst paths, and a power report; the script that reads all of them
+into this chapter's tables is listed in Appendix~\ref{app:repro}.
+
+\subsection{What the implementation found}
+
+Table~\ref{tab:hlsvsimpl} sets the two kinds of number side by side for all four
+designs.
+
+\input{tab_hlsvsimpl}
+
+Three things stand out.
+
+\begin{itemize}
+\item \textbf{Logic was over-estimated by about three times.} HLS predicted
+\num{115736} LUTs for DRHE-$n$; the routed design uses \HW{drhen}{LUT}. The
+other designs are similar. Every conclusion in earlier drafts that rested on
+DRHE being ``2.5 times Kiem's LUTs'' rested on the estimate.
+\item \textbf{Both designs meet \SI{100}{\mega\hertz}.} HLS estimated
+\SI{81.88}{\mega\hertz} for DRHE and \SI{85.43}{\mega\hertz} for LPC. After
+routing, DRHE-$n$ closes at \HW{drhen}{fmax}\,MHz and LPC-$n$ at
+\HW{lpcn}{fmax}\,MHz. The timing conclusion first drawn in
+Section~\ref{sec:phase3} reported an estimate, not a fact.
+\item \textbf{DSPs and block RAM were estimated almost exactly.} These are
+fixed blocks with known sizes, and HLS allocates them itself, so there is
+little for the later tools to change. The exceptions are the two LPC designs'
+block RAM, where Vivado re-mapped some memories (LPC-$n$: \HW{lpcn}{hBRAM}
+estimated, \HW{lpcn}{BRAM} used; LPC-1,2: \HW{lpcone}{hBRAM} estimated,
+\HW{lpcone}{BRAM} used), and two DSPs in LPC-$n$.
+\end{itemize}
+
+\subsection{Why the logic estimates were so far off}
+
+The per-module breakdown for DRHE-$n$ in Figure~\ref{fig:estimate} shows where
+the difference comes from. It is not spread evenly across the design.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{fig_estimate.pdf}
+\caption[HLS estimate against implemented LUTs, per module]{LUTs of each part
+of DRHE-$n$: the HLS estimate (from the module's synthesis report) against the
+routed design (from the hierarchical utilisation report). The pre-built
+floating-point adders and multipliers were estimated well. The arctangent and
+the loop body, which HLS builds itself from C++, were over-estimated by factors
+of about three and six. The square root and the integer-to-float conversions
+were not estimated at all.}
+\label{fig:estimate}
+\end{figure}
+
+\paragraph{The loop body.} Most of the estimate sat in the logic HLS generates
+directly from C++: the bit packer, the S4 and Huffman lookup, the residual
+arithmetic and the control. Each of the eight inserts into the output buffer is
+written as \texttt{(ap\_uint<512>)code << bit\_count}, and HLS costs every one
+of them as a complete 512-bit barrel shifter, about \num{2171} LUTs. Because
+\texttt{bit\_count} is a signed \texttt{int}, it also adds a second shifter in
+the opposite direction for negative shift amounts, and a 512-bit select between
+the two. Vivado sees what HLS does not: the value being shifted is at most 29
+bits wide and zero everywhere else, so most of every shifter's inputs are
+constant and the logic behind them disappears. The whole loop body is estimated
+at about \num{60000} LUTs and implemented in about \num{9900}.
+
+\paragraph{The arctangent.} \texttt{hls::atan2(float, float)} is built by HLS
+from generic C++ --- a CORDIC on a 43-bit internal fixed-point format with range
+reduction around it --- rather than from a pre-characterised core. HLS
+estimated each instance at \num{20129} LUTs; each implemented instance uses
+about \num{5980}. The same effect, smaller, applies to \texttt{sin} and
+\texttt{cos}.
+
+\paragraph{What HLS did not count.} The square root and the integer-to-float
+conversions are AMD floating-point IP cores that use no DSPs, and HLS reports
+them as zero LUTs. Implemented, they cost \num{1945} LUTs between them. This is
+the one place where the estimate is too low.
+
+\paragraph{The clock.} HLS estimated a critical path of
+\SI{12.213}{\nano\second} through an integer-to-float conversion chained into a
+multiply. That figure is HLS's own model of each operator's delay, scheduled
+against a budget that already reserves \SI{2.7}{\nano\second} (27 per cent of
+the period) for clock uncertainty; it is not a timing analysis of real wires.
+After routing, the worst path in DRHE-$n$ is \HW{drhen}{cpimpl}\,ns, starting in one of the floating-point sine/cosine units, and it passes the
+\SI{10}{\nano\second} constraint with \HW{drhen}{wns}\,ns to spare.
+
+\paragraph{What this means for the rest of the thesis.} HLS estimates are
+useful for what they were designed for: comparing one version of a design
+against another in the same tool, quickly. They are not a substitute for
+implementation when the comparison is with a design that was implemented. From
+here on, every hardware number compared with Kiem is a post-route number.
+
+% -------------------------------------------------------------------
 \section{Where the numbers come from, and how far to trust them}
 \label{sec:numsource}
 
-Not all the numbers in Chapter~\ref{ch:results} are the same kind of number.
-Some are exact measurements of the generated circuit; others are estimates the
-tool makes before the circuit exists. Table~\ref{tab:numsource} sorts them.
+Table~\ref{tab:numsource} sorts every hardware number in this thesis by where it
+is read from and what kind of number it is.
 
 \begin{table}[htbp]
 \centering
 \caption[Where each hardware number comes from]{Where each hardware number is
 read from, and what kind of number it is. \texttt{\emph{top}} is the name of the
-design's top-level function. All files are produced by Vitis HLS 2026.1, and
-\texttt{collect\_hls\_results.m} reads them all.}
+design's top-level function. All files are produced by Vitis HLS and Vivado
+2026.1; \texttt{collect\_impl.py} reads them all (Appendix~\ref{app:repro}).}
 \label{tab:numsource}
 \small
-\begin{tabular}{@{}p{0.2\textwidth}p{0.33\textwidth}p{0.38\textwidth}@{}}
+\begin{tabular}{@{}>{\raggedright}p{0.2\textwidth}>{\raggedright}p{0.36\textwidth}>{\raggedright\arraybackslash}p{0.36\textwidth}@{}}
 \toprule
 Metric & Read from & What kind of number\\
 \midrule
-LUT, FF, BRAM, DSP & \texttt{\emph{top}\_csynth.rpt}, top row &
-\emph{Estimate} made at C synthesis, before logic optimisation, placement and
-routing.\\
-$F_{\max}$ & \texttt{\emph{top}\_csynth.xml}, \texttt{EstimatedClockPeriod} &
-\emph{Estimate} of the slowest logic path. It includes little or no routing
-delay.\\
-II, pipeline depth & \texttt{\emph{top}\_csynth.rpt}, loop table &
+LUT, FF, BRAM, DSP & \texttt{\emph{top}\_export.rpt}, post-implementation section &
+\emph{Measured} on the routed design.\\
+Per-module resources & \texttt{\emph{top}\_utilization\_hierarchical\_routed.rpt} &
+\emph{Measured} on the routed design.\\
+Clock ($F_{\max}$) & \texttt{\emph{top}\_timing\_routed.rpt}, worst negative slack &
+\emph{Measured}: static timing analysis of routed wires; $F_{\max} = 1/(T - \mathrm{WNS})$.\\
+Power & \texttt{\emph{top}\_power\_routed.rpt} &
+\emph{Estimated} from the routed design with default switching activity.\\
+HLS estimates & \texttt{csynth.rpt}, top row &
+\emph{Estimate} made before the circuit exists.\\
+II, pipeline depth & \texttt{csynth.rpt}, loop table; \texttt{*.verbose.sched.rpt} &
 \emph{Exact} for the generated schedule.\\
 Frame latency & \texttt{\emph{top}\_cosim.rpt}, Verilog row &
-\emph{Measured}: a cycle-accurate simulation of the generated RTL.\\
+\emph{Measured}: cycle-accurate simulation of the generated RTL.\\
 Compression ratio & C-simulation and co-simulation logs &
 \emph{Measured}: bits out divided by bits in, on real data.\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Synthesis estimates versus implemented figures}
+Two limits on the post-route numbers should be kept in mind. First, the designs
+are implemented out of context. Vivado therefore does not know the clock tree
+of a real system and cannot include its skew; the timing figures are slightly
+optimistic compared with an in-system build like Kiem's. Second, the power
+figure uses Vivado's default assumption that every signal toggles on
+\SI{12.5}{\percent} of clock cycles, not activity recorded from real data, so it
+is good for comparing designs with each other but is not a prediction of a
+particular system's power.
 
-The most important distinction is between an HLS estimate and a
-post-implementation figure. After HLS has produced RTL, AMD's Vivado tool
-performs three further steps before a design can be loaded onto a chip:
-\emph{logic optimisation}, which removes redundant logic and merges duplicated
-logic; \emph{placement}, which assigns every element to a physical site on the
-chip; and \emph{routing}, which wires the sites together. Only after those steps
-are the resource counts and the clock frequency final.
-
-The HLS numbers are made before any of that happens, so they can differ from
-the final figures in both directions. LUT and FF counts often come down, because
-optimisation removes logic that HLS counted. The achievable clock often comes
-down too, because routing adds wire delay that HLS estimated only roughly.
-
-\textbf{Kiem's resource figures are post-implementation; every resource figure
-in this thesis is an HLS estimate.} The two are close relatives but not the
-same measurement. Comparisons between them are therefore indicative, not exact:
-a factor of \num{2.5} in LUTs is a real and meaningful gap, but a
-\SI{10}{\percent} difference would not be. The toolchain can close this gap:
-\texttt{vitis-run --impl} runs Vivado implementation on the exported design and
-produces post-route figures directly comparable with the reference. That run is
-listed as future work in Section~\ref{sec:futurework}.
-
-\subsection{What co-simulation measures, and what it does not}
-
-The frame latency from co-simulation is exact for the circuit simulated. It
-measures a specific situation, though: the testbench feeds the frame
-\emph{back-to-back}, one beat per cycle whenever the design will accept it.
-So \num{61253} cycles is the time the compressor would take if an entire frame
-were waiting for it at once. The real sensor does not deliver data like that,
-which is why Section~\ref{sec:latency} separates this number from the latencies
-the system actually experiences.
+The frame latency from co-simulation is exact for the circuit simulated, but it
+measures a specific situation: the testbench feeds the frame back-to-back, one
+beat per cycle whenever the design will accept it. So \num{61253} cycles is the
+time the compressor would take if an entire frame were waiting for it at once.
+The real sensor does not deliver data like that, which is why
+Section~\ref{sec:latency} separates this number from the latencies the system
+actually experiences.
 
 \section{The yardsticks}
 \label{sec:yardsticks}
@@ -152,6 +261,400 @@ frame, which at \SI{5}{\hertz} is \SI{125.8}{\mega bit\per\second}. The
 ColoRadar authors quote \SI{126}{Mbps} for this sensor \cite{kramer2022}. The
 sensor model used in this chapter therefore agrees with the published one.
 
+
+% -------------------------------------------------------------------
+\section{Rebuilding the reference design}
+\label{sec:replica}
+
+\subsection{Why a replica is needed}
+
+A comparison of two numbers explains something only if the two numbers differ
+in one known way. Our DRHE and Kiem's differ in at least six ways at once: the
+arithmetic (floating point against fixed point), the bit packer, how the
+predictor state is reset, the feedback structure (closed against open loop),
+the tool version (Vitis 2026.1 against 2022.2) and the device (a
+\texttt{xcku5p} at speed grade $-2$ against an \texttt{XCZU3CG-SFVC784-1-e} at
+speed grade $-1$). Set side by side, the two resource tables cannot say how
+much of any difference comes from which cause.
+
+The way out is to hold everything constant except one thing at a time, and that
+needs Kiem's design inside our tool flow. His source code is not published, so
+we rebuilt it from the description in his Section~4.3.4, which is detailed
+enough to do so:
+
+\begin{itemize}
+\item \textbf{Data types.} Magnitude \texttt{ap\_ufixed<16,16>}, phase
+\texttt{ap\_fixed<16,3>}, input \texttt{ap\_fixed<16,16>}, intermediate phase
+arithmetic \texttt{ap\_fixed<32,4>}, all with rounding.
+\item \textbf{Functions.} \texttt{hls::sqrt} on \texttt{ap\_uint<32>};
+\texttt{hls::atan2} on \texttt{ap\_fixed<16,16>}; \texttt{hls::sin} and
+\texttt{hls::cos} on \texttt{ap\_fixed<16,3>}.
+\item \textbf{State.} Five arrays of $4 \times 1024$ entries, partitioned by
+channel, driven from the \emph{input} sample (open loop).
+\item \textbf{Packing.} The real and imaginary codes of one channel packed
+into one \texttt{ap\_uint<58>}; the four channel words then combined into the
+256-bit output buffer.
+\item \textbf{Schedule.} All four channels in parallel, $\mathrm{II} = 1$.
+\end{itemize}
+
+\noindent
+Where his text leaves a choice open, the replica takes the simplest reading.
+One such choice needs stating. Kiem does not describe how the predictor state
+is cleared at the start of a frame, but he reports $\mathrm{II} = 1$, and
+Section~\ref{sec:acc_ii} shows that $\mathrm{II} = 1$ is only possible if the
+clearing does not add a third memory access per cycle. The replica therefore
+clears the state by reading it as zero on the first ramp, which is equivalent.
+
+\subsection{One source, four switches}
+
+The replica and our design are built from one source file with four
+compile-time switches (\texttt{drhe\_abl\_compress.cpp}, Appendix~\ref{app:repro}).
+
+\begin{center}
+\small
+\begin{tabular}{@{}lp{0.37\textwidth}p{0.37\textwidth}@{}}
+\toprule
+Switch & 0: our design (DRHE-1) & set: Kiem's design\\
+\midrule
+\texttt{ABL\_PACK}  & eight inserts into a 512-bit buffer with a signed offset &
+1: the same with an unsigned offset; 2: 58-bit word per channel, one 232-bit
+insert\\
+\texttt{ABL\_RESET} & state zeroed by a write on ramp 0 & state read as zero on ramp 0\\
+\texttt{ABL\_ARITH} & single-precision floating point & Kiem's fixed-point types and functions\\
+\texttt{ABL\_LOOP}  & closed loop: state from the reconstruction & open loop: state from the input\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+With every switch at zero the source is, statement for statement, DRHE-1: it
+synthesises to the same schedule (II~2, depth 58, 40 BRAM\_18K, 132 DSPs) and
+writes exactly as many bits as DRHE-1 on every one of the 50 frames. With
+every switch set it is the replica. All the packing modes write the same bits, so one decoder reads them all, and the decoder follows the arithmetic
+switch. Every variant was decoded losslessly on real ColoRadar frames in C
+simulation, so each one is a working compressor, not a sketch.
+
+\subsection{How close is the replica to Kiem's published design?}
+\label{sec:replicaval}
+
+Table~\ref{tab:replica} sets the implemented replica beside Kiem's published
+figures.
+
+\input{tab_replica}
+
+The replica agrees with Kiem's design where the design is fully specified.
+Block RAM matches exactly: \HW{ablk}{BRAMT} tiles against his 10, because both
+store twenty arrays of \num{1024} 16-bit words (Section~\ref{sec:acc_bram}). The
+DSP count is \HW{ablk}{DSP} against 44. Both designs achieve $\mathrm{II} = 1$
+and both meet \SI{100}{\mega\hertz} on a speed grade $-1$ device.
+
+The replica does \emph{not} reproduce Kiem's LUT and flip-flop counts. It needs
+\HW{ablk}{LUT} LUTs and \HW{ablk}{FF} flip-flops where Kiem reports \num{45892}
+and \num{9243}. His design, as he describes it, does not need the difference.
+Section~\ref{sec:acc_lutff} tests the explanations his text leaves open ---
+the speed grade, the packer he describes in one sentence, and his deeper
+pipeline --- by building each into the replica. Together they account for
+about half of the flip-flop difference and almost none of the LUT difference;
+what remains most likely lies in the tool version (Vitis HLS 2022.2, whose
+fixed-point math library is four years older than the one used here) or in
+logic his thesis does not describe.
+
+This matters for how his LUT figure is used. It measures one particular build;
+it is not a measure of what the DRHE algorithm costs. When the question is
+``what do our design decisions cost?'', the fair yardstick is the replica,
+built in the same tool, for the same device, from the same description, and the
+next section uses it that way. When the question is ``how does our IP compare
+with the IP Kiem built?'', his published figure is the right one.
+
+% -------------------------------------------------------------------
+\section{From our design to Kiem's, one change at a time}
+\label{sec:abl}
+
+Table~\ref{tab:abl} is the central result of this chapter. Each row is a
+complete, lossless compressor, implemented through placement and routing on the
+same device with the same constraints. The first row is DRHE-1 as built. Each
+following row changes exactly one design decision, and the last is the replica
+of Kiem's design. The difference between two adjacent rows is therefore the
+cost, in every resource at once, of that one decision.
+
+\input{tab_ladder}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{fig_ladder.pdf}
+\caption[Resources at each step from DRHE-1 to the replica]{LUTs, flip-flops,
+DSPs and block RAM at each step of Table~\ref{tab:abl}, all post-route on
+the \texttt{xcku5p}. The dashed line in each panel is Kiem's published figure.
+Every step but one reduces the design; the exception raises it from
+$\mathrm{II} = 2$ to $\mathrm{II} = 1$, which doubles the arithmetic because
+the units can no longer be shared between channels.}
+\label{fig:abl}
+\end{figure}
+
+The following subsections take each metric in turn and account for its
+difference from Kiem using the ladder, the per-module reports and, where
+relevant, the HLS schedule.
+
+\subsection{Block RAM: the width of a word}
+\label{sec:acc_bram}
+
+\paragraph{The difference.} DRHE-1 uses \HW{drheone}{BRAMT} block-RAM tiles;
+Kiem's design uses 10.
+
+\paragraph{The accounting.} Block RAM holds DRHE's predictor state: five values
+per range bin and channel from earlier ramps (the magnitude prediction, the
+previous magnitude, the phase prediction and the two previous phases).
+Partitioned by channel, as both designs do, that is $5 \times 4 = 20$ separate
+arrays, each \num{1024} words deep. Table~\ref{tab:memtable} lists how each
+design stores them.
+
+\begin{table}[htbp]
+\centering
+\caption[How the predictor state is stored]{How the predictor state is stored,
+from the HLS memory tables and the routed utilisation reports. A BRAM\_18K
+holds \num{1024} words of up to 18 bits; a 36\,Kb tile is two of them.}
+\label{tab:memtable}
+\small
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Design & Arrays & Words & Bits & BRAM\_18K per array & Total tiles\\
+\midrule
+DRHE-1 (float)          & 20 & \num{1024} & 32 & 2 & 20\\
+Replica, Kiem (fixed)   & 20 & \num{1024} & 16 & 1 & 10\\
+DRHE-$n$ (float, TDM)   & 20 & \num{1536} & 32 & 4 & 40\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+Every DRHE-1 state word is a 32-bit \texttt{float}. A \num{1024}-word array of
+32-bit words is \SI{32}{\kilo bit}, too much for one BRAM\_18K, so each array
+takes a full 36\,Kb tile: twenty arrays, twenty tiles. Kiem's words are 16-bit
+fixed point (\texttt{ap\_ufixed<16,16>} and \texttt{ap\_fixed<16,3>}); a
+$1024 \times 16$ array fits in one BRAM\_18K, so twenty arrays need ten tiles.
+The replica, built with his types, uses exactly ten. \textbf{The factor of two
+is the word width, and nothing else.}
+
+DRHE-$n$ keeps one copy of the state per transmitter, \num{1536} words per
+array instead of \num{1024}. HLS rounds the depth up to the next power of two
+and gives each array four BRAM\_18K, so the design uses 40 tiles: four times
+Kiem's, of which two is the word width and two is the per-transmitter state.
+The memory is \SI{67}{\percent} full (\num{983040} bits stored in
+\num{1474560} bits of block RAM); the rounding of the depth to a power of two
+and the unused parity bits are the only waste.
+
+\subsection{DSP slices: counted operator by operator}
+\label{sec:acc_dsp}
+
+\paragraph{The difference.} DRHE-1 uses 132 DSP slices; Kiem's design uses 44.
+
+\paragraph{The accounting.} Every DSP in DRHE-1 belongs to an identifiable
+floating-point operator, and the routed hierarchy report counts them exactly
+(Table~\ref{tab:dspcount}).
+
+\begin{table}[htbp]
+\centering
+\caption[Where DRHE-1's DSP slices go]{Where DRHE-1's DSP slices go, from the
+routed hierarchical utilisation report.}
+\label{tab:dspcount}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Operator & Instances & DSPs each & DSPs\\
+\midrule
+float multiply (\texttt{fmul}, max-DSP) & 16 & 3  & 48\\
+float add/subtract (\texttt{fadd}, full-DSP) & 12 & 2 & 24\\
+float sine/cosine & 4 & 13 & 52\\
+float arctangent  & 2 & 4  & 8\\
+\midrule
+\textbf{Total} & & & \textbf{132}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+A single-precision multiply needs three DSP slices because its 24-bit
+significand product does not fit one $27 \times 18$ multiplier; an adder uses
+two, for the alignment shift and the add; the sine/cosine unit uses thirteen for
+its polynomial and range reduction. In fixed point, a product of two 16-bit
+numbers is one slice and an addition needs none. The replica uses
+\HW{ablk}{DSP} DSPs against Kiem's 44.
+
+Four channels at two operations each would need eight sine/cosine units and
+four arctangents. DRHE-1 has four and two, because at $\mathrm{II} = 2$ each
+unit is idle every other cycle and HLS shares it between two channels. Step~3
+of the ladder removes that sharing: at $\mathrm{II} = 1$ the same float design
+needs \HW{ablptwor}{DSP} DSPs. \textbf{The factor of three is floating-point
+arithmetic; without the sharing that $\mathrm{II} = 2$ allows, it would be
+six.}
+
+\subsection{Pipeline depth: which operations wait for which}
+\label{sec:acc_depth}
+
+\paragraph{The difference.} DRHE-1's pipeline is 58 cycles deep; Kiem reports
+23 (his HLS estimate, the same kind of number).
+
+\paragraph{The accounting.} The HLS schedule report lists, for every operation,
+the pipeline stage it runs in. Grouping the operations of one sample by what
+they do gives Figure~\ref{fig:sched}(a). The pipeline is two chains laid end to
+end. The first is the prediction: load the state, run the two IIR filters, wrap
+the phase, take the sine and cosine, rescale to Cartesian and round, which ends
+around stage 31. The second is the polar conversion that updates the state:
+convert the sample to floating point, take $re^2 + im^2$ and its square root,
+and take the arctangent, which alone occupies 28 stages. In DRHE-1 the second
+chain \emph{cannot start until the first has finished}, because it converts
+the reconstructed sample, and the reconstruction needs the prediction. That is
+the closed loop introduced in Section~\ref{sec:defect32768}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{fig_sched.pdf}
+\caption[Pipeline schedule of one sample]{The pipeline schedule of one sample,
+read from the HLS schedule reports. (a) DRHE-1 as built: the state is updated
+from the reconstructed sample, so the polar conversion (red) waits for the
+prediction (blue) and the depth is 58. (b) The same float design with the state
+updated from the input sample (open loop): the two chains run side by side and
+the depth is 32. Kiem's design is open loop and fixed point, and shorter still.}
+\label{fig:sched}
+\end{figure}
+
+Switching the loop back open, so the state is driven from the input sample,
+lets the polar conversion start in stage 3 alongside the prediction. The float
+design's depth falls from 58 to 32 (Figure~\ref{fig:sched}(b); the
+open-loop depth is measured, not drawn). Fixed-point arithmetic then shortens
+both chains. The replica's fixed-point \texttt{atan2} and \texttt{sqrt} are each a few cycles rather than 28 and 11, and the closed-loop fixed-point design (step~4) is
+\HW{ablfxc}{hDepth} cycles deep, the open-loop replica (step~5)
+\HW{ablk}{hDepth}. The replica is shallower than Kiem's reported 23 cycles; his
+figure comes from an older tool version and from code that split its
+arithmetic into extra stages to meet timing (his Section~4.4.1), so an exact
+match is not expected.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrl@{}}
+\toprule
+Design & Depth & What sets it\\
+\midrule
+DRHE-1 (float, closed loop)   & 58 & prediction, then polar conversion, in series\\
+float, open loop              & 32 & the longer of the two chains (atan2)\\
+fixed point, closed loop      & \HW{ablfxc}{hDepth} & fixed-point chains in series\\
+replica (fixed point, open loop) & \HW{ablk}{hDepth} & fixed-point chains in parallel\\
+Kiem (HLS estimate)           & 23 & ---\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+\textbf{Of DRHE-1's 58 cycles, 26 are the closed loop; the open-loop float
+design is still 20 cycles deeper than the replica, and that is the latency of
+floating-point operators.} The closed loop is the price of guaranteeing that the encoder
+and the decoder can never disagree; at \SI{260}{\nano\second} it is not a price
+this application notices (Section~\ref{sec:latency}).
+
+\subsection{Initiation interval: one write too many}
+\label{sec:acc_ii}
+
+\paragraph{The difference.} DRHE-1 accepts a new sample every two cycles
+($\mathrm{II} = 2$); Kiem's design accepts one every cycle.
+
+\paragraph{The cause, as HLS reports it.} The synthesis log names it:
+\begin{quote}\small\ttfamily
+Unable to schedule 'load' operation 32 bit ('pp2') on array
+\dots s\_prev\_prev\_phase\_3 due to limited memory ports (II = 1).
+\end{quote}
+Each state array is one block RAM, and a block RAM has two ports. In every cycle
+each array must be read once (the old value) and written once (the new one).
+DRHE-1 also clears the state at the start of a frame with an \emph{extra} write
+on ramp 0 (\texttt{if (r == 0) s\_prev\_prev\_phase[ch][s] = 0;}). That write
+only happens once in 192 ramps, but HLS must schedule for the worst case, so
+every cycle is scheduled as if three accesses were needed, and three accesses on
+two ports take two cycles.
+
+\paragraph{The proof.} Step~3 of the ladder replaces the write with a read that
+is ignored on ramp 0 (\texttt{pp2 = first ? 0 : s\_prev\_prev\_phase[ch][s]}),
+which clears the state just as well with one read and one write per cycle. The
+same float design then schedules at $\mathrm{II} = 1$. Steps 1 and 2, which change only the packer, stay at
+$\mathrm{II} = 2$ with the identical message.
+
+\paragraph{What it costs to fix.} $\mathrm{II} = 1$ doubles the theoretical
+throughput. In RTL co-simulation, where the step-3 design also reconstructs its
+frame losslessly, the measured rate rises from \SI{5.14}{} to
+\HW{ablptwor}{thrmeas}\,Gbit/s (\HW{ablptwor}{framecyc} cycles per frame
+against \num{61253}); it does not quite double because the 59-cycle pipeline
+still drains once per ramp. Step~3 of Table~\ref{tab:abl} also shows the bill: the float arithmetic can no
+longer be shared between channels, so DSPs and logic both rise. This is the one step in the ladder that makes the design substantially larger, and it is why DRHE-1's
+$\mathrm{II} = 2$ was not a pure loss: with 24 times more throughput than the
+sensor needs (Section~\ref{sec:thrinterp}), the halved rate buys a design half
+the size in arithmetic.
+
+\input{ch_interpret_lutff}
+
+\subsection{Clock frequency and speed grade}
+\label{sec:fmaxinterp}
+
+\paragraph{What it is.} $F_{\max}$ is the fastest clock at which every signal
+still settles within one period. Vivado's timing analysis after routing gives
+the worst negative slack (WNS): how much time the slowest path has to spare at
+the \SI{10}{\nano\second} constraint. The slowest path can then be run at a
+period of $10 - \mathrm{WNS}$ nanoseconds.
+
+\paragraph{Why measure it.} Throughput and latency in seconds both depend on
+the clock, and the compressor has to share a clock with the FFT and DMA around
+it. Kiem ran all his IP on one \SI{100}{\mega\hertz} clock.
+
+\paragraph{The numbers.} Every design meets \SI{100}{\mega\hertz}. The routed
+worst paths are:
+\begin{center}
+\small
+\begin{tabular}{@{}lrrl@{}}
+\toprule
+Design & WNS (ns) & $F_{\max}$ (MHz) & Worst path\\
+\midrule
+DRHE-1 & \HW{drheone}{wns} & \HW{drheone}{fmax} & inside a float sine/cosine unit\\
+DRHE-$n$ & \HW{drhen}{wns} & \HW{drhen}{fmax} & from a float sine/cosine unit into the loop\\
+LPC-$n$,$2n$ & \HW{lpcn}{wns} & \HW{lpcn}{fmax} & frame-buffer read into the solver's 64-bit multiply\\
+DRHE-1, speed grade $-1$ & \HW{ablctrlsgone}{wns} & \HW{ablctrlsgone}{fmax} & inside a float sine/cosine unit\\
+Fixed-point DRHE-1 (II~2) & \HW{ablf}{wns} & \HW{ablf}{fmax} & a 26-stage carry chain into the state write\\
+Replica, speed grade $-2$ & \HW{ablk}{wns} & \HW{ablk}{fmax} & a 20-stage carry chain in the fixed-point arithmetic\\
+Replica, speed grade $-1$ & \HW{ablksgone}{wns} & \HW{ablksgone}{fmax} & an 18-stage carry chain in the fixed-point arithmetic\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Against Kiem: now valid, with one correction.} Kiem's design met
+\SI{100}{\mega\hertz} on a speed grade $-1$ part, which is slower silicon than
+the $-2$ part used here. The replica closes at \HW{ablksgone}{fmax}\,MHz on a
+$-1$ part and \HW{ablk}{fmax}\,MHz on a $-2$, so the speed grade is worth about \HW{ablksgone}{sgpct}\,\% of clock for the
+same source (HLS also schedules the slower part two stages deeper, so it is not
+quite the same netlist). Implemented on a
+$-1$ part, DRHE-1 itself closes at \HW{ablctrlsgone}{fmax}\,MHz --- slightly
+faster than on the $-2$ part, because HLS scheduled it \HW{ablctrlsgone}{hDepth}
+stages deep instead of 58 for the slower silicon --- so it meets Kiem's clock
+on Kiem's grade of silicon with room to spare.
+
+\paragraph{One design with little margin.} The fixed-point version of DRHE-1
+(Section~\ref{sec:acc_lutff}) closes at only \HW{ablf}{fmax}\,MHz. With the
+loop closed and the pipeline only \HW{ablf}{hDepth} stages deep, the path from
+the fixed-point arithmetic to the state write has 38 levels of logic, 26 of
+them carry chains. That is the cost of a short closed-loop pipeline,
+and adopting the fixed-point design would mean either accepting that margin or
+asking HLS for one or two more stages, which the replica's schedule shows are
+cheap.
+
+\paragraph{The HLS estimate was the wrong way round.} HLS estimated
+\SI{81.88}{\mega\hertz} for DRHE and \SI{85.43}{\mega\hertz} for LPC and put
+the critical path in a different place from where it really is. Every design
+the estimate said would fail passes, with a quarter of the period to spare in
+DRHE's case. The advice in earlier drafts to pipeline the float datapath or
+replace it with a CORDIC ``to meet timing'' was addressing a problem that does
+not exist.
+
+\paragraph{When does it become a problem?} If a design cannot share the system
+clock, it needs its own clock and a clock-domain-crossing FIFO on each side,
+which is extra design work and extra memory. None of these designs needs one.
+Of the four main designs, LPC-$n$ has the least margin, \HW{lpcn}{wns}\,ns; a slower speed grade or a
+congested in-system build could consume it.
+
 \section{Latency: three different things with the same name}
 \label{sec:latency}
 
@@ -186,13 +689,12 @@ and the smallest possible delay the compressor can add to anything.
 
 \paragraph{Against Kiem: valid.} Kiem reports \SI{230}{\nano\second}, which is
 23 cycles. This is his HLS estimate, the same kind of number as ours. He also
-measured 31 cycles with an integrated logic analyser, the extra 7 cycles being
+measured 31 cycles with an integrated logic analyser, the extra 8 cycles being
 the time to fill the first 256-bit output word. Estimate against estimate, this
-design is 35 cycles (\SI{350}{\nano\second}) deeper. The cause is known.
-Floating-point operators have longer pipelines than fixed-point ones, and the
-closed-loop fix of Section~\ref{sec:defect32768} deepened the pipeline from 32
-to 58 cycles. That fix is what guarantees the encoder and decoder never
-disagree, which Kiem's design does not guarantee.
+design is 35 cycles (\SI{350}{\nano\second}) deeper, and
+Section~\ref{sec:acc_depth} accounted for them: 26 cycles are the closed loop,
+which guarantees the encoder and decoder never disagree, and the rest is the
+latency of floating-point operators.
 
 \paragraph{When does it become a problem?} In this application it does not.
 \SI{580}{\nano\second} is \SI{0.7}{\percent} of one ramp interval. It would
@@ -232,13 +734,12 @@ that frame. The difference is the \emph{added latency}.
 \begin{itemize}
 \item \textbf{DRHE} is a streaming design. It processes each ramp as that ramp
 arrives, so when the last ramp arrives only that one ramp remains:
-\num{319} cycles, or \SI{3.2}{\micro\second} at \SI{100}{\mega\hertz}
-(\SI{3.9}{\micro\second} at its estimated $F_{\max}$).
+\num{319} cycles, or \SI{3.2}{\micro\second} at \SI{100}{\mega\hertz}.
 \item \textbf{LPC} cannot emit anything until it has seen the whole frame,
 because its coefficients are computed from every ramp. When the last ramp
 arrives, it still has all of its solve and emit passes to run. That is
 \SI{1.24}{\milli\second} for the baseline and \SI{3.01}{\milli\second} for the
-corrected design (\SI{1.45}{} and \SI{3.52}{\milli\second} at $F_{\max}$).
+corrected design, at \SI{100}{\mega\hertz}.
 \end{itemize}
 
 \noindent
@@ -296,8 +797,9 @@ microseconds.
 measured cycle counts gives roughly \SI{53}{\milli\second} of added latency
 at \SI{100}{\mega\hertz}, which is \emph{3.5 times over} Kiem's
 \SI{15}{\milli\second} budget. Its frame buffer would need
-\SI{67}{\mega bit}. That exceeds the entire block RAM of the ZU3EG
-(\SI{8.0}{\mega bit}) and of the \texttt{xcku5p} (\SI{17.7}{\mega bit}), so
+\SI{67}{\mega bit}. That exceeds the entire block RAM of Kiem's ZU3CG
+(\SI{8.0}{\mega bit}) and of the \texttt{xcku5p} (\SI{17.7}{\mega bit},
+or \SI{36}{\mega bit} with its UltraRAM), so
 it would have to move to external DRAM.
 \end{itemize}
 
@@ -325,6 +827,7 @@ latency becomes an application problem when it is a noticeable fraction of the
 frame period. LPC on ColoRadar is \SI{1.5}{\percent}, so it is not a problem.
 LPC scaled to Kiem's sensor would exceed his entire \SI{50}{\milli\second}
 cycle, so it is.
+
 
 \section{Throughput and initiation interval}
 \label{sec:thrinterp}
@@ -354,7 +857,9 @@ Gbit/s. ``Measured'' is from co-simulation, including fill and drain;
 & Theoretical & Measured & bits/cycle (meas.)\\
 \midrule
 DRHE, \SI{100}{\mega\hertz}, $\mathrm{II}=2$       & 6.40 & \textbf{5.136} & 51.4\\
-DRHE at $F_{\max}$ (\SI{81.88}{\mega\hertz})       & 5.24 & 4.205 & 51.4\\
+DRHE-$n$ at its routed $F_{\max}$ (\HW{drhen}{fmax}\,MHz) & 8.38 & 6.73 & 51.4\\
+DRHE with $\mathrm{II}=1$ (step 3), \SI{100}{\mega\hertz} & 12.80 & \HW{ablptwor}{thrmeas} & \HW{ablptwor}{bpcmeas}\\
+Replica of Kiem, $\mathrm{II}=1$, \SI{100}{\mega\hertz} & 12.80 & \HW{ablk}{thrmeas} & \HW{ablk}{bpcmeas}\\
 LPC lags 1,2, frame average                         & --- & 1.595 & 15.9\\
 LPC lags $n_{\mathrm{Tx}}$, frame average           & --- & 0.967 & 9.7\\
 Any design at $\mathrm{II}=1$, \SI{100}{\mega\hertz} & 12.80 & --- & 128\\
@@ -380,21 +885,21 @@ Kiem's theoretical one even if his design had it too.
 
 \paragraph{Against the sensor: the comparison that matters.}
 Figure~\ref{fig:headroom} shows capacity against requirement. DRHE accepts
-data 24.6 times faster than four ColoRadar channels produce it (20 times at
-$F_{\max}$). Throughput beyond the requirement does not improve compression.
+data 24.6 times faster than four ColoRadar channels produce it at
+\SI{100}{\mega\hertz}, and 32 times at its routed $F_{\max}$. Throughput beyond the requirement does not improve compression.
 It is spare capacity, and it can be spent in three ways:
 
 \begin{itemize}
 \item \textbf{Time-multiplexing.} One DRHE instance could serve all 16
-receive channels with 6.2 times headroom (5.0 at $F_{\max}$), instead of four
-instances. It would need four times the state memory, about 320 BRAM\_18K, but
+receive channels with 6.2 times headroom at \SI{100}{\mega\hertz}, instead
+of four instances. It would need four times the state memory, about 320 BRAM\_18K, but
 only one set of logic.
 \item \textbf{A slower clock.} Dynamic power scales roughly with clock
-frequency. A design with 20 times headroom does not need to run at
+frequency. A design with 24 times headroom does not need to run at
 \SI{100}{\mega\hertz}.
 \item \textbf{Larger sensors.} On Kiem's sensor, which needs
 \SI{3.2}{Gbit/s}, DRHE's measured \SI{5.1}{Gbit/s} still has 1.6 times
-headroom (1.3 at $F_{\max}$).
+headroom.
 \end{itemize}
 
 \begin{figure}[htbp]
@@ -412,8 +917,9 @@ rate only narrowly, which matters only if frames arrive back-to-back.}
 principle carry 128 bits per cycle. DRHE achieves 51.4, which is
 \SI{40}{\percent} of the input width and \SI{80}{\percent} of what II~2 allows.
 This is the fairest measure of implementation efficiency, because it needs
-nothing external. It also points at the two fixes, the II and the drain,
-described in Section~\ref{sec:kiemcompare}.
+nothing external. It also points at the two fixes: the II, which
+Section~\ref{sec:acc_ii} traced to one write and removed, and the per-ramp
+drain.
 
 \paragraph{When does it become a problem?} When headroom falls below 1. For a
 single 4-channel ColoRadar stream that would take a design about 25 times
@@ -423,214 +929,113 @@ FFT must be allowed to pause (AXI back-pressure), or there must be a small
 FIFO between them. One ramp for four channels is \SI{16}{\kilo bit}, about one
 BRAM\_18K. At II~1 the question would not arise.
 
-\section{Clock frequency}
-\label{sec:fmaxinterp}
 
-\paragraph{What it is.} $F_{\max}$ is the fastest clock at which every signal
-still settles within one period. It is set by the slowest path in the design,
-the critical path. The estimates here are \SI{81.88}{\mega\hertz} for DRHE,
-limited by the chain of floating-point transcendental functions, and
-\SI{85.43}{\mega\hertz} for LPC.
-
-\paragraph{Why measure it.} Throughput and latency in seconds both depend on
-the clock. And the compressor has to run on \emph{some} clock that the rest of
-the system provides.
-
-\paragraph{What to compare against.} There are three yardsticks:
-\begin{itemize}
-\item \textbf{The system clock.} The \SI{100}{\mega\hertz} target is what Kiem
-used, and it is a common clock for the programmable logic on these devices.
-Kiem met it with fixed-point arithmetic, splitting long operations across
-cycles. Neither design here meets it.
-\item \textbf{The device.} UltraScale+ logic routinely runs well above
-\SI{100}{\mega\hertz} when it is pipelined properly. The
-\SI{82}{\mega\hertz} is a limit of the design, not of the chip.
-\item \textbf{The requirement.} Section~\ref{sec:thrinterp} showed that
-throughput at $F_{\max}$ is still 20 times the requirement.
-\end{itemize}
-
-\paragraph{When does it become a problem?} Functionally, only when headroom
-at $F_{\max}$ falls below 1, which is far away. In practice, missing
-\SI{100}{\mega\hertz} is an \emph{integration} problem rather than a
-performance one. If the compressor cannot share the \SI{100}{\mega\hertz}
-clock of the FFT and DMA, it needs its own slower clock and a
-clock-domain-crossing FIFO on each side. That is standard, but it is extra
-design work and extra BRAM. Because the HLS estimate leaves out most routing
-delay, the post-route $F_{\max}$ could be lower still, which is one more reason
-to run implementation (Section~\ref{sec:numsource}).
-
-\section{Resources: what the design costs}
+% -------------------------------------------------------------------
+\section{Resources against the device}
 \label{sec:resinterp}
 
-\paragraph{Why measure resources at all?} Every resource number answers the
-same three questions. \emph{Does it fit} on the chip that would actually be
-used, next to everything else that chip must do? \emph{What is it costing}
-compared with another design that does the same job? And \emph{how does it
-scale} when the sensor gets bigger? A design that uses \SI{53}{\percent} of the
-chip is a very different proposition from one that uses \SI{5}{\percent}, even
-if both work.
+\paragraph{Why measure resources at all?} Every resource number answers three
+questions. \emph{Does it fit} on the chip that would actually be used, next to
+everything else that chip must do? \emph{What does it cost} compared with
+another design that does the same job? And \emph{how does it scale} when the
+sensor gets bigger? Section~\ref{sec:abl} answered the second. This section
+answers the first and third.
 
-Table~\ref{tab:resinterp} compares the resource counts with Kiem's in absolute
-terms and as a fraction of both devices.
+\input{tab_device}
+
+\paragraph{It fits Kiem's device.} Every design fits the \texttt{XCZU3CG}, and
+DRHE uses fewer of its LUTs than Kiem's own IP does, though more of its
+flip-flops, DSPs and block RAM. An earlier draft concluded, from
+HLS estimates, that DRHE needed \SI{164}{\percent} of that device's LUTs and
+could not be built on it at all; implemented, it needs half. Kiem's complete
+system (FFT, DMA, processor interface and compressor) used \num{59353} LUTs, so
+everything except his compressor used \num{13461}. DRHE-$n$ in place of his
+compressor would bring the system to about \HW{drhen}{sysLUT} LUTs, or
+\HW{drhen}{sysLUTpct}\,\% of the device, inside the usual 70--80\,\% guideline
+above which placement and routing become congested.
+
+\paragraph{Scaling to the whole sensor.} The designs compress four receive
+channels; the ColoRadar cascade has sixteen. Two ways of covering all sixteen
+follow from the numbers:
+\begin{itemize}
+\item \textbf{Four DRHE-$n$ instances}, about \HW{drhen}{fourLUT} LUTs and 160
+BRAM tiles. That fits the \texttt{xcku5p} (\HW{drhen}{fourLUTpct}\,\% of its
+LUTs) but not the \texttt{XCZU3CG}.
+\item \textbf{One DRHE-$n$ instance, time-multiplexed.} Its throughput headroom
+of 6.2 at \SI{100}{\mega\hertz} over the 16-channel rate makes this possible.
+Logic stays at one instance; the state memory grows four-fold to 160 tiles,
+which fits the \texttt{xcku5p} (33\,\%) comfortably and the \texttt{XCZU3CG}
+only tightly (74\,\% of its block RAM, before the rest of the system is
+placed).
+\end{itemize}
+LPC's memory is its limit: its frame buffer alone is \SI{3.1}{\mebi bit} per
+four channels, so all sixteen channels would need about 430 tiles: 90\,\% of
+the \texttt{xcku5p} and twice the \texttt{XCZU3CG}. At Kiem's frame size it
+could not be held on chip at all
+(Section~\ref{sec:latproblem}).
+
+% -------------------------------------------------------------------
+\section{Power}
+\label{sec:power}
+
+\paragraph{What it is.} The routed design's power report splits consumption into
+\emph{device static} power, which the chip draws whenever it is switched on,
+whatever it is doing, and \emph{dynamic} power, which the design draws by
+switching its logic, registers, DSPs, memories and wires every clock cycle.
+Only the dynamic part belongs to the design.
+
+\paragraph{Why measure it.} A compressor exists to save link bandwidth, and in
+a vehicle bandwidth and power are both paid for. A compressor that costs more
+power than the bits it saves is not worth fitting.
 
 \begin{table}[htbp]
 \centering
-\caption[Resources against the reference and against two devices]{Resources of
-the two corrected designs against Kiem's compression IP, and as a fraction of
-the \texttt{xcku5p} used here and of Kiem's ZU3EG. Kiem's BRAM is converted
-from 36\,Kb tiles to BRAM\_18K. Our figures are HLS estimates; Kiem's are
-post-implementation.}
-\label{tab:resinterp}
+\caption[Power and energy of the implemented designs]{Power from the routed
+designs' reports at \SI{100}{\mega\hertz}, with Vivado's default switching
+activity. Static power is the \texttt{xcku5p}'s own and is the same for every
+design. Energy per frame is dynamic power multiplied by the co-simulated time to
+compress one frame; energy per bit divides that by the frame's
+\num{3145728} input bits.}
+\label{tab:power}
 \small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lrrrrrrr@{}}
+\begin{tabular}{@{}lrrrrr@{}}
 \toprule
-& \multicolumn{2}{c}{Absolute} & & \multicolumn{2}{c}{\% of \texttt{xcku5p}} & \multicolumn{2}{c}{\% of ZU3EG}\\
-\cmidrule(lr){2-3}\cmidrule(lr){5-6}\cmidrule(lr){7-8}
-& DRHE & LPC & Kiem & DRHE & LPC & DRHE & LPC\\
+Design & Total (W) & Static (W) & Dynamic (W) & \si{\micro\joule} per frame & \si{\pico\joule} per bit\\
 \midrule
-LUT       & \num{115736} & \num{86298} & \num{45892} & 53 & 40 & \textbf{164} & \textbf{122}\\
-FF        & \num{57263}  & \num{23154} & \num{9243}  & 13 & 5  & 41 & 16\\
-BRAM\_18K & \num{80}     & \num{192}   & \num{20}    & 8  & 20 & 19 & 44\\
-DSP       & \num{132}    & \num{156}   & \num{44}    & 7  & 9  & 37 & 43\\
+DRHE-1          & \HW{drheone}{ptotal} & \HW{drheone}{pstatic} & \HW{drheone}{pdyn} & \HW{drheone}{Eframe} & \HW{drheone}{pJbit}\\
+DRHE-$n$        & \HW{drhen}{ptotal}   & \HW{drhen}{pstatic} & \HW{drhen}{pdyn}   & \HW{drhen}{Eframe}   & \HW{drhen}{pJbit}\\
+LPC-1,2         & \HW{lpcone}{ptotal}  & \HW{lpcone}{pstatic} & \HW{lpcone}{pdyn}  & \HW{lpcone}{Eframe}  & \HW{lpcone}{pJbit}\\
+LPC-$n$,$2n$    & \HW{lpcn}{ptotal}    & \HW{lpcn}{pstatic} & \HW{lpcn}{pdyn}    & \HW{lpcn}{Eframe}    & \HW{lpcn}{pJbit}\\
+Replica of Kiem & \HW{ablk}{ptotal}    & \HW{ablk}{pstatic} & \HW{ablk}{pdyn}    & \HW{ablk}{Eframe}    & \HW{ablk}{pJbit}\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\paragraph{Is comparing absolute counts with Kiem valid?} Mostly yes. Both
-devices are AMD UltraScale+ parts on the same process, with the same logic
-blocks: a LUT is the same six-input LUT and a DSP is the same DSP48E2 slice.
-Absolute counts therefore compare like with like. Percentages do not, because
-the \texttt{xcku5p} is three times larger. The one caveat is the HLS-versus-
-implementation difference of Section~\ref{sec:numsource}.
+\paragraph{Against Kiem: nothing to compare.} Kiem does not report power. The
+replica is therefore the only reference. DRHE-1 draws about twice the replica's
+dynamic power, which is what its resource counts predict, since dynamic power
+scales with the logic, registers and DSPs that switch; and because the replica
+finishes a frame in \HW{ablk}{framecyc} cycles against DRHE-1's
+\HW{drheone}{framecyc}, DRHE-1 spends about 4.4 times as much energy per frame. LPC-$n$ is the most expensive per frame by a wide margin, because its
+dynamic power is similar to DRHE's but it takes five times as long.
 
-\subsection{LUTs}
+\paragraph{Against the job.} At the sensor's actual rate the compressor is busy
+only a few per cent of the time. Energy per frame is therefore the useful
+figure: at \SI{5}{frames\per\second}, DRHE-1's \HW{drheone}{Eframe}\,\si{\micro\joule}
+per four-channel frame is about \SI{1.7}{\milli\watt} of average switching power (the clock network
+keeps toggling between ramps unless it is gated, and is about a ninth of the
+dynamic figure),
+negligible next to the \SI{0.46}{\watt} the device draws simply by being
+switched on. That static power is a property of the development board's large
+FPGA, not of the compressor; in a production ASIC or a small device it would be
+far lower.
 
-\paragraph{What they are.} LUTs are the general-purpose logic of the FPGA,
-the part that implements every comparison, addition and piece of control logic
-that does not go to a dedicated block. The LUT count is the best single
-measure of how much \emph{logic} a design is.
-
-\paragraph{What the number says.} DRHE uses 2.5 times Kiem's LUTs, and LPC
-1.9 times. The cause is the number format. Kiem wrote his arithmetic in
-fixed point. Both designs here use single-precision floating point for the
-parts that need it, and DRHE's floating-point square root, arctangent, sine and
-cosine are especially expensive. The algorithms are no more complex than
-Kiem's; the number format is what costs.
-
-\paragraph{When does it become a problem?} When the design does not fit. At
-\SI{164}{\percent} of a ZU3EG's LUTs, DRHE in its current form \emph{could not
-be built on Kiem's device at all}, even before the FFT, DMA and processor
-interface are added. On their own those used \num{13461} LUTs in Kiem's system
-(\num{59353} in total, less \num{45892} for the compressor). A widely used rule
-of thumb is also relevant: above about 70--80\,\% utilisation, placement and
-routing become congested and timing gets harder to meet. On the
-\texttt{xcku5p} DRHE sits at \SI{53}{\percent}, which is comfortable. For the
-design to be deployed on a device the size of Kiem's, the float-to-fixed-point
-conversion is not optional.
-
-\subsection{Flip-flops}
-
-\paragraph{What they are.} A flip-flop stores one bit from one clock cycle to
-the next. Pipelines need them between every pair of stages, so the FF count
-mainly reflects \emph{how deeply pipelined} a design is.
-
-\paragraph{What the number says.} DRHE uses 6.2 times Kiem's flip-flops. The
-ratio of FFs to LUTs is also informative: 0.49 for DRHE against 0.20 for
-Kiem's design. That is what deep floating-point pipelines look like, each
-float operator carrying many stages of 32-bit registers.
-
-\paragraph{When does it become a problem?} Rarely. UltraScale+ devices provide
-two flip-flops for every LUT, so FFs are seldom the resource that runs out
-first. At \SI{13}{\percent} of the \texttt{xcku5p} and \SI{41}{\percent} of a
-ZU3EG, they are not the constraint here. They matter indirectly: more
-registers switching every cycle means more dynamic power.
-
-\subsection{Block RAM}
-
-\paragraph{What it is.} Block RAM is on-chip memory, counted here in
-\SI{18}{\kilo bit} units. It holds anything the design must remember. For
-DRHE that is the predictor state, five values per range bin and channel from
-previous ramps. For LPC it is mostly the frame buffer.
-
-\paragraph{Against Kiem: a unit correction.} Kiem reports 10 BRAM. His table
-counts 36\,Kb tiles (``10 of 216''), not 18\,Kb units. In the unit used here
-that is \textbf{20 BRAM\_18K}. Earlier drafts compared our 40 with his 10 and
-called it four times as much. The correct ratio for the baseline DRHE is
-\textbf{2 times}. That ratio is consistent with storing each state value as a
-32-bit float rather than a narrower fixed-point word. With 1024 entries per
-array, a 32-bit array fills two BRAM\_18K, where one of 18 bits or fewer fits
-in one. The corrected DRHE's 80 is 4 times Kiem's, because it stores twelve
-times as many state entries, one set per transmitter.
-
-\paragraph{Against the minimum.} A second yardstick needs no reference design:
-how many bits the design \emph{must} store, against how many BRAMs it
-occupies. The corrected DRHE must hold $5 \times 4 \times 1536$ 32-bit values,
-\SI{0.98}{\mega bit}, or 53.3 BRAM\_18K at perfect packing. It uses 80, about
-\SI{67}{\percent} efficiency, because HLS rounds each partitioned array up to
-whole BRAMs. LPC's frame buffer is \SI{3.15}{\mega bit}, or 170.7 BRAM\_18K,
-and the design uses 192 in total. Both designs use memory sensibly; neither
-wastes it.
-
-\paragraph{When does it become a problem?} BRAM is the resource that decides
-whether LPC scales. For all 16 ColoRadar channels LPC's frame buffers would
-need about 683 BRAM\_18K, \SI{71}{\percent} of the \texttt{xcku5p}. For Kiem's
-frame size they would need \SI{67}{\mega bit}, which is more than either device
-has (Section~\ref{sec:latproblem}). DRHE's memory scales with the number of
-range bins and transmitters, not with the number of ramps, so it never meets
-this wall.
-
-\subsection{DSP slices}
-
-\paragraph{What they are.} A DSP slice is a hardened multiplier with an
-adder, far cheaper and faster than building a multiplier out of LUTs.
-Floating-point multipliers and the arithmetic inside the transcendental
-functions consume several each.
-
-\paragraph{What the number says.} DRHE uses 3 times Kiem's DSPs, and LPC 3.5
-times. The cause is again floating point: a single-precision multiply needs
-several DSP slices where a narrow fixed-point multiply fits in one.
-
-\paragraph{When does it become a problem?} At \SI{7}{\percent} of the
-\texttt{xcku5p} and \SI{37}{\percent} of a ZU3EG, not here. DSPs become the
-constraint in designs dominated by filtering or FFTs. An FFT sharing the same
-device would be the main competitor for them.
-
-\subsection{Scaling to the whole sensor}
-
-The designs compress four receive channels; the sensor has sixteen. There are
-two ways to cover all sixteen, and the resource and throughput numbers together
-decide between them:
-
-\begin{itemize}
-\item \textbf{Four DRHE instances.} This needs \num{462944} LUTs, more than
-twice the \texttt{xcku5p}. It does not fit.
-\item \textbf{One DRHE instance, time-multiplexed.} Throughput headroom of 6.2
-(5.0 at $F_{\max}$) makes this feasible. State memory grows to about 320
-BRAM\_18K (\SI{33}{\percent}), while logic stays at one instance.
-\end{itemize}
-
-\noindent
-This is a good example of why the numbers must be read together. The excess
-throughput, which looks like an irrelevant surplus on its own, is exactly what
-makes the whole-sensor design fit.
-
-\section{Power: the number not measured}
-
-Power is the metric an automotive integrator would ask about first, and this
-thesis does not report it. The reason is that a meaningful power figure needs
-the post-implementation design and realistic switching activity. The flow for
-that is: Vivado implementation, then \texttt{report\_power} with activity
-recorded from co-simulation. An HLS-stage power figure would be too rough to
-be worth quoting.
-
-Two things can nonetheless be said. First, power will track the resource
-numbers: the floating-point datapath dominates logic, registers and DSPs, so a
-fixed-point redesign would reduce power along with area. Second, the
-throughput headroom is also a power budget. The same work done at a lower
-clock costs proportionally less dynamic power. The right yardstick, when it is
-measured, is \emph{energy per compressed bit} against the energy saved by
-sending fewer bits over the link.
+\paragraph{How far to trust it.} These are estimates from routed netlists with
+an assumed \SI{12.5}{\percent} toggle rate on every signal, not measurements on
+a board and not driven by recorded switching activity. Vivado rates their
+confidence as ``medium''. They are good for ranking designs against each other
+and for the order of magnitude; a board measurement would be needed for an
+absolute figure.
 
 \section{Compression ratio: what counts as good}
 \label{sec:crinterp}
@@ -680,84 +1085,5 @@ requires. That is an estimate from factors measured on ColoRadar, not a
 measurement on such a sensor. It shows that a CR of 3.75 on this dataset is not
 a guaranteed pass on every sensor.
 
-\section{Which comparisons with Kiem are valid}
 
-Table~\ref{tab:kiemvalid} collects the conclusions of this chapter about the
-reference design.
-
-\begin{table}[htbp]
-\centering
-\caption[Validity of each comparison with the reference]{Which comparisons with
-Kiem's design \cite{kiem2025} are like-for-like, and what to use when they are
-not.}
-\label{tab:kiemvalid}
-\small
-\begin{tabular}{@{}>{\raggedright}p{0.13\textwidth}>{\raggedright}p{0.17\textwidth}>{\raggedright}p{0.17\textwidth}>{\raggedright}p{0.09\textwidth}>{\raggedright\arraybackslash}p{0.33\textwidth}@{}}
-\toprule
-Metric & Kiem & Ours (DRHE) & Valid? & Notes / use instead\\
-\midrule
-Pipeline latency & 23 cyc (HLS) & 58 cyc (HLS) & Yes &
-Both HLS estimates. The gap comes from float pipelines and the closed-loop
-fix.\\
-Added latency & \SI{79.4}{\micro\second} system & \SI{3.2}{\micro\second} compressor & No &
-His includes FFT, DMA and interrupts. Use the system budget
-(Section~\ref{sec:latproblem}).\\
-Throughput & 12.8 Gbit/s theoretical & 6.4 theor., 5.14 meas. & Partly &
-Compare theoretical to theoretical (2 times, from II). Measure both against the
-sensor rate.\\
-LUT, FF, DSP & post-impl. & HLS est. & Mostly &
-Same device family, so absolute counts compare. Percentages do not, because
-the devices differ in size. Run \texttt{--impl} to close the gap.\\
-BRAM & 10 tiles = 20 BRAM\_18K & 40 (lag 1), 80 (lag $n_{\mathrm{Tx}}$) & Yes, once converted &
-2 times, not 4 times, for the baseline.\\
-$F_{\max}$ & met \SI{100}{\mega\hertz} (impl.) & \SI{81.88}{\mega\hertz} (est.) & Mostly &
-The post-route figure may be lower still.\\
-Compression ratio & 3.17 (his data) & 3.75 (ColoRadar) & No &
-Different data and scaling. Use the no-prediction baseline and the entropy
-bound.\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\section{Summary: every number, with its yardstick}
-\label{sec:interpsummary}
-
-Table~\ref{tab:interpsummary} is the chapter in one table: each headline
-number, the yardstick that gives it meaning, and the verdict.
-
-\begin{table}[htbp]
-\centering
-\caption[Every hardware number with its yardstick]{Each headline number for
-the corrected DRHE (LPC where noted), the yardstick it is judged against, and
-the verdict.}
-\label{tab:interpsummary}
-\small
-\begin{tabular}{@{}>{\raggedright}p{0.18\textwidth}>{\raggedright}p{0.15\textwidth}>{\raggedright}p{0.27\textwidth}>{\raggedright\arraybackslash}p{0.31\textwidth}@{}}
-\toprule
-Metric & Value & Yardstick & Verdict\\
-\midrule
-Throughput & \SI{5.14}{Gbit/s} & \SI{0.209}{Gbit/s} sensor rate & 24.6$\times$ headroom. \textbf{Pass.}\\
-Cycles per ramp & 319 & 7850 available & 4\,\% busy. \textbf{Pass.}\\
-Pipeline latency & \SI{580}{\nano\second} & \SI{78.5}{\micro\second} ramp & 0.7\,\% of a ramp. \textbf{Irrelevant.}\\
-Added latency & \SI{3.2}{\micro\second} & \SI{15}{\milli\second} budget & \textbf{Pass}, including at Kiem's scale.\\
-Added latency, LPC & \SI{3.0}{\milli\second} & \SI{15}{\milli\second} budget & Pass here; about \SI{53}{\milli\second} at Kiem's scale. \textbf{Fails there.}\\
-$F_{\max}$ & \SI{81.88}{\mega\hertz} & \SI{100}{\mega\hertz} system clock & \textbf{Misses}; needs a clock crossing or a fix.\\
-II & 2 & 1 (Kiem, ideal) & Half the ideal. Not needed for this sensor.\\
-LUT & \num{115736} & ZU3EG \num{70560}; Kiem \num{45892} & Fits the \texttt{xcku5p}; \textbf{not} the ZU3EG. 2.5$\times$ Kiem.\\
-FF & \num{57263} & 2 per LUT on the device & Not a constraint.\\
-BRAM\_18K & 80 & Kiem 20; minimum 53 & 4$\times$ Kiem for 12$\times$ the state. Efficient.\\
-DSP & 132 & Kiem 44; ZU3EG 360 & 3$\times$ Kiem. Not a constraint.\\
-Power & not measured & energy per bit vs.\ link saving & \textbf{Open.}\\
-CR & 3.751 & 3.489 no-prediction; 2.7 GbE & Beats the baseline by 7.5\,\%. Data-dependent.\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\noindent
-The overall reading is consistent. \textbf{DRHE meets every
-\emph{performance} requirement by a wide margin and misses the \emph{cost} and
-\emph{clock} targets set by the reference design.} Both misses have the same
-cause, the floating-point datapath, and one known remedy, conversion to fixed
-point. LPC is cheaper in logic now, but its latency and memory grow with the
-frame. On ColoRadar that is acceptable. On a longer-frame sensor it becomes
-the limiting factor.
+\input{ch_interpret_ledger}

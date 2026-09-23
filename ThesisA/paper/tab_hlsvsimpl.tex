@@ -1,0 +1,19 @@
+\begin{table}[htbp]
+\centering
+\caption[HLS estimates against implemented results]{HLS estimates against the same designs after Vivado placement and routing, \texttt{xcku5p-ffvb676-2-e}, \SI{10}{\nano\second} constraint. BRAM in BRAM\_18K units. $F_{\max}$ is $1/(10\,\mathrm{ns} - \mathrm{WNS})$ after routing, and HLS's own estimate before it. Every figure is read from the tool reports by \texttt{collect\_impl.py}.}
+\label{tab:hlsvsimpl}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}l rr rr rr rr rr@{}}
+\toprule
+& \multicolumn{2}{c}{LUT} & \multicolumn{2}{c}{FF} & \multicolumn{2}{c}{DSP} & \multicolumn{2}{c}{BRAM\_18K} & \multicolumn{2}{c}{$F_{\max}$ (MHz)}\\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}
+Design & HLS & impl. & HLS & impl. & HLS & impl. & HLS & impl. & HLS & impl.\\
+\midrule
+DRHE-1 & \num{115534} & \textbf{\num{35343}} & \num{57105} & \textbf{\num{23546}} & \num{132} & \textbf{\num{132}} & \num{40} & \textbf{\num{40}} & \num{81.9} & \textbf{\num{135.5}}\\
+DRHE-$n$ & \num{115736} & \textbf{\num{34804}} & \num{57263} & \textbf{\num{23514}} & \num{132} & \textbf{\num{132}} & \num{80} & \textbf{\num{80}} & \num{81.9} & \textbf{\num{131.0}}\\
+LPC-1,2 & \num{80528} & \textbf{\num{29772}} & \num{17393} & \textbf{\num{13601}} & \num{168} & \textbf{\num{168}} & \num{256} & \textbf{\num{244}} & \num{85.4} & \textbf{\num{118.6}}\\
+LPC-$n$,$2n$ & \num{86298} & \textbf{\num{34503}} & \num{23154} & \textbf{\num{20186}} & \num{156} & \textbf{\num{158}} & \num{192} & \textbf{\num{216}} & \num{85.4} & \textbf{\num{106.3}}\\
+\bottomrule
+\end{tabular}
+\end{table}

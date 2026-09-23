@@ -1,0 +1,20 @@
+\begin{table}[htbp]
+\centering
+\caption[The replica against Kiem's published design]{The rebuilt design against Kiem's published compression IP (his Table~5.3 and Section~5.2.3). Replica figures are post-route, out of context, on the \texttt{xcku5p} at speed grades $-2$ and $-1$; Kiem's are post-route, in system, on the \texttt{XCZU3CG-SFVC784-1-e}. Kiem's BRAM is given in 36\,Kb tiles and converted.}
+\label{tab:replica}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+& Replica ($-2$) & Replica ($-1$) & Kiem \cite{kiem2025}\\
+\midrule
+LUT & \num{17141} & \num{17228} & \num{45892}\\
+FF & \num{5050} & \num{5598} & \num{9243}\\
+DSP & \num{48} & \num{48} & \num{44}\\
+BRAM (36\,Kb tiles) & \num{10} & \num{10} & \num{10}\\
+Initiation interval & \num{1} & \num{1} & 1\\
+Pipeline depth (HLS, cycles) & \num{12} & \num{14} & 23\\
+Achieved clock (MHz) & \num{129.5} & \num{125.0} & 100 (met)\\
+Compression ratio (ColoRadar, 10 frames) & \multicolumn{2}{c}{\num{3.31904}} & ---\\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,1696 @@
+{
+ "abl_ctrl_sg1": {
+  "name": "abl_ctrl_sg1",
+  "LUT": 35317,
+  "FF": 23704,
+  "DSP": 132,
+  "BRAM": 40,
+  "SRL": 711,
+  "CLB": 6960,
+  "cp_syn": 5.978,
+  "cp_impl": 7.231,
+  "impl_done": true,
+  "wns": 2.769,
+  "crit_src": "bd_0_i/hls_inst/inst/grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_189/grp_sin_or_cos_float_s_fu_1683/mul_15ns_15ns_30_1_0_U8/tmp_product/DSP_A_B_DATA_INST/CLK",
+  "crit_dst": "bd_0_i/hls_inst/inst/grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_189/grp_sin_or_cos_float_s_fu_1683/mul_30s_29ns_58_1_0_U2/tmp_product__0/DSP_A_B_DATA_INST/A[26]",
+  "crit_levels": 15,
+  "crit_delay": 6.84,
+  "crit_route": 2.48,
+  "p_total": 1.145,
+  "p_dyn": 0.69,
+  "p_static": 0.456,
+  "top": "drhe_abl_compress",
+  "hBRAM": 40,
+  "hDSP": 132,
+  "hFF": 61610,
+  "hLUT": 118626,
+  "hII": 2,
+  "hDepth": 63,
+  "hClk": 12.495,
+  "breakdown": {
+   "logic:inst": {
+    "n": 1,
+    "LUT": 1,
+    "FF": 1510,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "AXI-Lite control": {
+    "n": 1,
+    "LUT": 112,
+    "FF": 149,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "logic:grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_189": {
+    "n": 1,
+    "LUT": 10018,
+    "FF": 8333,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "state BRAM": {
+    "n": 2,
+    "LUT": 115,
+    "FF": 0,
+    "DSP": 0,
+    "B36": 2,
+    "B18": 0
+   },
+   "fadd/fsub": {
+    "n": 12,
+    "LUT": 2837,
+    "FF": 2467,
+    "DSP": 24,
+    "B36": 0,
+    "B18": 0
+   },
+   "fmul": {
+    "n": 16,
+    "LUT": 1910,
+    "FF": 2293,
+    "DSP": 48,
+    "B36": 0,
+    "B18": 0
+   },
+   "sqrt (float)": {
+    "n": 2,
+    "LUT": 896,
+    "FF": 693,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "atan2 (float CORDIC)": {
+    "n": 2,
+    "LUT": 12004,
+    "FF": 5102,
+    "DSP": 8,
+    "B36": 0,
+    "B18": 0
+   },
+   "round": {
+    "n": 4,
+    "LUT": 668,
+    "FF": 324,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "sin/cos (float)": {
+    "n": 4,
+    "LUT": 4678,
+    "FF": 1476,
+    "DSP": 52,
+    "B36": 0,
+    "B18": 0
+   },
+   "int->float": {
+    "n": 4,
+    "LUT": 1132,
+    "FF": 496,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "flattened:grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_189": {
+    "n": 0,
+    "LUT": 494,
+    "FF": 68,
+    "DSP": 0,
+    "B36": 18,
+    "B18": 0
+   },
+   "AXIS register slice": {
+    "n": 2,
+    "LUT": 437,
+    "FF": 778,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   }
+  },
+  "fmax": 138.29,
+  "hFmax": 80.03
+ },
+ "abl_f": {
+  "name": "abl_f",
+  "LUT": 20549,
+  "FF": 9230,
+  "DSP": 44,
+  "BRAM": 20,
+  "SRL": 12,
+  "CLB": 4083,
+  "cp_syn": 9.272,
+  "cp_impl": 9.728,
+  "impl_done": true,
+  "wns": 0.272,
+  "crit_src": "bd_0_i/hls_inst/inst/grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_177/tmp_207_reg_30959_reg[0]/C",
+  "crit_dst": "bd_0_i/hls_inst/inst/grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_177/drhe_abl_compress_stream_stream_axis_0_int_int_int_s_prev_phase_3_U/ram_reg_bram_0/DINADIN[15]",
+  "crit_levels": 38,
+  "crit_delay": 9.384,
+  "crit_route": 5.342,
+  "p_total": 0.831,
+  "p_dyn": 0.378,
+  "p_static": 0.453,
+  "top": "drhe_abl_compress",
+  "hBRAM": 20,
+  "hDSP": 40,
+  "hFF": 15118,
+  "hLUT": 88933,
+  "hII": 2,
+  "hDepth": 12,
+  "hClk": 12.741,
+  "breakdown": {
+   "logic:inst": {
+    "n": 1,
+    "LUT": 2,
+    "FF": 1514,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "AXI-Lite control": {
+    "n": 1,
+    "LUT": 112,
+    "FF": 149,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "logic:grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_177": {
+    "n": 1,
+    "LUT": 11897,
+    "FF": 6774,
+    "DSP": 8,
+    "B36": 0,
+    "B18": 0
+   },
+   "state BRAM": {
+    "n": 12,
+    "LUT": 3672,
+    "FF": 0,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 12
+   },
+   "fixed mult": {
+    "n": 16,
+    "LUT": 4165,
+    "FF": 0,
+    "DSP": 20,
+    "B36": 0,
+    "B18": 0
+   },
+   "flattened:grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_177": {
+    "n": 0,
+    "LUT": 250,
+    "FF": 0,
+    "DSP": 16,
+    "B36": 0,
+    "B18": 8
+   },
+   "AXIS register slice": {
+    "n": 2,
+    "LUT": 436,
+    "FF": 778,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   }
+  },
+  "fmax": 102.8,
+  "hFmax": 78.49
+ },
+ "abl_fxc": {
+  "name": "abl_fxc",
+  "LUT": 16882,
+  "FF": 5380,
+  "DSP": 48,
+  "BRAM": 20,
+  "SRL": 103,
+  "CLB": 3166,
+  "cp_syn": 5.574,
+  "cp_impl": 7.501,
+  "impl_done": true,
+  "wns": 2.499,
+  "crit_src": "bd_0_i/hls_inst/inst/grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_179/tmp_214_reg_31273_reg[0]/C",
+  "crit_dst": "bd_0_i/hls_inst/inst/grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_179/add_ln75_2_reg_31529_reg[21]/D",
+  "crit_levels": 28,
+  "crit_delay": 7.48,
+  "crit_route": 4.551,
+  "p_total": 0.774,
+  "p_dyn": 0.321,
+  "p_static": 0.453,
+  "top": "drhe_abl_compress",
+  "hBRAM": 20,
+  "hDSP": 40,
+  "hFF": 22900,
+  "hLUT": 57108,
+  "hII": 1,
+  "hDepth": 16,
+  "hClk": 7.194,
+  "breakdown": {
+   "logic:inst": {
+    "n": 1,
+    "LUT": 1,
+    "FF": 979,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "AXI-Lite control": {
+    "n": 1,
+    "LUT": 116,
+    "FF": 149,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "logic:grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_179": {
+    "n": 1,
+    "LUT": 12428,
+    "FF": 3330,
+    "DSP": 10,
+    "B36": 0,
+    "B18": 0
+   },
+   "state BRAM": {
+    "n": 8,
+    "LUT": 714,
+    "FF": 0,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 8
+   },
+   "loop control": {
+    "n": 1,
+    "LUT": 75,
+    "FF": 2,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "fixed mult": {
+    "n": 12,
+    "LUT": 1747,
+    "FF": 0,
+    "DSP": 12,
+    "B36": 0,
+    "B18": 0
+   },
+   "flattened:grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_179": {
+    "n": 0,
+    "LUT": 499,
+    "FF": 0,
+    "DSP": 26,
+    "B36": 0,
+    "B18": 12
+   },
+   "AXIS register slice": {
+    "n": 4,
+    "LUT": 1306,
+    "FF": 915,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   }
+  },
+  "fmax": 133.32,
+  "hFmax": 139.0
+ },
+ "abl_k": {
+  "name": "abl_k",
+  "LUT": 17141,
+  "FF": 5050,
+  "DSP": 48,
+  "BRAM": 20,
+  "SRL": 164,
+  "CLB": 3183,
+  "cp_syn": 5.574,
+  "cp_impl": 7.724,
+  "impl_done": true,
+  "wns": 2.276,
+  "crit_src": "bd_0_i/hls_inst/inst/grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_179/tmp_497_reg_29808_reg[0]/C",
+  "crit_dst": "bd_0_i/hls_inst/inst/grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_179/add_ln75_8_reg_29978_reg[21]/D",
+  "crit_levels": 29,
+  "crit_delay": 7.705,
+  "crit_route": 4.67,
+  "p_total": 0.738,
+  "p_dyn": 0.286,
+  "p_static": 0.453,
+  "top": "drhe_abl_compress",
+  "hBRAM": 20,
+  "hDSP": 40,
+  "hFF": 15164,
+  "hLUT": 53157,
+  "hII": 1,
+  "hDepth": 12,
+  "hClk": 7.259528130671506,
+  "breakdown": {
+   "logic:inst": {
+    "n": 1,
+    "LUT": 18,
+    "FF": 944,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "AXI-Lite control": {
+    "n": 1,
+    "LUT": 113,
+    "FF": 149,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "logic:grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_179": {
+    "n": 1,
+    "LUT": 12285,
+    "FF": 3162,
+    "DSP": 11,
+    "B36": 0,
+    "B18": 0
+   },
+   "state BRAM": {
+    "n": 8,
+    "LUT": 699,
+    "FF": 0,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 8
+   },
+   "loop control": {
+    "n": 1,
+    "LUT": 74,
+    "FF": 2,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "fixed mult": {
+    "n": 14,
+    "LUT": 2144,
+    "FF": 0,
+    "DSP": 16,
+    "B36": 0,
+    "B18": 0
+   },
+   "flattened:grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_179": {
+    "n": 0,
+    "LUT": 406,
+    "FF": 0,
+    "DSP": 21,
+    "B36": 0,
+    "B18": 12
+   },
+   "AXIS register slice": {
+    "n": 2,
+    "LUT": 1387,
+    "FF": 778,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   }
+  },
+  "fmax": 129.47,
+  "hFmax": 137.75
+ },
+ "abl_k23": {
+  "name": "abl_k23",
+  "LUT": 17060,
+  "FF": 5217,
+  "DSP": 48,
+  "BRAM": 20,
+  "SRL": 166,
+  "CLB": 3227,
+  "cp_syn": 5.621,
+  "cp_impl": 7.567,
+  "impl_done": true,
+  "wns": 2.433,
+  "crit_src": "bd_0_i/hls_inst/inst/grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_179/tmp_609_reg_29891_reg[0]/C",
+  "crit_dst": "bd_0_i/hls_inst/inst/grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_179/add_ln75_11_reg_30035_reg[21]/D",
+  "crit_levels": 27,
+  "crit_delay": 7.547,
+  "crit_route": 4.539,
+  "p_total": 0.738,
+  "p_dyn": 0.285,
+  "p_static": 0.453,
+  "top": "drhe_abl_compress",
+  "hBRAM": 20,
+  "hDSP": 40,
+  "hFF": 23063,
+  "hLUT": 56922,
+  "hII": 1,
+  "hDepth": 23,
+  "hClk": 7.26,
+  "breakdown": {
+   "logic:inst": {
+    "n": 1,
+    "LUT": 2,
+    "FF": 942,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "AXI-Lite control": {
+    "n": 1,
+    "LUT": 112,
+    "FF": 149,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "logic:grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_179": {
+    "n": 1,
+    "LUT": 12135,
+    "FF": 3331,
+    "DSP": 10,
+    "B36": 0,
+    "B18": 0
+   },
+   "state BRAM": {
+    "n": 8,
+    "LUT": 699,
+    "FF": 0,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 8
+   },
+   "loop control": {
+    "n": 1,
+    "LUT": 73,
+    "FF": 2,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "fixed mult": {
+    "n": 13,
+    "LUT": 2198,
+    "FF": 0,
+    "DSP": 14,
+    "B36": 0,
+    "B18": 0
+   },
+   "flattened:grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_179": {
+    "n": 0,
+    "LUT": 454,
+    "FF": 0,
+    "DSP": 24,
+    "B36": 0,
+    "B18": 12
+   },
+   "AXIS register slice": {
+    "n": 2,
+    "LUT": 1371,
+    "FF": 778,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   }
+  },
+  "fmax": 132.15,
+  "hFmax": 137.74
+ },
+ "abl_k_sg1": {
+  "name": "abl_k_sg1",
+  "LUT": 17228,
+  "FF": 5598,
+  "DSP": 48,
+  "BRAM": 20,
+  "SRL": 185,
+  "CLB": 3204,
+  "cp_syn": 5.709,
+  "cp_impl": 8.001,
+  "impl_done": true,
+  "wns": 1.999,
+  "crit_src": "bd_0_i/hls_inst/inst/grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_179/x_s_33_reg_29606_reg[1]/C",
+  "crit_dst": "bd_0_i/hls_inst/inst/grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_179/tz_0_15_0_0_0_i4499_reg_29873_reg[21]/D",
+  "crit_levels": 26,
+  "crit_delay": 7.981,
+  "crit_route": 4.385,
+  "p_total": 0.741,
+  "p_dyn": 0.289,
+  "p_static": 0.453,
+  "top": "drhe_abl_compress",
+  "hBRAM": 20,
+  "hDSP": 40,
+  "hFF": 16423,
+  "hLUT": 52964,
+  "hII": 1,
+  "hDepth": 14,
+  "hClk": 7.291,
+  "breakdown": {
+   "logic:inst": {
+    "n": 1,
+    "LUT": 18,
+    "FF": 918,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "AXI-Lite control": {
+    "n": 1,
+    "LUT": 113,
+    "FF": 149,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "logic:grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_179": {
+    "n": 1,
+    "LUT": 13221,
+    "FF": 3736,
+    "DSP": 10,
+    "B36": 0,
+    "B18": 0
+   },
+   "state BRAM": {
+    "n": 12,
+    "LUT": 1477,
+    "FF": 0,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 12
+   },
+   "loop control": {
+    "n": 1,
+    "LUT": 73,
+    "FF": 2,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "fixed mult": {
+    "n": 4,
+    "LUT": 544,
+    "FF": 0,
+    "DSP": 4,
+    "B36": 0,
+    "B18": 0
+   },
+   "flattened:grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_179": {
+    "n": 0,
+    "LUT": 574,
+    "FF": 0,
+    "DSP": 34,
+    "B36": 0,
+    "B18": 8
+   },
+   "AXIS register slice": {
+    "n": 2,
+    "LUT": 1192,
+    "FF": 778,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   }
+  },
+  "fmax": 124.98,
+  "hFmax": 137.16
+ },
+ "abl_kpk3": {
+  "name": "abl_kpk3",
+  "LUT": 18576,
+  "FF": 6214,
+  "DSP": 46,
+  "BRAM": 20,
+  "SRL": 165,
+  "CLB": 3620,
+  "cp_syn": 5.69,
+  "cp_impl": 7.416,
+  "impl_done": true,
+  "wns": 2.584,
+  "crit_src": "bd_0_i/hls_inst/inst/grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_177/tmp_214_reg_29714_reg[0]/C",
+  "crit_dst": "bd_0_i/hls_inst/inst/grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_177/add_ln75_2_reg_29936_reg[21]/D",
+  "crit_levels": 30,
+  "crit_delay": 7.397,
+  "crit_route": 4.586,
+  "p_total": 0.759,
+  "p_dyn": 0.306,
+  "p_static": 0.453,
+  "top": "drhe_abl_compress",
+  "hBRAM": 20,
+  "hDSP": 40,
+  "hFF": 12808,
+  "hLUT": 69947,
+  "hII": 1,
+  "hDepth": 12,
+  "hClk": 7.939,
+  "breakdown": {
+   "logic:inst": {
+    "n": 1,
+    "LUT": 2,
+    "FF": 1513,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "AXI-Lite control": {
+    "n": 1,
+    "LUT": 112,
+    "FF": 149,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "logic:grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_177": {
+    "n": 1,
+    "LUT": 12589,
+    "FF": 3693,
+    "DSP": 11,
+    "B36": 0,
+    "B18": 0
+   },
+   "state BRAM": {
+    "n": 11,
+    "LUT": 1359,
+    "FF": 0,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 11
+   },
+   "loop control": {
+    "n": 1,
+    "LUT": 624,
+    "FF": 8,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "fixed mult": {
+    "n": 13,
+    "LUT": 2090,
+    "FF": 58,
+    "DSP": 12,
+    "B36": 0,
+    "B18": 0
+   },
+   "flattened:grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_177": {
+    "n": 0,
+    "LUT": 410,
+    "FF": 0,
+    "DSP": 23,
+    "B36": 0,
+    "B18": 9
+   },
+   "AXIS register slice": {
+    "n": 2,
+    "LUT": 1375,
+    "FF": 778,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   }
+  },
+  "fmax": 134.84,
+  "hFmax": 125.96
+ },
+ "abl_p1": {
+  "name": "abl_p1",
+  "LUT": 33502,
+  "FF": 24423,
+  "DSP": 132,
+  "BRAM": 40,
+  "SRL": 648,
+  "CLB": 6693,
+  "cp_syn": 6.285,
+  "cp_impl": 7.787,
+  "impl_done": true,
+  "wns": 2.213,
+  "crit_src": "bd_0_i/hls_inst/inst/grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_191/icmp_ln160_reg_10065_reg[0]/C",
+  "crit_dst": "bd_0_i/hls_inst/inst/regslice_both_out_stream_V_data_V_U/data_p1_reg[203]/CE",
+  "crit_levels": 3,
+  "crit_delay": 7.682,
+  "crit_route": 7.379,
+  "p_total": 1.048,
+  "p_dyn": 0.593,
+  "p_static": 0.455,
+  "top": "drhe_abl_compress",
+  "hBRAM": 40,
+  "hDSP": 132,
+  "hFF": 57501,
+  "hLUT": 95800,
+  "hII": 2,
+  "hDepth": 58,
+  "hClk": 9.219,
+  "breakdown": {
+   "logic:inst": {
+    "n": 1,
+    "LUT": 2,
+    "FF": 1466,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "AXI-Lite control": {
+    "n": 1,
+    "LUT": 112,
+    "FF": 149,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "logic:grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_191": {
+    "n": 1,
+    "LUT": 8049,
+    "FF": 9287,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "state BRAM": {
+    "n": 1,
+    "LUT": 50,
+    "FF": 0,
+    "DSP": 0,
+    "B36": 1,
+    "B18": 0
+   },
+   "fadd/fsub": {
+    "n": 12,
+    "LUT": 3124,
+    "FF": 2778,
+    "DSP": 24,
+    "B36": 0,
+    "B18": 0
+   },
+   "fmul": {
+    "n": 16,
+    "LUT": 1694,
+    "FF": 2049,
+    "DSP": 48,
+    "B36": 0,
+    "B18": 0
+   },
+   "sqrt (float)": {
+    "n": 2,
+    "LUT": 960,
+    "FF": 540,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "atan2 (float CORDIC)": {
+    "n": 2,
+    "LUT": 11962,
+    "FF": 5334,
+    "DSP": 8,
+    "B36": 0,
+    "B18": 0
+   },
+   "round": {
+    "n": 4,
+    "LUT": 702,
+    "FF": 324,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "sin/cos (float)": {
+    "n": 4,
+    "LUT": 4834,
+    "FF": 1142,
+    "DSP": 52,
+    "B36": 0,
+    "B18": 0
+   },
+   "int->float": {
+    "n": 4,
+    "LUT": 899,
+    "FF": 493,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "flattened:grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_191": {
+    "n": 0,
+    "LUT": 674,
+    "FF": 68,
+    "DSP": 0,
+    "B36": 19,
+    "B18": 0
+   },
+   "AXIS register slice": {
+    "n": 2,
+    "LUT": 424,
+    "FF": 778,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   }
+  },
+  "fmax": 128.42,
+  "hFmax": 108.47
+ },
+ "abl_p2": {
+  "name": "abl_p2",
+  "LUT": 31124,
+  "FF": 21261,
+  "DSP": 127,
+  "BRAM": 40,
+  "SRL": 665,
+  "CLB": 5929,
+  "cp_syn": 6.285,
+  "cp_impl": 8.292,
+  "impl_done": true,
+  "wns": 1.708,
+  "crit_src": "bd_0_i/hls_inst/inst/grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_191/grp_sin_or_cos_float_s_fu_1709/mul_30s_29ns_58_1_0_U2/tmp_product__1/DSP_A_B_DATA_INST/CLK",
+  "crit_dst": "bd_0_i/hls_inst/inst/grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_191/tmp_23_reg_9173_reg[0]/D",
+  "crit_levels": 23,
+  "crit_delay": 8.241,
+  "crit_route": 4.63,
+  "p_total": 1.131,
+  "p_dyn": 0.676,
+  "p_static": 0.456,
+  "top": "drhe_abl_compress",
+  "hBRAM": 40,
+  "hDSP": 132,
+  "hFF": 40920,
+  "hLUT": 80009,
+  "hII": 2,
+  "hDepth": 62,
+  "hClk": 7.259,
+  "breakdown": {
+   "logic:inst": {
+    "n": 1,
+    "LUT": 1,
+    "FF": 940,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "AXI-Lite control": {
+    "n": 1,
+    "LUT": 112,
+    "FF": 149,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "logic:grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_191": {
+    "n": 1,
+    "LUT": 5883,
+    "FF": 6554,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "state BRAM": {
+    "n": 3,
+    "LUT": 154,
+    "FF": 0,
+    "DSP": 0,
+    "B36": 3,
+    "B18": 0
+   },
+   "fadd/fsub": {
+    "n": 12,
+    "LUT": 2805,
+    "FF": 2776,
+    "DSP": 24,
+    "B36": 0,
+    "B18": 0
+   },
+   "loop control": {
+    "n": 1,
+    "LUT": 129,
+    "FF": 2,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "fmul": {
+    "n": 16,
+    "LUT": 1746,
+    "FF": 2050,
+    "DSP": 48,
+    "B36": 0,
+    "B18": 0
+   },
+   "sqrt (float)": {
+    "n": 2,
+    "LUT": 926,
+    "FF": 539,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "atan2 (float CORDIC)": {
+    "n": 2,
+    "LUT": 12082,
+    "FF": 5336,
+    "DSP": 8,
+    "B36": 0,
+    "B18": 0
+   },
+   "round": {
+    "n": 4,
+    "LUT": 960,
+    "FF": 324,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "sin/cos (float)": {
+    "n": 4,
+    "LUT": 4435,
+    "FF": 1235,
+    "DSP": 47,
+    "B36": 0,
+    "B18": 0
+   },
+   "int->float": {
+    "n": 4,
+    "LUT": 533,
+    "FF": 495,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "flattened:grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_191": {
+    "n": 0,
+    "LUT": 599,
+    "FF": 68,
+    "DSP": 0,
+    "B36": 17,
+    "B18": 0
+   },
+   "AXIS register slice": {
+    "n": 2,
+    "LUT": 745,
+    "FF": 778,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   }
+  },
+  "fmax": 120.6,
+  "hFmax": 137.76
+ },
+ "abl_p2r": {
+  "name": "abl_p2r",
+  "LUT": 52432,
+  "FF": 30373,
+  "DSP": 264,
+  "BRAM": 40,
+  "SRL": 807,
+  "CLB": 9522,
+  "cp_syn": 6.285,
+  "cp_impl": 7.612,
+  "impl_done": true,
+  "wns": 2.388,
+  "crit_src": "bd_0_i/hls_inst/inst/grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_191/grp_sin_or_cos_float_s_fu_1630/mul_30s_29ns_58_1_0_U2/tmp_product__1/DSP_A_B_DATA_INST/CLK",
+  "crit_dst": "bd_0_i/hls_inst/inst/grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_191/grp_sin_or_cos_float_s_fu_1630/ap_return_int_reg_reg[12]/S",
+  "crit_levels": 23,
+  "crit_delay": 7.463,
+  "crit_route": 3.67,
+  "p_total": 1.84,
+  "p_dyn": 1.379,
+  "p_static": 0.461,
+  "top": "drhe_abl_compress",
+  "hBRAM": 40,
+  "hDSP": 264,
+  "hFF": 67774,
+  "hLUT": 133910,
+  "hII": 1,
+  "hDepth": 59,
+  "hClk": 7.259,
+  "breakdown": {
+   "logic:inst": {
+    "n": 1,
+    "LUT": 1,
+    "FF": 915,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "AXI-Lite control": {
+    "n": 1,
+    "LUT": 112,
+    "FF": 149,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "logic:grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_191": {
+    "n": 2,
+    "LUT": 5351,
+    "FF": 4416,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "fadd/fsub": {
+    "n": 24,
+    "LUT": 4519,
+    "FF": 4811,
+    "DSP": 48,
+    "B36": 0,
+    "B18": 0
+   },
+   "loop control": {
+    "n": 1,
+    "LUT": 75,
+    "FF": 2,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "fmul": {
+    "n": 32,
+    "LUT": 2476,
+    "FF": 2934,
+    "DSP": 96,
+    "B36": 0,
+    "B18": 0
+   },
+   "sqrt (float)": {
+    "n": 4,
+    "LUT": 1716,
+    "FF": 1060,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "atan2 (float CORDIC)": {
+    "n": 4,
+    "LUT": 23848,
+    "FF": 10672,
+    "DSP": 16,
+    "B36": 0,
+    "B18": 0
+   },
+   "round": {
+    "n": 8,
+    "LUT": 1670,
+    "FF": 648,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "sin/cos (float)": {
+    "n": 8,
+    "LUT": 10168,
+    "FF": 2908,
+    "DSP": 104,
+    "B36": 0,
+    "B18": 0
+   },
+   "int->float": {
+    "n": 8,
+    "LUT": 1010,
+    "FF": 990,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "flattened:grp_drhe_abl_compress_Pipeline_SAMPLE_LOOP_fu_191": {
+    "n": 0,
+    "LUT": 312,
+    "FF": 73,
+    "DSP": 0,
+    "B36": 20,
+    "B18": 0
+   },
+   "AXIS register slice": {
+    "n": 2,
+    "LUT": 1165,
+    "FF": 780,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   }
+  },
+  "fmax": 131.37,
+  "hFmax": 137.76
+ },
+ "drhe1": {
+  "name": "drhe1",
+  "LUT": 35343,
+  "FF": 23546,
+  "DSP": 132,
+  "BRAM": 40,
+  "SRL": 665,
+  "CLB": 7012,
+  "cp_syn": 6.285,
+  "cp_impl": 7.379,
+  "impl_done": true,
+  "wns": 2.621,
+  "crit_src": "bd_0_i/hls_inst/inst/grp_drhe_compress_Pipeline_SAMPLE_LOOP_fu_189/grp_sin_or_cos_float_s_fu_1668/mul_30s_29ns_58_1_0_U2/tmp_product__1/DSP_A_B_DATA_INST/CLK",
+  "crit_dst": "bd_0_i/hls_inst/inst/grp_drhe_compress_Pipeline_SAMPLE_LOOP_fu_189/grp_sin_or_cos_float_s_fu_1668/ap_return_int_reg_reg[7]/S",
+  "crit_levels": 22,
+  "crit_delay": 7.23,
+  "crit_route": 3.55,
+  "p_total": 1.017,
+  "p_dyn": 0.562,
+  "p_static": 0.455,
+  "top": "drhe_compress",
+  "hBRAM": 40,
+  "hDSP": 132,
+  "hFF": 57105,
+  "hLUT": 115534,
+  "hII": 2,
+  "hDepth": 58,
+  "hClk": 12.213,
+  "breakdown": {
+   "logic:inst": {
+    "n": 1,
+    "LUT": 1,
+    "FF": 1510,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "AXI-Lite control": {
+    "n": 1,
+    "LUT": 112,
+    "FF": 149,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "logic:grp_drhe_compress_Pipeline_SAMPLE_LOOP_fu_189": {
+    "n": 1,
+    "LUT": 9719,
+    "FF": 8210,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "state BRAM": {
+    "n": 1,
+    "LUT": 61,
+    "FF": 0,
+    "DSP": 0,
+    "B36": 1,
+    "B18": 0
+   },
+   "fadd/fsub": {
+    "n": 12,
+    "LUT": 3126,
+    "FF": 2778,
+    "DSP": 24,
+    "B36": 0,
+    "B18": 0
+   },
+   "fmul": {
+    "n": 16,
+    "LUT": 1678,
+    "FF": 2054,
+    "DSP": 48,
+    "B36": 0,
+    "B18": 0
+   },
+   "sqrt (float)": {
+    "n": 2,
+    "LUT": 958,
+    "FF": 538,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "atan2 (float CORDIC)": {
+    "n": 2,
+    "LUT": 11961,
+    "FF": 5334,
+    "DSP": 8,
+    "B36": 0,
+    "B18": 0
+   },
+   "round": {
+    "n": 4,
+    "LUT": 721,
+    "FF": 324,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "sin/cos (float)": {
+    "n": 4,
+    "LUT": 5022,
+    "FF": 1296,
+    "DSP": 52,
+    "B36": 0,
+    "B18": 0
+   },
+   "int->float": {
+    "n": 4,
+    "LUT": 993,
+    "FF": 492,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "flattened:grp_drhe_compress_Pipeline_SAMPLE_LOOP_fu_189": {
+    "n": 0,
+    "LUT": 539,
+    "FF": 68,
+    "DSP": 0,
+    "B36": 19,
+    "B18": 0
+   },
+   "AXIS register slice": {
+    "n": 2,
+    "LUT": 437,
+    "FF": 778,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   }
+  },
+  "fmax": 135.52,
+  "hFmax": 81.88
+ },
+ "drhe_n": {
+  "name": "drhe_n",
+  "LUT": 34804,
+  "FF": 23514,
+  "DSP": 132,
+  "BRAM": 80,
+  "SRL": 656,
+  "CLB": 6963,
+  "cp_syn": 6.317,
+  "cp_impl": 7.633,
+  "impl_done": true,
+  "wns": 2.367,
+  "crit_src": "bd_0_i/hls_inst/inst/grp_drhe_tdm_compress_Pipeline_SAMPLE_LOOP_fu_207/grp_sin_or_cos_float_s_fu_1716/mul_30s_29ns_58_1_0_U2/tmp_product__1/DSP_A_B_DATA_INST/CLK",
+  "crit_dst": "bd_0_i/hls_inst/inst/grp_drhe_tdm_compress_Pipeline_SAMPLE_LOOP_fu_207/tmp_9_reg_8317_reg[12]/D",
+  "crit_levels": 22,
+  "crit_delay": 7.584,
+  "crit_route": 4.026,
+  "p_total": 1.113,
+  "p_dyn": 0.657,
+  "p_static": 0.456,
+  "top": "drhe_tdm_compress",
+  "hBRAM": 80,
+  "hDSP": 132,
+  "hFF": 57263,
+  "hLUT": 115736,
+  "hII": 2,
+  "hDepth": 58,
+  "hClk": 12.213,
+  "breakdown": {
+   "logic:inst": {
+    "n": 1,
+    "LUT": 15,
+    "FF": 1610,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "AXI-Lite control": {
+    "n": 1,
+    "LUT": 131,
+    "FF": 181,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "logic:grp_drhe_tdm_compress_Pipeline_SAMPLE_LOOP_fu_207": {
+    "n": 1,
+    "LUT": 9287,
+    "FF": 8198,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "fadd/fsub": {
+    "n": 12,
+    "LUT": 3124,
+    "FF": 2776,
+    "DSP": 24,
+    "B36": 0,
+    "B18": 0
+   },
+   "fmul": {
+    "n": 16,
+    "LUT": 1699,
+    "FF": 2054,
+    "DSP": 48,
+    "B36": 0,
+    "B18": 0
+   },
+   "sqrt (float)": {
+    "n": 2,
+    "LUT": 958,
+    "FF": 539,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "atan2 (float CORDIC)": {
+    "n": 2,
+    "LUT": 11962,
+    "FF": 5334,
+    "DSP": 8,
+    "B36": 0,
+    "B18": 0
+   },
+   "round": {
+    "n": 4,
+    "LUT": 723,
+    "FF": 324,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "sin/cos (float)": {
+    "n": 4,
+    "LUT": 4834,
+    "FF": 1144,
+    "DSP": 52,
+    "B36": 0,
+    "B18": 0
+   },
+   "int->float": {
+    "n": 4,
+    "LUT": 987,
+    "FF": 493,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "flattened:grp_drhe_tdm_compress_Pipeline_SAMPLE_LOOP_fu_207": {
+    "n": 0,
+    "LUT": 631,
+    "FF": 68,
+    "DSP": 0,
+    "B36": 40,
+    "B18": 0
+   },
+   "AXIS register slice": {
+    "n": 2,
+    "LUT": 438,
+    "FF": 778,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   }
+  },
+  "fmax": 131.01,
+  "hFmax": 81.88
+ },
+ "lpc1": {
+  "name": "lpc1",
+  "LUT": 29772,
+  "FF": 13601,
+  "DSP": 168,
+  "BRAM": 244,
+  "SRL": 216,
+  "CLB": 5579,
+  "cp_syn": 6.41,
+  "cp_impl": 8.431,
+  "impl_done": true,
+  "wns": 1.569,
+  "crit_src": "bd_0_i/hls_inst/inst/grp_lpc_compress_Pipeline_SOLVE_BIN_RESIDUAL_RAMP_fu_394/icmp_ln137_reg_2183_pp0_iter28_reg_reg[0]__0/C",
+  "crit_dst": "bd_0_i/hls_inst/inst/lpc_compress_stream_stream_axis_0_int_int_int_frame_buf_3_U/ram_reg_bram_0/DINADIN[15]",
+  "crit_levels": 21,
+  "crit_delay": 8.148,
+  "crit_route": 5.069,
+  "p_total": 1.165,
+  "p_dyn": 0.709,
+  "p_static": 0.457,
+  "top": "lpc_compress",
+  "hBRAM": 256,
+  "hDSP": 168,
+  "hFF": 17393,
+  "hLUT": 80528,
+  "hII": 3,
+  "hDepth": 3,
+  "hClk": 11.706,
+  "breakdown": {
+   "logic:inst": {
+    "n": 1,
+    "LUT": 31,
+    "FF": 1282,
+    "DSP": 2,
+    "B36": 0,
+    "B18": 0
+   },
+   "AXI-Lite control": {
+    "n": 1,
+    "LUT": 175,
+    "FF": 149,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "coefficient emit": {
+    "n": 1,
+    "LUT": 1478,
+    "FF": 100,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "logic:grp_lpc_compress_Pipeline_EMIT_RAMP_EMIT_SAMPLE_fu_489": {
+    "n": 1,
+    "LUT": 7498,
+    "FF": 2165,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "loop control": {
+    "n": 1,
+    "LUT": 559,
+    "FF": 2,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "logic:grp_lpc_compress_Pipeline_INGEST_RAMP_INGEST_SAMPLE_fu_289": {
+    "n": 1,
+    "LUT": 650,
+    "FF": 1294,
+    "DSP": 8,
+    "B36": 0,
+    "B18": 0
+   },
+   "state BRAM": {
+    "n": 18,
+    "LUT": 1485,
+    "FF": 80,
+    "DSP": 0,
+    "B36": 12,
+    "B18": 0
+   },
+   "fixed mult": {
+    "n": 18,
+    "LUT": 1322,
+    "FF": 0,
+    "DSP": 20,
+    "B36": 0,
+    "B18": 0
+   },
+   "flattened:grp_lpc_compress_Pipeline_INGEST_RAMP_INGEST_SAMPLE_fu_289": {
+    "n": 0,
+    "LUT": 402,
+    "FF": 50,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "logic:grp_lpc_compress_Pipeline_SOLVE_BIN_RESIDUAL_RAMP_fu_394": {
+    "n": 1,
+    "LUT": 168,
+    "FF": 294,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "LPC solver": {
+    "n": 2,
+    "LUT": 14093,
+    "FF": 7130,
+    "DSP": 132,
+    "B36": 0,
+    "B18": 0
+   },
+   "flattened:grp_lpc_compress_Pipeline_SOLVE_BIN_RESIDUAL_RAMP_fu_394": {
+    "n": 0,
+    "LUT": 23,
+    "FF": 2,
+    "DSP": 4,
+    "B36": 0,
+    "B18": 0
+   },
+   "frame buffer (BRAM)": {
+    "n": 4,
+    "LUT": 837,
+    "FF": 4,
+    "DSP": 0,
+    "B36": 98,
+    "B18": 0
+   },
+   "AXIS register slice": {
+    "n": 2,
+    "LUT": 418,
+    "FF": 778,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   }
+  },
+  "fmax": 118.61,
+  "hFmax": 85.43
+ },
+ "lpc_n": {
+  "name": "lpc_n",
+  "LUT": 34503,
+  "FF": 20186,
+  "DSP": 158,
+  "BRAM": 216,
+  "SRL": 374,
+  "CLB": 6716,
+  "cp_syn": 7.238,
+  "cp_impl": 9.405,
+  "impl_done": true,
+  "wns": 0.595,
+  "crit_src": "bd_0_i/hls_inst/inst/lpc_tdm_compress_stream_stream_axis_0_int_int_int_int_frame_buf_2_U/ram_reg_bram_0/CLKARDCLK",
+  "crit_dst": "bd_0_i/hls_inst/inst/grp_lpc_solve_order2_fu_538/mul_65s_64s_128_1_1_U60/tmp_product__5/DSP_A_B_DATA_INST/B[12]",
+  "crit_levels": 24,
+  "crit_delay": 9.077,
+  "crit_route": 3.804,
+  "p_total": 1.011,
+  "p_dyn": 0.555,
+  "p_static": 0.455,
+  "top": "lpc_tdm_compress",
+  "hBRAM": 192,
+  "hDSP": 156,
+  "hFF": 23154,
+  "hLUT": 86298,
+  "hII": 1,
+  "hDepth": 2,
+  "hClk": 11.706,
+  "breakdown": {
+   "logic:inst": {
+    "n": 1,
+    "LUT": 40,
+    "FF": 1477,
+    "DSP": 2,
+    "B36": 0,
+    "B18": 0
+   },
+   "AXI-Lite control": {
+    "n": 1,
+    "LUT": 195,
+    "FF": 181,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "LPC solver": {
+    "n": 2,
+    "LUT": 13899,
+    "FF": 5826,
+    "DSP": 132,
+    "B36": 0,
+    "B18": 0
+   },
+   "logic:grp_lpc_tdm_compress_Pipeline_CORR_RAMP_fu_514": {
+    "n": 1,
+    "LUT": 247,
+    "FF": 1359,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "loop control": {
+    "n": 3,
+    "LUT": 766,
+    "FF": 6,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "fixed mult": {
+    "n": 11,
+    "LUT": 1595,
+    "FF": 0,
+    "DSP": 24,
+    "B36": 0,
+    "B18": 0
+   },
+   "integer divide/modulo": {
+    "n": 4,
+    "LUT": 5834,
+    "FF": 6935,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "coefficient emit": {
+    "n": 1,
+    "LUT": 2462,
+    "FF": 118,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "logic:grp_lpc_tdm_compress_Pipeline_EMIT_RAMP_EMIT_SAMPLE_fu_573": {
+    "n": 1,
+    "LUT": 7461,
+    "FF": 2179,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "logic:grp_lpc_tdm_compress_Pipeline_INGEST_RAMP_INGEST_SAMPLE_fu_487": {
+    "n": 1,
+    "LUT": 162,
+    "FF": 122,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "flattened:grp_lpc_tdm_compress_Pipeline_INGEST_RAMP_INGEST_SAMPLE_fu_487": {
+    "n": 0,
+    "LUT": 12,
+    "FF": 2,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "logic:grp_lpc_tdm_compress_Pipeline_RESIDUAL_RAMP_fu_552": {
+    "n": 1,
+    "LUT": 131,
+    "FF": 930,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "state BRAM": {
+    "n": 2,
+    "LUT": 103,
+    "FF": 32,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   },
+   "frame buffer (BRAM)": {
+    "n": 4,
+    "LUT": 705,
+    "FF": 2,
+    "DSP": 0,
+    "B36": 108,
+    "B18": 0
+   },
+   "AXIS register slice": {
+    "n": 2,
+    "LUT": 404,
+    "FF": 778,
+    "DSP": 0,
+    "B36": 0,
+    "B18": 0
+   }
+  },
+  "fmax": 106.33,
+  "hFmax": 85.43
+ }
+}

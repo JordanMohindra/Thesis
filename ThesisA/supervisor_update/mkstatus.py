@@ -10,12 +10,13 @@ DONE="#2F6D4F"; PART="#B08A4A"; TODO="#C9CDD2"; ACC="#2F5D7C"
 rows = [
     ("Phase 1  MATLAB reference", 1.00, "50 frames, 8 algorithms, re-verified"),
     ("Phase 2  HLS C-simulation", 1.00, "4 designs, 50 frames, all bit-exact"),
-    ("Phase 3  Synthesis + RTL co-sim", 1.00, "4 designs, resources and exact latency"),
+    ("Phase 3  Synthesis + RTL co-sim", 1.00, "4 designs, exact latency, lossless in RTL"),
+    ("Phase 3b  Vivado place and route", 1.00, "4 designs, replica of Kiem, 9 variants"),
     ("Phase 4  On silicon", 0.00, "needs board access"),
     ("", None, ""),
     ("Obj 1  Mitigate quantisation error", 0.35, "root cause found; fix not yet implemented"),
     ("Obj 2  Broaden algorithm comparison", 0.65, "LPC and the no-prediction baseline done"),
-    ("Obj 3  Full compress + decompress chain", 0.85, "both directions built and verified in simulation"),
+    ("Obj 3  Full compress + decompress chain", 0.90, "verified both ways; routed; board remaining"),
 ]
 
 fig, ax = plt.subplots(figsize=(7.2, 3.3))
@@ -40,7 +41,7 @@ ax.set_xticks([])
 for s in ["top","right","bottom","left"]: ax.spines[s].set_visible(False)
 ax.tick_params(length=0)
 ax.text(0, 0.62, "Verification phases", fontsize=8.6, fontweight="bold", color=ACC)
-ax.text(0, -4.03, "Thesis A objectives", fontsize=8.6, fontweight="bold", color=ACC)
+ax.text(0, -5.03, "Thesis A objectives", fontsize=8.6, fontweight="bold", color=ACC)
 fig.tight_layout(pad=0.3)
 fig.savefig("fig_status.pdf")
 print("ok")

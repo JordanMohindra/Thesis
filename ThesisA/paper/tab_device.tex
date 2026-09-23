@@ -1,0 +1,22 @@
+\begin{table}[htbp]
+\centering
+\caption[Implemented resources as a fraction of two devices]{Post-route resources of each design as a fraction of the \texttt{xcku5p} used here and of Kiem's \texttt{XCZU3CG} (\num{70560} LUT, \num{141120} FF, 432 BRAM\_18K, 360 DSP). Kiem's compression IP is shown for reference.}
+\label{tab:resdevice}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrrrrr@{}}
+\toprule
+& \multicolumn{4}{c}{\% of \texttt{xcku5p}} & \multicolumn{4}{c}{\% of \texttt{XCZU3CG}}\\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+Design & LUT & FF & BRAM & DSP & LUT & FF & BRAM & DSP\\
+\midrule
+DRHE-1 & 16 & 5 & 4 & 7 & 50 & 17 & 9 & 37\\
+DRHE-$n$ & 16 & 5 & 8 & 7 & 49 & 17 & 19 & 37\\
+LPC-1,2 & 14 & 3 & 25 & 9 & 42 & 10 & 56 & 47\\
+LPC-$n$,$2n$ & 16 & 5 & 22 & 9 & 49 & 14 & 50 & 44\\
+Replica of Kiem & 8 & 1 & 2 & 3 & 24 & 4 & 5 & 13\\
+\midrule
+Kiem's IP \cite{kiem2025} & 21 & 2 & 2 & 2 & 65 & 7 & 5 & 12\\
+\bottomrule
+\end{tabular}
+\end{table}
