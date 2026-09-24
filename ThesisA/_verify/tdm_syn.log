@@ -1,0 +1,477 @@
+
+****** v++ v2026.1 (64-bit)
+  **** SW Build 6511674 on 2026-06-16-13:14:00
+  **** Start of session at: Tue Sep 15 23:06:51 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+  **** HLS Build v2026.1 6493734
+INFO: [HLS 200-2005] Using work_dir D:/Thesis/ThesisA/hls_component/hls_tdm 
+INFO: [HLS 200-2176] Writing Vitis IDE component file D:/Thesis/ThesisA/hls_component/hls_tdm/vitis-comp.json
+INFO: [HLS 200-10] Creating and opening component 'D:/Thesis/ThesisA/hls_component/hls_tdm'.
+INFO: [HLS 200-2174] Applying component config ini file test_tdm.cfg
+INFO: [HLS 200-1465] Applying config ini 'syn.file=drhe_tdm_compress.cpp' from test_tdm.cfg(5)
+INFO: [HLS 200-10] Adding design file 'D:/Thesis/ThesisA/hls_component/drhe_tdm_compress.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.file=drhe_tdm_decompress.cpp' from test_tdm.cfg(6)
+INFO: [HLS 200-10] Adding design file 'D:/Thesis/ThesisA/hls_component/drhe_tdm_decompress.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.file=drhe_tdm.cpp' from test_tdm.cfg(7)
+INFO: [HLS 200-10] Adding design file 'D:/Thesis/ThesisA/hls_component/drhe_tdm.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'tb.file=drhe_tdm_tb.cpp' from test_tdm.cfg(9)
+INFO: [HLS 200-10] Adding test bench file 'D:/Thesis/ThesisA/hls_component/drhe_tdm_tb.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'tb.file=coloradar_multiframe.bin' from test_tdm.cfg(10)
+INFO: [HLS 200-10] Adding test bench file 'D:/Thesis/ThesisA/hls_component/coloradar_multiframe.bin' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.top=drhe_tdm_compress' from test_tdm.cfg(8)
+INFO: [HLS 200-1465] Applying config ini 'part=xcku5p-ffvb676-2-e' from test_tdm.cfg(1)
+INFO: [HLS 200-1611] Setting target device to 'xcku5p-ffvb676-2-e'
+INFO: [HLS 200-1465] Applying config ini 'clock=100MHz' from test_tdm.cfg(4)
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1465] Applying config ini 'package.output.format=ip_catalog' from test_tdm.cfg(12)
+INFO: [HLS 200-2176] Writing Vitis IDE component file D:/Thesis/ThesisA/hls_component/hls_tdm/vitis-comp.json
+INFO: [HLS 200-111] Finished File checks and directory preparation: CPU user time: 1 seconds. CPU system time: 3 seconds. Elapsed time: 23.472 seconds; current allocated memory: 131.324 MB.
+INFO: [HLS 200-2191] C-Synthesis will use clang-16 as the compiler
+INFO: [HLS 200-10] Analyzing design file 'drhe_tdm.cpp' ... 
+INFO: [HLS 200-10] Analyzing design file 'drhe_tdm_decompress.cpp' ... 
+INFO: [HLS 200-10] Analyzing design file 'drhe_tdm_compress.cpp' ... 
+INFO: [HLS 200-111] Finished Source Code Analysis and Preprocessing: CPU user time: 3 seconds. CPU system time: 1 seconds. Elapsed time: 113.821 seconds; current allocated memory: 143.035 MB.
+INFO: [HLS 200-1995] There were 63,570 instructions in the design after the 'Compile/Link' phase of compilation. See the Design Size Report for more details (D:/Thesis/ThesisA/hls_component/hls_tdm/hls/syn/report/csynth_design_size.rpt:2)
+INFO: [HLS 214-131] Inlining function 'void cordic_::cordic_circ_v1<42, 1, 0, 0, 43, 4, 40, 1>(ap_fixed<43, 4, (ap_q_mode)5, (ap_o_mode)3, 0>&, ap_fixed<43, 4, (ap_q_mode)5, (ap_o_mode)3, 0>&, ap_fixed<40, 1, (ap_q_mode)5, (ap_o_mode)3, 0>&)' into 'float cordic_::atan2_generic<float>(float, float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_cordic.h:700:5)
+INFO: [HLS 214-291] Loop 'CHANNEL_LOOP' is marked as complete unroll implied by the pipeline pragma (drhe_tdm_compress.cpp:53:27)
+INFO: [HLS 214-291] Loop 'anonymous' is marked as complete unroll implied by the pipeline pragma (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_cordic.h:138:2)
+INFO: [HLS 214-291] Loop 'anonymous' is marked as complete unroll implied by the pipeline pragma (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/src/hls\utils/x_hls_float_utils.h:289:5)
+INFO: [HLS 214-291] Loop 'anonymous' is marked as complete unroll implied by the pipeline pragma (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/src/hls\utils/x_hls_float_utils.h:282:5)
+INFO: [HLS 214-291] Loop 'anonymous' is marked as complete unroll implied by the pipeline pragma (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/src/hls\utils/x_hls_float_utils.h:269:5)
+INFO: [HLS 214-291] Loop 'anonymous' is marked as complete unroll implied by the pipeline pragma (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/src/hls\utils/x_hls_float_utils.h:268:41)
+INFO: [HLS 214-291] Loop 'anonymous' is marked as complete unroll implied by the pipeline pragma
+INFO: [HLS 214-186] Unrolling loop 'CHANNEL_LOOP' (drhe_tdm_compress.cpp:53:27) in function 'drhe_tdm_compress' completely with a factor of 4 (drhe_tdm_compress.cpp:16:0)
+INFO: [HLS 214-186] Unrolling loop 'anonymous' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_cordic.h:138:2) in function 'cordic_::atan2_generic<float>' completely with a factor of 42 (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_cordic.h:648:0)
+INFO: [HLS 214-186] Unrolling loop 'anonymous' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/src/hls\utils/x_hls_float_utils.h:289:5) in function 'scaled_fixed2ieee<29, 1>' completely with a factor of 2 (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/src/hls\utils/x_hls_float_utils.h:257:0)
+INFO: [HLS 214-186] Unrolling loop 'anonymous' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/src/hls\utils/x_hls_float_utils.h:282:5) in function 'scaled_fixed2ieee<29, 1>' completely with a factor of 2 (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/src/hls\utils/x_hls_float_utils.h:257:0)
+INFO: [HLS 214-186] Unrolling loop 'anonymous' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/src/hls\utils/x_hls_float_utils.h:269:5) in function 'scaled_fixed2ieee<29, 1>' completely with a factor of 1 (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/src/hls\utils/x_hls_float_utils.h:257:0)
+INFO: [HLS 214-186] Unrolling loop 'anonymous' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/src/hls\utils/x_hls_float_utils.h:268:41) in function 'scaled_fixed2ieee<29, 1>' completely with a factor of 2 (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/src/hls\utils/x_hls_float_utils.h:257:0)
+INFO: [HLS 214-186] Unrolling loop 'anonymous' () in function 'scaled_fixed2ieee<29, 1>' completely with a factor of 1 (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/src/hls\utils/x_hls_float_utils.h:257:0)
+INFO: [HLS 200-1995] There were 76,711 instructions in the design after the 'Unroll/Inline' phase of compilation. See the Design Size Report for more details (D:/Thesis/ThesisA/hls_component/hls_tdm/hls/syn/report/csynth_design_size.rpt:2)
+INFO: [HLS 200-1995] There were 30,161 instructions in the design after the 'Unroll/Inline (step 2)' phase of compilation. See the Design Size Report for more details (D:/Thesis/ThesisA/hls_component/hls_tdm/hls/syn/report/csynth_design_size.rpt:2)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::fp_struct(float)' into 'void range_redux_payne_hanek_hotbm<29, float, 29, 29>(float, ap_uint<3>&, ap_ufixed<29, 0, (ap_q_mode)5, (ap_o_mode)3, 0>&, ap_ufixed<29, 0, (ap_q_mode)5, (ap_o_mode)3, 0>&, ap_int<fp_struct<float>::EXP_BITS>&)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint/hls_range_redux.h:437:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::expv() const' into 'void range_redux_payne_hanek_hotbm<29, float, 29, 29>(float, ap_uint<3>&, ap_ufixed<29, 0, (ap_q_mode)5, (ap_o_mode)3, 0>&, ap_ufixed<29, 0, (ap_q_mode)5, (ap_o_mode)3, 0>&, ap_int<fp_struct<float>::EXP_BITS>&)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint/hls_range_redux.h:437:0)
+INFO: [HLS 214-178] Inlining function 'ap_uint<(((2) * ((23) + (1))) + (29)) + (3)> table_lookup_4oPi_hotbm<23, 29>(int, float)' into 'void range_redux_payne_hanek_hotbm<29, float, 29, 29>(float, ap_uint<3>&, ap_ufixed<29, 0, (ap_q_mode)5, (ap_o_mode)3, 0>&, ap_ufixed<29, 0, (ap_q_mode)5, (ap_o_mode)3, 0>&, ap_int<fp_struct<float>::EXP_BITS>&)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint/hls_range_redux.h:437:0)
+INFO: [HLS 214-178] Inlining function 'unsigned int clz<29, 58, 0>(ap_ufixed<58, 0, (ap_q_mode)5, (ap_o_mode)3, 0>)' into 'void range_redux_payne_hanek_hotbm<29, float, 29, 29>(float, ap_uint<3>&, ap_ufixed<29, 0, (ap_q_mode)5, (ap_o_mode)3, 0>&, ap_ufixed<29, 0, (ap_q_mode)5, (ap_o_mode)3, 0>&, ap_int<fp_struct<float>::EXP_BITS>&)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint/hls_range_redux.h:437:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::data() const (.77.88.97.108.117)' into 'fp_struct<float>::to_float() const (.85.94.105.114)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/src/hls\utils/x_hls_utils.h:322:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::to_float() const (.85.94.105.114)' into 'fp_struct<float>::to_ieee() const' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/src/hls\utils/x_hls_utils.h:346:0)
+INFO: [HLS 214-178] Inlining function 'clz(int) (.23361)' into 'void scaled_fixed2ieee<29, 1>(ap_ufixed<29, 1, (ap_q_mode)5, (ap_o_mode)3, 0>, float&, int)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/src/hls\utils/x_hls_float_utils.h:257:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::set_mantissa(ap_ufixed<24, 1, (ap_q_mode)5, (ap_o_mode)3, 0>)' into 'void scaled_fixed2ieee<29, 1>(ap_ufixed<29, 1, (ap_q_mode)5, (ap_o_mode)3, 0>, float&, int)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/src/hls\utils/x_hls_float_utils.h:257:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::to_ieee() const' into 'void scaled_fixed2ieee<29, 1>(ap_ufixed<29, 1, (ap_q_mode)5, (ap_o_mode)3, 0>, float&, int)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/src/hls\utils/x_hls_float_utils.h:257:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::fp_struct(float)' into 'float hotbm_::sin_or_cos<float>(float, bool, bool)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_hotbm.h:210:0)
+INFO: [HLS 214-178] Inlining function 'void range_redux_payne_hanek_hotbm<29, float, 29, 29>(float, ap_uint<3>&, ap_ufixed<29, 0, (ap_q_mode)5, (ap_o_mode)3, 0>&, ap_ufixed<29, 0, (ap_q_mode)5, (ap_o_mode)3, 0>&, ap_int<fp_struct<float>::EXP_BITS>&)' into 'float hotbm_::sin_or_cos<float>(float, bool, bool)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_hotbm.h:210:0)
+INFO: [HLS 214-178] Inlining function 'ap_ufixed<29, 1, (ap_q_mode)5, (ap_o_mode)3, 0> hotbm_::value_list<float>::sin_or_cos_approximation<29, 29>(bool, ap_uint<3>&, ap_ufixed<29, 0, (ap_q_mode)5, (ap_o_mode)3, 0>&, ap_ufixed<29, 0, (ap_q_mode)5, (ap_o_mode)3, 0>&, ap_int<8>&)' into 'float hotbm_::sin_or_cos<float>(float, bool, bool)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_hotbm.h:210:0)
+INFO: [HLS 214-178] Inlining function 'void scaled_fixed2ieee<29, 1>(ap_ufixed<29, 1, (ap_q_mode)5, (ap_o_mode)3, 0>, float&, int)' into 'float hotbm_::sin_or_cos<float>(float, bool, bool)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_hotbm.h:210:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::to_ieee() const' into 'float hotbm_::sin_or_cos<float>(float, bool, bool)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_hotbm.h:210:0)
+INFO: [HLS 214-178] Inlining function 'hotbm_::cos(float)' into 'hls::hotbm::cos(float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib\hlsmath\src\c++\sincoshotbmfloat.cpp:12:0)
+INFO: [HLS 214-178] Inlining function 'hls::hotbm::cos(float)' into 'hls::cos(float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib\hlsmath\src\c++\sincoshotbmfloat.cpp:34:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::fp_struct(float)' into 'float generic_copysign<float>(float, float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint/hls_copysign.h:10:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::to_ieee() const' into 'float generic_copysign<float>(float, float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint/hls_copysign.h:10:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::fp_struct(float)' into 'float generic_round<float>(float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_round.h:160:0)
+INFO: [HLS 214-178] Inlining function 'float generic_copysign<float>(float, float)' into 'float generic_round<float>(float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_round.h:160:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::data() const (.77.88.97.108.117)' into 'float generic_round<float>(float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_round.h:160:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::fp_struct(ap_uint<32>)' into 'float generic_round<float>(float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_round.h:160:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::to_ieee() const' into 'float generic_round<float>(float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_round.h:160:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::fp_struct(float)' into 'int generic_cast_IEEE754<int, (ap_q_mode)6, float>(float, bool, hls::enable_if<std::numeric_limits<int>::is_signed, bool>::type)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_case_IEEE754.h:12:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::mantissa() const' into 'int generic_cast_IEEE754<int, (ap_q_mode)6, float>(float, bool, hls::enable_if<std::numeric_limits<int>::is_signed, bool>::type)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_case_IEEE754.h:12:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::expv() const' into 'int generic_cast_IEEE754<int, (ap_q_mode)6, float>(float, bool, hls::enable_if<std::numeric_limits<int>::is_signed, bool>::type)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_case_IEEE754.h:12:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::__signbit() const' into 'int generic_cast_IEEE754<int, (ap_q_mode)6, float>(float, bool, hls::enable_if<std::numeric_limits<int>::is_signed, bool>::type)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_case_IEEE754.h:12:0)
+INFO: [HLS 214-178] Inlining function 'int generic_cast_IEEE754<int, (ap_q_mode)6, float>(float, bool, hls::enable_if<std::numeric_limits<int>::is_signed, bool>::type)' into 'int generic_cast_IEEE754<int, float>(float, bool)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_case_IEEE754.h:116:0)
+INFO: [HLS 214-178] Inlining function 'int generic_cast_IEEE754<int, float>(float, bool)' into '__hls_fptosi_float_i32' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib\hlsmath\src\lib_floatconversion.cpp:51:0)
+INFO: [HLS 214-178] Inlining function 'hotbm_::sin(float)' into 'hls::hotbm::sin(float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib\hlsmath\src\c++\sincoshotbmfloat.cpp:9:0)
+INFO: [HLS 214-178] Inlining function 'hls::hotbm::sin(float)' into 'hls::sin(float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib\hlsmath\src\c++\sincoshotbmfloat.cpp:31:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::fp_struct(float)' into 'int generic_isnan<float>(float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint/hls_isnan.h:16:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::to_ieee() const' into 'float generic_nan<float>(char const*)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_nan.h:10:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::fp_struct(float)' into 'int generic_isinf<float>(float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint/hls_isinf.h:16:0)
+INFO: [HLS 214-178] Inlining function 'float generic_copysign<float>(float, float)' into 'float generic_abs<float>(float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint/hls_abs.h:13:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::fp_struct(float)' into 'float cordic_::atan2_generic<float>(float, float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_cordic.h:648:0)
+INFO: [HLS 214-178] Inlining function 'cordic_::atan_traits<float>::div(float, float)' into 'float cordic_::atan2_generic<float>(float, float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_cordic.h:648:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::mantissa() const' into 'float cordic_::atan2_generic<float>(float, float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_cordic.h:648:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::fp_struct(float)' into 'float cordic_::atan2_cordic_Q1<float>(float, float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_cordic.h:711:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::data() const (.77.88.97.108.117)' into 'float cordic_::atan2_cordic_Q1<float>(float, float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_cordic.h:711:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::to_ieee() const' into 'float cordic_::atan2_cordic_Q1<float>(float, float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_cordic.h:711:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::fp_struct(float)' into 'float cordic_::atan2_cordic<float>(float, float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_cordic.h:725:0)
+INFO: [HLS 214-178] Inlining function 'int generic_isnan<float>(float)' into 'float cordic_::atan2_cordic<float>(float, float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_cordic.h:725:0)
+INFO: [HLS 214-178] Inlining function 'float generic_nan<float>(char const*)' into 'float cordic_::atan2_cordic<float>(float, float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_cordic.h:725:0)
+INFO: [HLS 214-178] Inlining function 'fp_struct<float>::__signbit() const' into 'float cordic_::atan2_cordic<float>(float, float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_cordic.h:725:0)
+INFO: [HLS 214-178] Inlining function 'int generic_isinf<float>(float)' into 'float cordic_::atan2_cordic<float>(float, float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_cordic.h:725:0)
+INFO: [HLS 214-178] Inlining function 'float generic_abs<float>(float)' into 'float cordic_::atan2_cordic<float>(float, float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_cordic.h:725:0)
+INFO: [HLS 214-178] Inlining function 'float cordic_::atan2_cordic_Q1<float>(float, float)' into 'float cordic_::atan2_cordic<float>(float, float)' (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_cordic.h:725:0)
+INFO: [HLS 214-178] Inlining function 'tdm_state_index(int, int)' into 'drhe_tdm_compress(hls::stream<hls::axis<ap_uint<128>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, hls::stream<hls::axis<ap_uint<256>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, int, int, int, int)' (drhe_tdm_compress.cpp:16:0)
+INFO: [HLS 214-178] Inlining function 'hls::axis<ap_uint<128>, 0ul, 0ul, 0ul, (unsigned char)56, false>::axis()' into 'drhe_tdm_compress(hls::stream<hls::axis<ap_uint<128>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, hls::stream<hls::axis<ap_uint<256>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, int, int, int, int)' (drhe_tdm_compress.cpp:16:0)
+INFO: [HLS 214-178] Inlining function 'hls::cos(float)' into 'drhe_tdm_compress(hls::stream<hls::axis<ap_uint<128>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, hls::stream<hls::axis<ap_uint<256>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, int, int, int, int)' (drhe_tdm_compress.cpp:16:0)
+INFO: [HLS 214-178] Inlining function 'roundf' into 'drhe_tdm_compress(hls::stream<hls::axis<ap_uint<128>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, hls::stream<hls::axis<ap_uint<256>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, int, int, int, int)' (drhe_tdm_compress.cpp:16:0)
+INFO: [HLS 214-178] Inlining function 'hls::sin(float)' into 'drhe_tdm_compress(hls::stream<hls::axis<ap_uint<128>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, hls::stream<hls::axis<ap_uint<256>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, int, int, int, int)' (drhe_tdm_compress.cpp:16:0)
+INFO: [HLS 214-178] Inlining function 'wrap_int16(int) (.9)' into 'drhe_tdm_compress(hls::stream<hls::axis<ap_uint<128>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, hls::stream<hls::axis<ap_uint<256>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, int, int, int, int)' (drhe_tdm_compress.cpp:16:0)
+INFO: [HLS 214-178] Inlining function 'hls::sqrt(float)' into 'drhe_tdm_compress(hls::stream<hls::axis<ap_uint<128>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, hls::stream<hls::axis<ap_uint<256>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, int, int, int, int)' (drhe_tdm_compress.cpp:16:0)
+INFO: [HLS 214-178] Inlining function 'hls::atan2(float, float)' into 'drhe_tdm_compress(hls::stream<hls::axis<ap_uint<128>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, hls::stream<hls::axis<ap_uint<256>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, int, int, int, int)' (drhe_tdm_compress.cpp:16:0)
+INFO: [HLS 214-178] Inlining function 'hls::axis<ap_uint<256>, 0ul, 0ul, 0ul, (unsigned char)56, false>::axis()' into 'drhe_tdm_compress(hls::stream<hls::axis<ap_uint<128>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, hls::stream<hls::axis<ap_uint<256>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, int, int, int, int)' (drhe_tdm_compress.cpp:16:0)
+INFO: [HLS 200-1995] There were 29,183 instructions in the design after the 'Unroll/Inline (step 3)' phase of compilation. See the Design Size Report for more details (D:/Thesis/ThesisA/hls_component/hls_tdm/hls/syn/report/csynth_design_size.rpt:2)
+INFO: [HLS 200-1995] There were 19,200 instructions in the design after the 'Unroll/Inline (step 4)' phase of compilation. See the Design Size Report for more details (D:/Thesis/ThesisA/hls_component/hls_tdm/hls/syn/report/csynth_design_size.rpt:2)
+INFO: [HLS 214-248] Applying array_partition to '_ZZN6hotbm_10value_listIfE24sin_or_cos_approximationILi29ELi29EEE9ap_ufixedIXT_ELi1EL9ap_q_mode5EL9ap_o_mode3ELi0EEbR7ap_uintILi3EERS3_IXT_ELi0ELS4_5ELS5_3ELi0EERS3_IXT0_ELi0ELS4_5ELS5_3ELi0EER6ap_intILi8EEE10swap_table': Complete partitioning on dimension 1. (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib\hlsmath\src\common\hls_hotbm_float.cpp:14:0)
+INFO: [HLS 214-248] Applying array_partition to '_ZZN6hotbm_10sin_or_cosIfEET_S1_bbE13neg_cos_table': Complete partitioning on dimension 1. (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_hotbm.h:217:0)
+INFO: [HLS 214-248] Applying array_partition to '_ZZN6hotbm_10sin_or_cosIfEET_S1_bbE13neg_sin_table': Complete partitioning on dimension 1. (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_hotbm.h:216:0)
+INFO: [HLS 214-248] Applying array_partition to '_ZZN6hotbm_10sin_or_cosIfEET_S1_bbE10swap_table': Complete partitioning on dimension 1. (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_hotbm.h:215:0)
+INFO: [HLS 214-248] Applying array_partition to '_ZZ17drhe_tdm_compressRN3hls6streamINS_4axisI7ap_uintILi128EELm0ELm0ELm0ELh56ELb0EEELi0EEERNS0_INS1_IS2_ILi256EELm0ELm0ELm0ELh56ELb0EEELi0EEEiiiiE17s_prev_prev_phase': Complete partitioning on dimension 1. (drhe_tdm_compress.cpp:30:0)
+INFO: [HLS 214-248] Applying array_partition to '_ZZ17drhe_tdm_compressRN3hls6streamINS_4axisI7ap_uintILi128EELm0ELm0ELm0ELh56ELb0EEELi0EEERNS0_INS1_IS2_ILi256EELm0ELm0ELm0ELh56ELb0EEELi0EEEiiiiE12s_prev_phase': Complete partitioning on dimension 1. (drhe_tdm_compress.cpp:29:0)
+INFO: [HLS 214-248] Applying array_partition to '_ZZ17drhe_tdm_compressRN3hls6streamINS_4axisI7ap_uintILi128EELm0ELm0ELm0ELh56ELb0EEELi0EEERNS0_INS1_IS2_ILi256EELm0ELm0ELm0ELh56ELb0EEELi0EEEiiiiE12s_phase_pred': Complete partitioning on dimension 1. (drhe_tdm_compress.cpp:28:0)
+INFO: [HLS 214-248] Applying array_partition to '_ZZ17drhe_tdm_compressRN3hls6streamINS_4axisI7ap_uintILi128EELm0ELm0ELm0ELh56ELb0EEELi0EEERNS0_INS1_IS2_ILi256EELm0ELm0ELm0ELh56ELb0EEELi0EEEiiiiE10s_prev_mag': Complete partitioning on dimension 1. (drhe_tdm_compress.cpp:27:0)
+INFO: [HLS 214-248] Applying array_partition to '_ZZ17drhe_tdm_compressRN3hls6streamINS_4axisI7ap_uintILi128EELm0ELm0ELm0ELh56ELb0EEELi0EEERNS0_INS1_IS2_ILi256EELm0ELm0ELm0ELh56ELb0EEELi0EEEiiiiE10s_mag_pred': Complete partitioning on dimension 1. (drhe_tdm_compress.cpp:26:0)
+WARNING: [HLS 214-358] Array transformation on index using bit extension logic may lead to poor performance. Please use int or long for array index computation to benefit from optimizations. (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_hotbm.h:242:30)
+WARNING: [HLS 214-358] Array transformation on index using bit extension logic may lead to poor performance. Please use int or long for array index computation to benefit from optimizations. (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib\hlsmath\src\common\hls_hotbm_float.cpp:25:67)
+WARNING: [HLS 214-358] Array transformation on index using bit extension logic may lead to poor performance. Please use int or long for array index computation to benefit from optimizations. (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_hotbm.h:267:8)
+INFO: [HLS 200-1995] There were 19,638 instructions in the design after the 'Array/Struct' phase of compilation. See the Design Size Report for more details (D:/Thesis/ThesisA/hls_component/hls_tdm/hls/syn/report/csynth_design_size.rpt:2)
+INFO: [HLS 200-1995] There were 19,138 instructions in the design after the 'Array/Struct (step 2)' phase of compilation. See the Design Size Report for more details (D:/Thesis/ThesisA/hls_component/hls_tdm/hls/syn/report/csynth_design_size.rpt:2)
+INFO: [HLS 200-1995] There were 19,138 instructions in the design after the 'Array/Struct (step 3)' phase of compilation. See the Design Size Report for more details (D:/Thesis/ThesisA/hls_component/hls_tdm/hls/syn/report/csynth_design_size.rpt:2)
+INFO: [HLS 200-1995] There were 19,138 instructions in the design after the 'Array/Struct (step 4)' phase of compilation. See the Design Size Report for more details (D:/Thesis/ThesisA/hls_component/hls_tdm/hls/syn/report/csynth_design_size.rpt:2)
+INFO: [HLS 200-1995] There were 19,237 instructions in the design after the 'Array/Struct (step 5)' phase of compilation. See the Design Size Report for more details (D:/Thesis/ThesisA/hls_component/hls_tdm/hls/syn/report/csynth_design_size.rpt:2)
+INFO: [HLS 200-1995] There were 18,964 instructions in the design after the 'Performance' phase of compilation. See the Design Size Report for more details (D:/Thesis/ThesisA/hls_component/hls_tdm/hls/syn/report/csynth_design_size.rpt:2)
+INFO: [HLS 214-364] Automatically inlining function 'get_s4_region(int)' to improve effectiveness of pipeline pragma in function 'drhe_tdm_compress(hls::stream<hls::axis<ap_uint<128>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, hls::stream<hls::axis<ap_uint<256>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, int, int, int, int)' (drhe_tdm_compress.cpp:107:40)
+INFO: [HLS 214-364] Automatically inlining function 'get_append_bits(int, ap_uint<4>)' to improve effectiveness of pipeline pragma in function 'drhe_tdm_compress(hls::stream<hls::axis<ap_uint<128>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, hls::stream<hls::axis<ap_uint<256>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, int, int, int, int)' (drhe_tdm_compress.cpp:108:45)
+INFO: [HLS 214-364] Automatically inlining function 'get_s4_region(int)' to improve effectiveness of pipeline pragma in function 'drhe_tdm_compress(hls::stream<hls::axis<ap_uint<128>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, hls::stream<hls::axis<ap_uint<256>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, int, int, int, int)' (drhe_tdm_compress.cpp:111:40)
+INFO: [HLS 214-364] Automatically inlining function 'get_append_bits(int, ap_uint<4>)' to improve effectiveness of pipeline pragma in function 'drhe_tdm_compress(hls::stream<hls::axis<ap_uint<128>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, hls::stream<hls::axis<ap_uint<256>, 0ul, 0ul, 0ul, (unsigned char)56, false>, 0>&, int, int, int, int)' (drhe_tdm_compress.cpp:112:45)
+INFO: [HLS 214-437] Disabling loop flattening for loop 'RAMP_LOOP'. (drhe_tdm_compress.cpp:43:16)
+INFO: [HLS 200-1995] There were 18,887 instructions in the design after the 'Performance (step 2)' phase of compilation. See the Design Size Report for more details (D:/Thesis/ThesisA/hls_component/hls_tdm/hls/syn/report/csynth_design_size.rpt:2)
+INFO: [HLS 214-270] Inferring pragma 'array_partition type=complete dim=1' for array 'HUFFMAN_TABLE (.6.code)' due to pipeline pragma (drhe_tdm_compress.cpp:45:1)
+INFO: [HLS 214-270] Inferring pragma 'array_partition type=complete dim=1' for array 'HUFFMAN_TABLE (.6.len)' due to pipeline pragma (drhe_tdm_compress.cpp:45:1)
+INFO: [HLS 214-248] Applying array_partition to '_ZL13HUFFMAN_TABLE.6.len': Complete partitioning on dimension 1. (./drhe_common.h:32:0)
+INFO: [HLS 214-248] Applying array_partition to '_ZL13HUFFMAN_TABLE.6.code': Complete partitioning on dimension 1. (./drhe_common.h:32:0)
+WARNING: [HLS 214-358] Array transformation on index using bit extension logic may lead to poor performance. Please use int or long for array index computation to benefit from optimizations. (drhe_tdm_compress.cpp:109:43)
+WARNING: [HLS 214-358] Array transformation on index using bit extension logic may lead to poor performance. Please use int or long for array index computation to benefit from optimizations. (drhe_tdm_compress.cpp:113:43)
+INFO: [HLS 200-1995] There were 19,097 instructions in the design after the 'Performance (step 3)' phase of compilation. See the Design Size Report for more details (D:/Thesis/ThesisA/hls_component/hls_tdm/hls/syn/report/csynth_design_size.rpt:2)
+INFO: [HLS 200-1995] There were 18,497 instructions in the design after the 'Performance (step 4)' phase of compilation. See the Design Size Report for more details (D:/Thesis/ThesisA/hls_component/hls_tdm/hls/syn/report/csynth_design_size.rpt:2)
+INFO: [HLS 200-1995] There were 18,481 instructions in the design after the 'HW Transforms' phase of compilation. See the Design Size Report for more details (D:/Thesis/ThesisA/hls_component/hls_tdm/hls/syn/report/csynth_design_size.rpt:2)
+INFO: [HLS 200-1995] There were 17,408 instructions in the design after the 'HW Transforms (step 2)' phase of compilation. See the Design Size Report for more details (D:/Thesis/ThesisA/hls_component/hls_tdm/hls/syn/report/csynth_design_size.rpt:2)
+INFO: [HLS 200-111] Finished Compiling Optimization and Transform: CPU user time: 3 seconds. CPU system time: 0 seconds. Elapsed time: 22.187 seconds; current allocated memory: 151.371 MB.
+INFO: [HLS 200-111] Finished Checking Pragmas: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.01 seconds; current allocated memory: 151.371 MB.
+INFO: [HLS 200-10] Starting code transformations ...
+INFO: [HLS 200-111] Finished Standard Transforms: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.606 seconds; current allocated memory: 162.219 MB.
+INFO: [HLS 200-10] Checking synthesizability ...
+INFO: [XFORM 203-602] Inlining function 'fp_struct<float>::to_ieee' into 'cordic_::atan2_cordic<float>' () automatically.
+INFO: [XFORM 203-602] Inlining function 'generic_copysign<float>' into 'cordic_::atan2_cordic<float>' () automatically.
+WARNING: [SYNCHK 200-23] C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_cordic.h:702: variable-indexed range selection may cause suboptimal QoR.
+INFO: [SYNCHK 200-10] 0 error(s), 1 warning(s).
+INFO: [HLS 200-111] Finished Checking Synthesizability: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.271 seconds; current allocated memory: 168.883 MB.
+INFO: [XFORM 203-602] Inlining function 'fp_struct<float>::to_ieee' into 'cordic_::atan2_cordic<float>' () automatically.
+INFO: [XFORM 203-602] Inlining function 'generic_copysign<float>' into 'cordic_::atan2_cordic<float>' () automatically.
+INFO: [XFORM 203-401] Performing if-conversion on hyperblock from (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_hotbm.h:209:18) to (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_hotbm.h:287:5) in function 'hotbm_::sin_or_cos<float>'... converting 13 basic blocks.
+INFO: [XFORM 203-401] Performing if-conversion on hyperblock from (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_round.h:159:19) to (C:\scratch\HEAD\hls_product\738\2026.1\src\shared\hls\clib/hlsmath/include/FloatingPoint\hls_round.h:187:1) in function 'generic_round<float>'... converting 5 basic blocks.
+INFO: [XFORM 203-401] Performing if-conversion on hyperblock from (drhe_tdm_compress.cpp:67:41) to (./drhe_common.h:54:9) in function 'drhe_tdm_compress'... converting 4 basic blocks.
+INFO: [XFORM 203-401] Performing if-conversion on hyperblock from (drhe_tdm_compress.cpp:67:41) to (./drhe_common.h:54:9) in function 'drhe_tdm_compress'... converting 4 basic blocks.
+INFO: [XFORM 203-401] Performing if-conversion on hyperblock from (drhe_tdm_compress.cpp:67:41) to (./drhe_common.h:54:9) in function 'drhe_tdm_compress'... converting 4 basic blocks.
+INFO: [XFORM 203-401] Performing if-conversion on hyperblock from (./drhe_common.h:55:15) to (./drhe_common.h:75:9) in function 'drhe_tdm_compress'... converting 15 basic blocks.
+INFO: [XFORM 203-401] Performing if-conversion on hyperblock from (drhe_tdm_compress.cpp:67:41) to (./drhe_common.h:54:9) in function 'drhe_tdm_compress'... converting 4 basic blocks.
+INFO: [XFORM 203-401] Performing if-conversion on hyperblock from (drhe_tdm_compress.cpp:112:33) to (drhe_tdm_compress.cpp:126:17) in function 'drhe_tdm_compress'... converting 7 basic blocks.
+INFO: [XFORM 203-401] Performing if-conversion on hyperblock from (./drhe_common.h:55:15) to (./drhe_common.h:75:9) in function 'drhe_tdm_compress'... converting 15 basic blocks.
+INFO: [XFORM 203-401] Performing if-conversion on hyperblock from (./drhe_common.h:55:15) to (./drhe_common.h:75:9) in function 'drhe_tdm_compress'... converting 15 basic blocks.
+INFO: [XFORM 203-401] Performing if-conversion on hyperblock from (drhe_tdm_compress.cpp:112:33) to (drhe_tdm_compress.cpp:126:17) in function 'drhe_tdm_compress'... converting 7 basic blocks.
+INFO: [XFORM 203-401] Performing if-conversion on hyperblock from (./drhe_common.h:55:15) to (./drhe_common.h:75:9) in function 'drhe_tdm_compress'... converting 15 basic blocks.
+INFO: [XFORM 203-401] Performing if-conversion on hyperblock from (./drhe_common.h:55:15) to (./drhe_common.h:75:9) in function 'drhe_tdm_compress'... converting 15 basic blocks.
+INFO: [XFORM 203-401] Performing if-conversion on hyperblock from (drhe_tdm_compress.cpp:112:33) to (drhe_tdm_compress.cpp:126:17) in function 'drhe_tdm_compress'... converting 7 basic blocks.
+INFO: [XFORM 203-401] Performing if-conversion on hyperblock from (./drhe_common.h:55:15) to (./drhe_common.h:75:9) in function 'drhe_tdm_compress'... converting 15 basic blocks.
+INFO: [XFORM 203-401] Performing if-conversion on hyperblock from (./drhe_common.h:55:15) to (./drhe_common.h:75:9) in function 'drhe_tdm_compress'... converting 15 basic blocks.
+INFO: [XFORM 203-401] Performing if-conversion on hyperblock from (drhe_tdm_compress.cpp:112:33) to (drhe_tdm_compress.cpp:126:17) in function 'drhe_tdm_compress'... converting 7 basic blocks.
+INFO: [XFORM 203-401] Performing if-conversion on hyperblock from (./drhe_common.h:55:15) to (./drhe_common.h:75:9) in function 'drhe_tdm_compress'... converting 15 basic blocks.
+INFO: [XFORM 203-401] Performing if-conversion on hyperblock in function 'cordic_::atan2_generic<float>'... converting 8 basic blocks.
+INFO: [HLS 200-111] Finished Loop, function and other optimizations: CPU user time: 1 seconds. CPU system time: 0 seconds. Elapsed time: 1.072 seconds; current allocated memory: 195.668 MB.
+INFO: [HLS 200-111] Finished Architecture Synthesis: CPU user time: 1 seconds. CPU system time: 0 seconds. Elapsed time: 1.07 seconds; current allocated memory: 277.066 MB.
+INFO: [HLS 200-2255] Checking Wire Delay Status: Wire Delay Mode is ON
+INFO: [HLS 200-10] Starting hardware synthesis ...
+INFO: [HLS 200-10] Synthesizing 'drhe_tdm_compress' ...
+WARNING: [SYN 201-103] Legalizing function name 'sin_or_cos<float>' to 'sin_or_cos_float_s'.
+WARNING: [SYN 201-103] Legalizing function name 'generic_round<float>' to 'generic_round_float_s'.
+WARNING: [SYN 201-103] Legalizing function name '__hls_fptosi_float_i32' to 'p_hls_fptosi_float_i32'.
+WARNING: [SYN 201-103] Legalizing function name 'addsub<0, 0, ap_fixed<43, 4, 5, 3, 0>, ap_fixed<43, 4, 5, 3, 0>, ap_uint<1> >' to 'addsub_0_0_ap_fixed_43_4_5_3_0_ap_fixed_43_4_5_3_0_ap_uint_1_s'.
+WARNING: [SYN 201-103] Legalizing function name 'addsub<0, 0, ap_fixed<43, 4, 5, 3, 0>, ap_fixed<43, 4, 5, 3, 0>, bool>' to 'addsub_0_0_ap_fixed_43_4_5_3_0_ap_fixed_43_4_5_3_0_bool_s'.
+WARNING: [SYN 201-103] Legalizing function name 'addsub<0, 0, ap_fixed<40, 1, 5, 3, 0>, ap_fixed<40, 1, 0, 3, 0>, ap_uint<1> >' to 'addsub_0_0_ap_fixed_40_1_5_3_0_ap_fixed_40_1_0_3_0_ap_uint_1_s'.
+WARNING: [SYN 201-103] Legalizing function name 'atan2_generic<float>' to 'atan2_generic_float_s'.
+WARNING: [SYN 201-103] Legalizing function name 'atan2_cordic<float>' to 'atan2_cordic_float_s'.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-42] -- Implementing module 'sin_or_cos_float_s' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [SCHED 204-11] Starting scheduling ...
+INFO: [SCHED 204-61] Pipelining function 'sin_or_cos<float>'.
+INFO: [HLS 200-1470] Pipelining result : Target II = 1, Final II = 1, Depth = 6, function 'sin_or_cos<float>'
+INFO: [SCHED 204-11] Finished scheduling.
+INFO: [HLS 200-111] Finished Scheduling: CPU user time: 1 seconds. CPU system time: 0 seconds. Elapsed time: 0.666 seconds; current allocated memory: 282.367 MB.
+INFO: [BIND 205-100] Starting micro-architecture generation ...
+INFO: [BIND 205-101] Performing variable lifetime analysis.
+INFO: [BIND 205-101] Exploring resource sharing.
+INFO: [BIND 205-101] Binding ...
+INFO: [BIND 205-100] Finished micro-architecture generation.
+INFO: [HLS 200-111] Finished Binding: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.142 seconds; current allocated memory: 283.613 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-42] -- Implementing module 'generic_round_float_s' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [SCHED 204-11] Starting scheduling ...
+INFO: [SCHED 204-61] Pipelining function 'generic_round<float>'.
+INFO: [HLS 200-1470] Pipelining result : Target II = 1, Final II = 1, Depth = 2, function 'generic_round<float>'
+INFO: [SCHED 204-11] Finished scheduling.
+INFO: [HLS 200-111] Finished Scheduling: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.084 seconds; current allocated memory: 283.770 MB.
+INFO: [BIND 205-100] Starting micro-architecture generation ...
+INFO: [BIND 205-101] Performing variable lifetime analysis.
+INFO: [BIND 205-101] Exploring resource sharing.
+INFO: [BIND 205-101] Binding ...
+INFO: [BIND 205-100] Finished micro-architecture generation.
+INFO: [HLS 200-111] Finished Binding: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.029 seconds; current allocated memory: 283.836 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-42] -- Implementing module 'p_hls_fptosi_float_i32' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [SCHED 204-11] Starting scheduling ...
+INFO: [SCHED 204-61] Pipelining function '__hls_fptosi_float_i32'.
+INFO: [HLS 200-1470] Pipelining result : Target II = 1, Final II = 1, Depth = 1, function '__hls_fptosi_float_i32'
+INFO: [SCHED 204-11] Finished scheduling.
+INFO: [HLS 200-111] Finished Scheduling: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.044 seconds; current allocated memory: 284.035 MB.
+INFO: [BIND 205-100] Starting micro-architecture generation ...
+INFO: [BIND 205-101] Performing variable lifetime analysis.
+INFO: [BIND 205-101] Exploring resource sharing.
+INFO: [BIND 205-101] Binding ...
+INFO: [BIND 205-100] Finished micro-architecture generation.
+INFO: [HLS 200-111] Finished Binding: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.026 seconds; current allocated memory: 284.055 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-42] -- Implementing module 'addsub_0_0_ap_fixed_43_4_5_3_0_ap_fixed_43_4_5_3_0_ap_uint_1_s' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [SCHED 204-11] Starting scheduling ...
+INFO: [SCHED 204-61] Pipelining function 'addsub<0, 0, ap_fixed<43, 4, 5, 3, 0>, ap_fixed<43, 4, 5, 3, 0>, ap_uint<1> >'.
+INFO: [HLS 200-1470] Pipelining result : Target II = 1, Final II = 1, Depth = 1, function 'addsub<0, 0, ap_fixed<43, 4, 5, 3, 0>, ap_fixed<43, 4, 5, 3, 0>, ap_uint<1> >'
+INFO: [SCHED 204-11] Finished scheduling.
+INFO: [HLS 200-111] Finished Scheduling: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.064 seconds; current allocated memory: 284.145 MB.
+INFO: [BIND 205-100] Starting micro-architecture generation ...
+INFO: [BIND 205-101] Performing variable lifetime analysis.
+INFO: [BIND 205-101] Exploring resource sharing.
+INFO: [BIND 205-101] Binding ...
+INFO: [BIND 205-100] Finished micro-architecture generation.
+INFO: [HLS 200-111] Finished Binding: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.023 seconds; current allocated memory: 284.145 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-42] -- Implementing module 'addsub_0_0_ap_fixed_43_4_5_3_0_ap_fixed_43_4_5_3_0_bool_s' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [SCHED 204-11] Starting scheduling ...
+INFO: [SCHED 204-61] Pipelining function 'addsub<0, 0, ap_fixed<43, 4, 5, 3, 0>, ap_fixed<43, 4, 5, 3, 0>, bool>'.
+INFO: [HLS 200-1470] Pipelining result : Target II = 1, Final II = 1, Depth = 1, function 'addsub<0, 0, ap_fixed<43, 4, 5, 3, 0>, ap_fixed<43, 4, 5, 3, 0>, bool>'
+INFO: [SCHED 204-11] Finished scheduling.
+INFO: [HLS 200-111] Finished Scheduling: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 1.622 seconds; current allocated memory: 284.145 MB.
+INFO: [BIND 205-100] Starting micro-architecture generation ...
+INFO: [BIND 205-101] Performing variable lifetime analysis.
+INFO: [BIND 205-101] Exploring resource sharing.
+INFO: [BIND 205-101] Binding ...
+INFO: [BIND 205-100] Finished micro-architecture generation.
+INFO: [HLS 200-111] Finished Binding: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.023 seconds; current allocated memory: 284.145 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-42] -- Implementing module 'addsub_0_0_ap_fixed_40_1_5_3_0_ap_fixed_40_1_0_3_0_ap_uint_1_s' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [SCHED 204-11] Starting scheduling ...
+INFO: [SCHED 204-61] Pipelining function 'addsub<0, 0, ap_fixed<40, 1, 5, 3, 0>, ap_fixed<40, 1, 0, 3, 0>, ap_uint<1> >'.
+INFO: [HLS 200-1470] Pipelining result : Target II = 1, Final II = 1, Depth = 1, function 'addsub<0, 0, ap_fixed<40, 1, 5, 3, 0>, ap_fixed<40, 1, 0, 3, 0>, ap_uint<1> >'
+INFO: [SCHED 204-11] Finished scheduling.
+INFO: [HLS 200-111] Finished Scheduling: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.041 seconds; current allocated memory: 284.195 MB.
+INFO: [BIND 205-100] Starting micro-architecture generation ...
+INFO: [BIND 205-101] Performing variable lifetime analysis.
+INFO: [BIND 205-101] Exploring resource sharing.
+INFO: [BIND 205-101] Binding ...
+INFO: [BIND 205-100] Finished micro-architecture generation.
+INFO: [HLS 200-111] Finished Binding: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.031 seconds; current allocated memory: 284.266 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-42] -- Implementing module 'atan2_generic_float_s' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [SCHED 204-11] Starting scheduling ...
+INFO: [SCHED 204-61] Pipelining function 'atan2_generic<float>'.
+INFO: [HLS 200-1470] Pipelining result : Target II = 1, Final II = 1, Depth = 12, function 'atan2_generic<float>'
+INFO: [SCHED 204-11] Finished scheduling.
+INFO: [HLS 200-111] Finished Scheduling: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.522 seconds; current allocated memory: 293.828 MB.
+INFO: [BIND 205-100] Starting micro-architecture generation ...
+INFO: [BIND 205-101] Performing variable lifetime analysis.
+INFO: [BIND 205-101] Exploring resource sharing.
+INFO: [BIND 205-101] Binding ...
+INFO: [BIND 205-100] Finished micro-architecture generation.
+INFO: [HLS 200-111] Finished Binding: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.152 seconds; current allocated memory: 293.871 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-42] -- Implementing module 'atan2_cordic_float_s' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [SCHED 204-11] Starting scheduling ...
+INFO: [SCHED 204-61] Pipelining function 'atan2_cordic<float>'.
+INFO: [HLS 200-1470] Pipelining result : Target II = 1, Final II = 1, Depth = 24, function 'atan2_cordic<float>'
+INFO: [SCHED 204-11] Finished scheduling.
+INFO: [HLS 200-111] Finished Scheduling: CPU user time: 1 seconds. CPU system time: 0 seconds. Elapsed time: 0.19 seconds; current allocated memory: 294.082 MB.
+INFO: [BIND 205-100] Starting micro-architecture generation ...
+INFO: [BIND 205-101] Performing variable lifetime analysis.
+INFO: [BIND 205-101] Exploring resource sharing.
+INFO: [BIND 205-101] Binding ...
+INFO: [BIND 205-100] Finished micro-architecture generation.
+INFO: [HLS 200-111] Finished Binding: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 1.039 seconds; current allocated memory: 294.332 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-42] -- Implementing module 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [SCHED 204-11] Starting scheduling ...
+INFO: [SCHED 204-61] Pipelining loop 'SAMPLE_LOOP'.
+WARNING: [HLS 200-887] Cannot meet target clock period from 'add' operation 32 bit ('bit_count', drhe_tdm_compress.cpp:125) to 'br' operation ('br_ln126', drhe_tdm_compress.cpp:126) (combination delay: 8.84667 ns) to honor II or Latency constraint in region 'SAMPLE_LOOP'.
+Resolution: For help on HLS 200-887 see docs.amd.com/access/sources/dita/topic?Doc_Version=2026.1%20English&url=ug1448-hls-guidance&resourceid=200-887.html
+WARNING: [HLS 200-887] Cannot meet target clock period from 'add' operation 32 bit ('bit_count', drhe_tdm_compress.cpp:125) to 'br' operation ('br_ln126', drhe_tdm_compress.cpp:126) (combination delay: 11.3057 ns) to honor II or Latency constraint in region 'SAMPLE_LOOP'.
+Resolution: For help on HLS 200-887 see docs.amd.com/access/sources/dita/topic?Doc_Version=2026.1%20English&url=ug1448-hls-guidance&resourceid=200-887.html
+WARNING: [HLS 200-887] Cannot meet target clock period from 'add' operation 32 bit ('bit_count', drhe_tdm_compress.cpp:122) to 'br' operation ('br_ln129', drhe_tdm_compress.cpp:129) (combination delay: 12.7487 ns) to honor II or Latency constraint in region 'SAMPLE_LOOP'.
+Resolution: For help on HLS 200-887 see docs.amd.com/access/sources/dita/topic?Doc_Version=2026.1%20English&url=ug1448-hls-guidance&resourceid=200-887.html
+WARNING: [HLS 200-885] The II Violation in module 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP' (loop 'SAMPLE_LOOP'): Unable to schedule 'load' operation 32 bit ('drhe_tdm_compress_stream_stream_int_int_int_int_s_prev_prev_phase_3_load', drhe_tdm_compress.cpp:74) on array 'drhe_tdm_compress_stream_stream_int_int_int_int_s_prev_prev_phase_3' due to limited memory ports (II = 1). Please consider using a memory core with more ports or partitioning the array 'drhe_tdm_compress_stream_stream_int_int_int_int_s_prev_prev_phase_3'.
+Resolution: For help on HLS 200-885 see docs.amd.com/access/sources/dita/topic?Doc_Version=2026.1%20English&url=ug1448-hls-guidance&resourceid=200-885.html
+INFO: [HLS 200-1470] Pipelining result : Target II = 1, Final II = 2, Depth = 58, loop 'SAMPLE_LOOP'
+WARNING: [HLS 200-871] Estimated clock period (12.213 ns) exceeds the target (target clock period: 10.000 ns, clock uncertainty: 2.700 ns, effective delay budget: 7.300 ns).
+Resolution: For help on HLS 200-871 see docs.amd.com/access/sources/dita/topic?Doc_Version=2026.1%20English&url=ug1448-hls-guidance&resourceid=200-871.html
+WARNING: [HLS 200-1016] The critical path in module 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP' consists of the following:
+	'sitofp' operation 32 bit ('re_f', drhe_tdm_compress.cpp:96) [779]  (5.197 ns)
+	'fmul' operation 32 bit ('mul93_2', drhe_tdm_compress.cpp:98) [782]  (7.016 ns)
+
+Resolution: For help on HLS 200-1016 see docs.amd.com/access/sources/dita/topic?Doc_Version=2026.1%20English&url=ug1448-hls-guidance&resourceid=200-1016.html
+INFO: [SCHED 204-11] Finished scheduling.
+INFO: [HLS 200-111] Finished Scheduling: CPU user time: 2 seconds. CPU system time: 1 seconds. Elapsed time: 2.771 seconds; current allocated memory: 315.859 MB.
+INFO: [BIND 205-100] Starting micro-architecture generation ...
+INFO: [BIND 205-101] Performing variable lifetime analysis.
+INFO: [BIND 205-101] Exploring resource sharing.
+INFO: [BIND 205-101] Binding ...
+INFO: [BIND 205-100] Finished micro-architecture generation.
+INFO: [HLS 200-111] Finished Binding: CPU user time: 1 seconds. CPU system time: 0 seconds. Elapsed time: 0.662 seconds; current allocated memory: 330.879 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-42] -- Implementing module 'drhe_tdm_compress' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [SCHED 204-11] Starting scheduling ...
+WARNING: [HLS 200-871] Estimated clock period (7.599 ns) exceeds the target (target clock period: 10.000 ns, clock uncertainty: 2.700 ns, effective delay budget: 7.300 ns).
+Resolution: For help on HLS 200-871 see docs.amd.com/access/sources/dita/topic?Doc_Version=2026.1%20English&url=ug1448-hls-guidance&resourceid=200-871.html
+WARNING: [HLS 200-1016] The critical path in module 'drhe_tdm_compress' consists of the following:
+	'call' operation ('_ln43', drhe_tdm_compress.cpp:43) to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP' [93]  (7.599 ns)
+
+Resolution: For help on HLS 200-1016 see docs.amd.com/access/sources/dita/topic?Doc_Version=2026.1%20English&url=ug1448-hls-guidance&resourceid=200-1016.html
+INFO: [SCHED 204-11] Finished scheduling.
+INFO: [HLS 200-111] Finished Scheduling: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.456 seconds; current allocated memory: 330.879 MB.
+INFO: [BIND 205-100] Starting micro-architecture generation ...
+INFO: [BIND 205-101] Performing variable lifetime analysis.
+INFO: [BIND 205-101] Exploring resource sharing.
+INFO: [BIND 205-101] Binding ...
+INFO: [BIND 205-100] Finished micro-architecture generation.
+INFO: [HLS 200-111] Finished Binding: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.061 seconds; current allocated memory: 330.879 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-10] -- Generating RTL for module 'sin_or_cos_float_s' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [RTGEN 206-100] Generating core module 'ctlz_30_30_1_0': 1 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'ctlz_32_32_1_0': 2 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'mul_15ns_15ns_30_1_0': 1 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'mul_15ns_15s_30_1_0': 1 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'mul_23s_22ns_45_1_0': 1 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'mul_30s_29ns_58_1_0': 1 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'mul_80s_24ns_80_1_0': 1 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'sparsemux_17_3_1_1_0': 1 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'sparsemux_33_4_1_1_0': 2 instance(s).
+INFO: [RTGEN 206-100] Finished creating RTL model for 'sin_or_cos_float_s'.
+INFO: [RTMG 210-279] Implementing memory 'drhe_tdm_compress_sin_or_cos_float_s_ref_4oPi_table_100_ROM_1P_LUTRAM_1R' using distributed ROMs.
+INFO: [RTMG 210-279] Implementing memory 'drhe_tdm_compress_sin_or_cos_float_s_second_order_float_sin_cos_K0_ROM_1P_LUTRAM_1R' using distributed ROMs.
+INFO: [RTMG 210-279] Implementing memory 'drhe_tdm_compress_sin_or_cos_float_s_second_order_float_sin_cos_K1_ROM_1P_LUTRAM_1R' using distributed ROMs.
+INFO: [RTMG 210-279] Implementing memory 'drhe_tdm_compress_sin_or_cos_float_s_second_order_float_sin_cos_K2_ROM_1P_LUTRAM_1R' using distributed ROMs.
+INFO: [HLS 200-111] Finished Creating RTL model: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 1.222 seconds; current allocated memory: 330.879 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-10] -- Generating RTL for module 'generic_round_float_s' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-1030] Apply Unified Pipeline Control on module 'generic_round_float_s' pipeline 'generic_round<float>' pipeline type 'function pipeline'
+INFO: [RTGEN 206-100] Generating core module 'sparsemux_7_2_32_1_1': 1 instance(s).
+INFO: [RTGEN 206-100] Finished creating RTL model for 'generic_round_float_s'.
+INFO: [RTMG 210-279] Implementing memory 'drhe_tdm_compress_generic_round_float_s_mask_table_ROM_AUTO_1R' using auto ROMs.
+INFO: [RTMG 210-279] Implementing memory 'drhe_tdm_compress_generic_round_float_s_one_half_table_ROM_AUTO_1R' using auto ROMs.
+INFO: [HLS 200-111] Finished Creating RTL model: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.315 seconds; current allocated memory: 330.879 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-10] -- Generating RTL for module 'p_hls_fptosi_float_i32' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [RTGEN 206-100] Finished creating RTL model for 'p_hls_fptosi_float_i32'.
+INFO: [HLS 200-111] Finished Creating RTL model: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.116 seconds; current allocated memory: 330.879 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-10] -- Generating RTL for module 'addsub_0_0_ap_fixed_43_4_5_3_0_ap_fixed_43_4_5_3_0_ap_uint_1_s' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [RTGEN 206-100] Finished creating RTL model for 'addsub_0_0_ap_fixed_43_4_5_3_0_ap_fixed_43_4_5_3_0_ap_uint_1_s'.
+INFO: [HLS 200-111] Finished Creating RTL model: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.111 seconds; current allocated memory: 330.879 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-10] -- Generating RTL for module 'addsub_0_0_ap_fixed_43_4_5_3_0_ap_fixed_43_4_5_3_0_bool_s' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [RTGEN 206-100] Finished creating RTL model for 'addsub_0_0_ap_fixed_43_4_5_3_0_ap_fixed_43_4_5_3_0_bool_s'.
+INFO: [HLS 200-111] Finished Creating RTL model: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.319 seconds; current allocated memory: 330.879 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-10] -- Generating RTL for module 'addsub_0_0_ap_fixed_40_1_5_3_0_ap_fixed_40_1_0_3_0_ap_uint_1_s' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [RTGEN 206-100] Finished creating RTL model for 'addsub_0_0_ap_fixed_40_1_5_3_0_ap_fixed_40_1_0_3_0_ap_uint_1_s'.
+INFO: [HLS 200-111] Finished Creating RTL model: CPU user time: 1 seconds. CPU system time: 0 seconds. Elapsed time: 0.088 seconds; current allocated memory: 330.879 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-10] -- Generating RTL for module 'atan2_generic_float_s' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [RTGEN 206-100] Generating core module 'bitselect_1ns_40ns_6ns_1_1_1': 1 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'ctlz_40_40_1_1': 1 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'fdiv_32ns_32ns_32_9_no_dsp_1': 1 instance(s).
+INFO: [RTGEN 206-100] Finished creating RTL model for 'atan2_generic_float_s'.
+INFO: [HLS 200-111] Finished Creating RTL model: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.433 seconds; current allocated memory: 330.879 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-10] -- Generating RTL for module 'atan2_cordic_float_s' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [RTGEN 206-100] Generating core module 'fcmp_32ns_32ns_1_2_no_dsp_0': 1 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'fsub_32ns_32ns_32_4_full_dsp_0': 2 instance(s).
+INFO: [RTGEN 206-100] Finished creating RTL model for 'atan2_cordic_float_s'.
+INFO: [HLS 200-111] Finished Creating RTL model: CPU user time: 0 seconds. CPU system time: 0 seconds. Elapsed time: 0.928 seconds; current allocated memory: 339.730 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-10] -- Generating RTL for module 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [SYN 201-210] Renamed object name 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0_int_int_int_int_s_mag_pred_3_RAM_AUTO_1R1W' to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0bkb' due to the length limit 80
+INFO: [SYN 201-210] Renamed object name 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0_int_int_int_int_s_prev_mag_3_RAM_AUTO_1R1W' to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0cud' due to the length limit 80
+INFO: [SYN 201-210] Renamed object name 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0_int_int_int_int_s_phase_pred_3_RAM_AUTO_1R1W' to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0dEe' due to the length limit 80
+INFO: [SYN 201-210] Renamed object name 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0_int_int_int_int_s_prev_phase_3_RAM_AUTO_1R1W' to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0eOg' due to the length limit 80
+INFO: [SYN 201-210] Renamed object name 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_int_int_int_int_s_prev_prev_phase_3_RAM_AUTO_1R1W' to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_int_infYi' due to the length limit 80
+INFO: [SYN 201-210] Renamed object name 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0_int_int_int_int_s_mag_pred_2_RAM_AUTO_1R1W' to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0g8j' due to the length limit 80
+INFO: [SYN 201-210] Renamed object name 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0_int_int_int_int_s_prev_mag_2_RAM_AUTO_1R1W' to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0hbi' due to the length limit 80
+INFO: [SYN 201-210] Renamed object name 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0_int_int_int_int_s_phase_pred_2_RAM_AUTO_1R1W' to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0ibs' due to the length limit 80
+INFO: [SYN 201-210] Renamed object name 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0_int_int_int_int_s_prev_phase_2_RAM_AUTO_1R1W' to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0jbC' due to the length limit 80
+INFO: [SYN 201-210] Renamed object name 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_int_int_int_int_s_prev_prev_phase_2_RAM_AUTO_1R1W' to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_int_inkbM' due to the length limit 80
+INFO: [SYN 201-210] Renamed object name 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0_int_int_int_int_s_mag_pred_1_RAM_AUTO_1R1W' to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0lbW' due to the length limit 80
+INFO: [SYN 201-210] Renamed object name 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0_int_int_int_int_s_prev_mag_1_RAM_AUTO_1R1W' to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0mb6' due to the length limit 80
+INFO: [SYN 201-210] Renamed object name 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0_int_int_int_int_s_phase_pred_1_RAM_AUTO_1R1W' to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0ncg' due to the length limit 80
+INFO: [SYN 201-210] Renamed object name 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0_int_int_int_int_s_prev_phase_1_RAM_AUTO_1R1W' to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0ocq' due to the length limit 80
+INFO: [SYN 201-210] Renamed object name 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_int_int_int_int_s_prev_prev_phase_1_RAM_AUTO_1R1W' to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_int_inpcA' due to the length limit 80
+INFO: [SYN 201-210] Renamed object name 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0_int_int_int_int_s_mag_pred_RAM_AUTO_1R1W' to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0qcK' due to the length limit 80
+INFO: [SYN 201-210] Renamed object name 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0_int_int_int_int_s_prev_mag_RAM_AUTO_1R1W' to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0rcU' due to the length limit 80
+INFO: [SYN 201-210] Renamed object name 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0_int_int_int_int_s_phase_pred_RAM_AUTO_1R1W' to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0sc4' due to the length limit 80
+INFO: [SYN 201-210] Renamed object name 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0_int_int_int_int_s_prev_phase_RAM_AUTO_1R1W' to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0tde' due to the length limit 80
+INFO: [SYN 201-210] Renamed object name 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_int_int_int_int_s_prev_prev_phase_RAM_AUTO_1R1W' to 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_int_inudo' due to the length limit 80
+INFO: [RTGEN 206-104] Estimated max fanout for 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP' is 5974 from HDL expression: ((1'b0 == ap_block_pp0_stage0_11001) & (1'b1 == ap_CS_fsm_pp0_stage0))
+INFO: [RTGEN 206-100] Generating core module 'fadd_32ns_32ns_32_4_full_dsp_1': 8 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'faddfsub_32ns_32ns_32_4_full_dsp_1': 4 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'fcmp_32ns_32ns_1_2_no_dsp_0': 4 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'fmul_32ns_32ns_32_3_max_dsp_1': 16 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'fsqrt_32ns_32ns_32_8_no_dsp_1': 2 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'sitofp_32s_32_4_no_dsp_1': 4 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'sparsemux_33_4_14_1_1': 8 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'sparsemux_33_4_4_1_1': 8 instance(s).
+INFO: [RTGEN 206-100] Finished creating RTL model for 'drhe_tdm_compress_Pipeline_SAMPLE_LOOP'.
+INFO: [RTMG 210-278] Implementing memory 'drhe_tdm_compress_drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0bkb' using auto RAMs.
+INFO: [RTMG 210-278] Implementing memory 'drhe_tdm_compress_drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0dEe' using auto RAMs.
+INFO: [HLS 200-111] Finished Creating RTL model: CPU user time: 2 seconds. CPU system time: 0 seconds. Elapsed time: 2.044 seconds; current allocated memory: 364.570 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-10] -- Generating RTL for module 'drhe_tdm_compress' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+WARNING: [RTGEN 206-101] Design contains AXI ports. Reset is fixed to synchronous and active low.
+INFO: [RTGEN 206-500] Setting interface mode on port 'drhe_tdm_compress/in_stream_V_data_V' to 'axis' (register, both mode).
+INFO: [RTGEN 206-500] Setting interface mode on port 'drhe_tdm_compress/in_stream_V_keep_V' to 'axis' (register, both mode).
+INFO: [RTGEN 206-500] Setting interface mode on port 'drhe_tdm_compress/in_stream_V_strb_V' to 'axis' (register, both mode).
+INFO: [RTGEN 206-500] Setting interface mode on port 'drhe_tdm_compress/in_stream_V_last_V' to 'axis' (register, both mode).
+INFO: [RTGEN 206-500] Setting interface mode on port 'drhe_tdm_compress/out_stream_V_data_V' to 'axis' (register, both mode).
+INFO: [RTGEN 206-500] Setting interface mode on port 'drhe_tdm_compress/out_stream_V_keep_V' to 'axis' (register, both mode).
+INFO: [RTGEN 206-500] Setting interface mode on port 'drhe_tdm_compress/out_stream_V_strb_V' to 'axis' (register, both mode).
+INFO: [RTGEN 206-500] Setting interface mode on port 'drhe_tdm_compress/out_stream_V_last_V' to 'axis' (register, both mode).
+INFO: [RTGEN 206-500] Setting interface mode on port 'drhe_tdm_compress/nSamples' to 's_axilite & ap_none'.
+INFO: [RTGEN 206-500] Setting interface mode on port 'drhe_tdm_compress/nRamps' to 's_axilite & ap_none'.
+INFO: [RTGEN 206-500] Setting interface mode on port 'drhe_tdm_compress/nRX' to 's_axilite & ap_none'.
+INFO: [RTGEN 206-500] Setting interface mode on port 'drhe_tdm_compress/nTx' to 's_axilite & ap_none'.
+INFO: [RTGEN 206-500] Setting interface mode on function 'drhe_tdm_compress' to 's_axilite & ap_ctrl_hs'.
+INFO: [RTGEN 206-100] Bundling port 'nSamples', 'nRamps', 'nRX', 'nTx' to AXI-Lite port control.
+INFO: [RTGEN 206-100] Finished creating RTL model for 'drhe_tdm_compress'.
+INFO: [HLS 200-111] Finished Creating RTL model: CPU user time: 1 seconds. CPU system time: 1 seconds. Elapsed time: 3.171 seconds; current allocated memory: 395.617 MB.
+INFO: [HLS 200-111] Finished Generating all RTL models: CPU user time: 1 seconds. CPU system time: 1 seconds. Elapsed time: 2.528 seconds; current allocated memory: 395.617 MB.
+INFO: [HLS 200-2225] Wrote inferred directives to file D:/Thesis/ThesisA/hls_component/hls_tdm/hls/syn/inferred_directives.ini
+INFO: [HLS 200-111] Finished Updating report files: CPU user time: 2 seconds. CPU system time: 4 seconds. Elapsed time: 6.422 seconds; current allocated memory: 411.773 MB.
+INFO: [VHDL 208-304] Generating VHDL RTL for drhe_tdm_compress.
+INFO: [VLOG 209-307] Generating Verilog RTL for drhe_tdm_compress.
+INFO: [HLS 200-790] **** Loop Constraint Status: Not all loop constraints were satisfied.
+INFO: [HLS 200-789] **** Estimated Fmax: 81.88 MHz
+INFO: [HLS 200-112] Total CPU user time: 21 seconds. Total CPU system time: 11 seconds. Total elapsed time: 188.995 seconds; peak allocated memory: 411.773 MB.
+INFO: [v++ 60-791] Total elapsed time: 0h 3m 14s
+EXITCODE=0

@@ -22,3 +22,8 @@ _ide/.wsdata
 # Local scratch from test runs (not part of the deliverable)
 ThesisA/Matlab_Sim/_runlogs/
 ThesisA/Matlab_Sim/_removed_shims/
+
+ThesisA/verify_indep/raw/
+ThesisA/verify_indep/lpc_coefs.json
+ThesisA/verify_indep/retrain_complete_rerun.json
+__pycache__/

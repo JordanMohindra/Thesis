@@ -1,0 +1,343 @@
+% ===================================================================
+\chapter{Our Results Against Kiem's, One by One}
+\label{ch:kiemcompare}
+
+This chapter brings every comparison with Kiem together in one place. For each
+of his results or claims it gives this thesis's corresponding result, says
+whether the two are the same, and explains why or why not, pointing to the
+measurement that shows it. Hardware figures were accounted for individually in
+Chapter~\ref{ch:interpret}; they are summarised here so that the whole
+comparison can be read at once.
+
+\section{Three kinds of comparison}
+\label{sec:kc_kinds}
+
+Not every pair of numbers can be compared directly, and the most common
+mistake made during this project was to compare numbers that measure different
+things. Each comparison below is placed in one of three classes.
+
+\begin{description}[leftmargin=!,labelwidth=30mm,style=nextline,font=\normalfont\bfseries]
+\item[Like for like] The two numbers measure the same quantity of the same
+thing, and a difference is a real difference. Example: the arithmetic
+specification of DRHE; post-route LUTs of two circuits.
+\item[Through a bridge] The numbers come from different data or setups, but
+something built for the purpose connects them: the replica of his hardware
+(Chapter~\ref{ch:interpret}) or the replication of his simulation
+(Chapter~\ref{ch:replication}).
+\item[Not comparable] The numbers look alike but measure different things,
+and no bridge closes the gap. Example: his CR on his recordings against ours on
+ColoRadar. For these the chapter explains what each number does measure.
+\end{description}
+
+\section{The DRHE algorithm, line by line}
+\label{sec:kc_audit}
+
+Kiem's Section~3.5.3 specifies the final scheme and his Section~4.3.4 the
+hardware form of it. Table~\ref{tab:kc_audit} takes every element in turn and
+compares it with this thesis's MATLAB model (\texttt{compress\_drhe.m}) and its
+HLS design (DRHE-1).
+
+\begin{table}[p]
+\centering
+\caption[DRHE audit against Kiem \S{}3.5.3]{Every element of Kiem's final DRHE
+scheme (his \S{}3.5.3, \S{}3.5.4 and \S{}4.3.4) against this thesis's MATLAB model and
+HLS design. The letters in the last column refer to the explanations in
+Section~\ref{sec:kc_why}.}
+\label{tab:kc_audit}
+\scriptsize
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}>{\raggedright}p{0.16\textwidth}>{\raggedright}p{0.26\textwidth}>{\raggedright}p{0.18\textwidth}>{\raggedright}p{0.22\textwidth}>{\raggedright\arraybackslash}p{0.10\textwidth}@{}}
+\toprule
+Element & Kiem & MATLAB \texttt{compress\_drhe.m} & HLS DRHE-1 & Same?\\
+\midrule
+Input & FX16 range FFT, first $N/2$ bins, per RX, ramp by ramp & same & same (128-bit AXIS, 4 RX) & yes\\
+Cartesian to polar & $a = \sqrt{re^2+im^2}$, $\theta = \mathrm{atan2}(im, re)$ & same, double & same, single precision & yes; (b)\\
+Magnitude, Eq.~3.5 & $\hat a[m] = \alpha\hat a[m-1] + (1-\alpha)a[m-1]$ & same & same & yes\\
+Phase, Eq.~3.6 & $\hat\theta[m] = \beta\hat\theta[m-1] + (2-\beta)\theta[m-1] - \theta[m-2]$ & same & same & yes\\
+Phase wrap & once into $[-\pi,\pi]$ (his listing, \S{}4.3.4) & same & same & yes\\
+$\alpha$, $\beta$ & 0.6, 0.4 (Table 4.4) & same & same & yes\\
+Polar to Cartesian & rounded to integer (\texttt{AP\_RND}) & \texttt{round} & \texttt{roundf} & yes\\
+Difference, Eq.~3.7 & $X - \hat X$ in 16-bit two's complement & \texttt{wrap\_int16} & \texttt{wrap\_int16} & yes\\
+Initial state & zero (\S{}3.5.4) & zero per frame & zero, cleared on ramp 0 of every frame & yes; (c)\\
+State update & from the input sample & from the input & from the reconstructed sample & \textbf{changed}; (a)\\
+Run-length code & removed (\S{}3.5.1) & none & none & yes\\
+Size category S4 & Table 3.7, 0--15 & $\lfloor\log_2|v|\rfloor+1$, capped at 15 & same regions, by comparison & yes\\
+APPEND & $v$ if $v>0$; $v + 2^{S_4} - 1$ if $v<0$ & counted & same formula & yes\\
+Residual $-32768$ & no code (S4 = 15 spans $\pm[16384, 32767]$); not addressed & counted as S4 = 15 & clamped to $-32767$ & \textbf{changed}; (a)\\
+Dictionary & fixed, Appendix A & same 16 lengths & same codes, bit-reversed & yes; (d)\\
+Arithmetic & fixed point: \texttt{ap\_ufixed<16,16>}, \texttt{ap\_fixed<16,3>}, \texttt{ap\_fixed<32,4>} & double & single-precision float & \textbf{changed}; (b)\\
+Output packing & 58-bit word per channel into 256-bit AXIS & bit count only & 512-bit accumulator, 256-bit AXIS & layout; (d)\\
+Prediction lag & ramp $m-1$ (one TX) & $m-1$ & $m-1$ (DRHE-1); $m-n_{\mathrm{Tx}}$ (DRHE-$n$) & extension; (e)\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Verification that the algorithm is the same}
+
+Two independent implementations of Kiem's Section~3.5.3 --- the thesis's
+\texttt{compress\_drhe.m} and the replication's \texttt{kr\_drhe\_encode.m},
+written from his text without reference to the first --- produce identical
+residuals and identical bit counts on the same frames
+(Section~\ref{sec:kr_crosscheck}). The HLS DRHE-1 matches
+\texttt{compress\_drhe.m} on all 50 ColoRadar frames to within the AXI padding
+of the last output word (Section~\ref{sec:phase2}), and a third implementation,
+in Python, reproduces the HLS bit count of every frame exactly
+(Appendix~\ref{app:verify}). The DRHE of this thesis is Kiem's DRHE.
+
+\subsection{The five places the hardware differs, and why}
+\label{sec:kc_why}
+
+\paragraph{(a) The $-32768$ clamp and the closed loop: a defect fix.} Kiem's
+Table~3.7 gives category 15 the range $\pm[16384, 32767]$, exactly $2^{15}$
+values filling the 15 APPEND bits, so a residual of $-32768$ has no code; his
+text does not address it. It can occur (for example $re = -32768$ with a
+prediction of zero), and when it does, the APPEND formula aliases it onto
+$+32767$ (Section~\ref{sec:hole}). The HLS saturates it to $-32767$. Once a
+sample has been saturated, an open-loop encoder --- one updating its state from
+the original sample, as Kiem's does --- disagrees with the decoder, which can
+only update from the reconstruction, and because the filters are recursive the
+disagreement persists for the rest of the frame. Driving the encoder's state
+from the reconstruction confines the error to one sample and one LSB. Whenever
+no clamp fires the reconstruction equals the input, so the closed loop is
+\emph{bit-identical} to Kiem's open loop; on ColoRadar the residuals span
+$[-514, +416]$ and it never fires. Its cost is hardware only: 26 cycles of
+pipeline depth in floating point, about four in fixed point
+(Section~\ref{sec:acc_depth}).
+
+\paragraph{(b) Floating-point arithmetic: a Thesis~A choice, now shown to be
+unnecessary.} Floating point was chosen so that the HLS would follow the
+double-precision MATLAB model exactly --- Kiem reports that his MATLAB could not
+be made bit-accurate to his fixed-point HLS and needed an HLS decoder for that
+reason --- and because his own future work suggested it
+(Section~\ref{sec:kiem_open}). On ColoRadar the float and fixed-point
+predictors give residuals whose bit counts differ by \SI{0.065}{\percent}, while
+the float datapath costs most of the design's logic, every extra DSP and twice
+the block RAM (Chapter~\ref{ch:interpret}). The fixed-point variant is the better
+engineering choice and is recommended as future work.
+
+\paragraph{(c) Clearing the state every frame: a clarification.} Kiem's model is
+``initialized with zero''; his MATLAB decodes one frame at a time, and his
+hardware text does not say what happens between frames. DRHE-1 clears the state
+at the first ramp of every frame, so every frame decodes on its own and a lost
+frame cannot corrupt the next. The one extra write per cycle that this costs is
+what holds the design at $\mathrm{II} = 2$ (Section~\ref{sec:acc_ii}).
+
+\paragraph{(d) Bit packing: the same bits in a different order.} The codewords
+and APPEND fields have exactly Kiem's lengths, so the compressed size is his
+apart from padding. The codewords are stored bit-reversed because the packer is
+least-significant-bit first, and the stream is therefore not bit-compatible
+with a decoder written for his 58-bit packets --- it was never meant to be.
+The packer costs about 4,200 LUTs more than his (ladder steps 1--2).
+
+\paragraph{(e) DRHE-$n$: an extension.} On a single-transmitter radar the
+previous ramp is the previous observation of the same channel. On the ColoRadar
+cascade it is a different transmitter eleven times in twelve. DRHE-$n$ keeps one
+state per transmitter and predicts from ramp $m - n_{\mathrm{Tx}}$; with
+$n_{\mathrm{Tx}} = 1$ it is DRHE-1, and therefore Kiem's algorithm.
+
+\section{Every result, compared}
+\label{sec:kc_table}
+
+Table~\ref{tab:kc_all} lists every result and claim of Kiem's that this thesis
+can speak to. The sections after it discuss the ones that need more than a
+line.
+
+\begin{table}[p]
+\centering
+\caption[Kiem's results against this thesis's]{Kiem's results and claims
+against this thesis's. ``Class'' is the kind of comparison of
+Section~\ref{sec:kc_kinds}: L like for like, B through a bridge, N not
+comparable.}
+\label{tab:kc_all}
+\scriptsize
+\renewcommand{\arraystretch}{1.3}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}>{\raggedright}p{0.17\textwidth}>{\raggedright}p{0.14\textwidth}>{\raggedright}p{0.19\textwidth}>{\centering}p{0.05\textwidth}>{\centering}p{0.07\textwidth}>{\raggedright\arraybackslash}p{0.30\textwidth}@{}}
+\toprule
+Result or claim & Kiem & This thesis & Class & Same? & Why\\
+\midrule
+DRHE algorithm & \S{}3.5.3 & identical residuals and bits & L & yes & Two independent implementations agree to the bit; hardware differs in five documented places (Section~\ref{sec:kc_why}).\\
+DRHE CR, simulation & 3.25 (real data) & 3.30 (MATLAB, 16 RX); 3.310 (HLS, 4 RX) & N & no\,/\,coincidence & Different data, sensor, scaling and mechanism (Section~\ref{sec:kc_cr}).\\
+DRHE CR on his scene & --- & 2.28 at his $-75$\,dBFS; 3.25 at $-87.9$ & B & pattern & Replication reproduces 3.25/3.24 only at a noise level 17\,dB below his stated floor (Section~\ref{sec:kr_m88}).\\
+RLE adds little & 3.25 vs 3.24 & 3.25 vs 3.24 on his scene; $\leq$\SI{1.6}{\percent} on ColoRadar & B, L & yes & Holds on both datasets (Section~\ref{sec:kc_rle}).\\
+Fixed dictionary costs little & 3.24 $\to$ 3.17 (incl.\ HW FFT) & \SI{0.3}{\percent} on his scene at $-87.9$; a re-derived dictionary gains 12--\SI{18}{\percent} on corrected ColoRadar & B, L & his data only & The dictionary encodes his residual statistics (Section~\ref{sec:kc_dict}).\\
+DRHE CR, hardware & 3.17 & 3.310 (DRHE-1), 3.751 (DRHE-$n$) & N & no & As above, and his hardware FFT is fixed point; ours takes MATLAB's FX16 codes.\\
+LPC is ``the same approach'' but less promising & not measured; 2.056 quoted from \cite{meucci2022} & Meucci--Mancuso style: 1.32--1.54 on his scene; slow-time LPC: 3.697 vs DRHE-$n$ 3.751 & B & for his LPC only & Two different algorithms share the name (Section~\ref{sec:kc_lpc}).\\
+DRHE is the best of his design space & yes & yes, among lossless schemes and against BAQ/RDVLE & L & yes & The lossy schemes lose detections (Table~\ref{tab:phase1}).\\
+FX16 detection cost & FN 0.59\,\%, FP 1.18\,\% & FN 3.77\,\%, FP 1.11\,\% & N & no & Different sensor, scene and processing chain (Section~\ref{sec:kc_det}).\\
+Noise floor & $-70.7$\,dBFS & $-105.4$\,dBFS & N & no & Different sensor and reference; not comparable (Section~\ref{sec:kc_det}).\\
+LUT & \num{45892} & \HW{drheone}{LUT} & L & no & Float datapath and packer against his build; replica \HW{ablk}{LUT} (Chapter~\ref{ch:interpret}).\\
+FF & \num{9243} & \HW{drheone}{FF} & L & no & Float operator registers, 58-stage pipeline.\\
+BRAM (36\,Kb tiles) & 10 & 20 & L & no & 32-bit against 16-bit state words; replica matches exactly.\\
+DSP & 44 & 132 & L & no & Every DSP is a float operator; replica \HW{ablk}{DSP}.\\
+II & 1 & 2 & L & no & One extra state write per cycle; step 3 of the ladder reaches 1.\\
+Pipeline latency & 23 cycles (HLS est.) & 58 cycles (HLS) & L & no & 26 cycles closed loop, rest float latency.\\
+Clock & 100\,MHz, grade $-1$ & \HW{drheone}{fmax}\,MHz ($-2$); \HW{ablctrlsgone}{fmax}\,MHz ($-1$) & L & yes & Both meet 100\,MHz on his grade.\\
+Throughput & 11.92 Gibit/s (theoretical) & 6.40 theoretical, 5.14 measured & L & factor 2 & II 2 against 1; his figure is in binary units.\\
+System latency & 0.08\,ms & not measured; 3.2\,\si{\micro\second} added by the compressor & N & --- & His figure includes FFT, DMA and interrupts.\\
+Fits his device & 65\,\% of LUTs & 50\,\% of LUTs & L & fits & Post-route (Section~\ref{sec:resinterp}).\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{The compression ratio: 3.25 and 3.30 are not the same number}
+\label{sec:kc_cr}
+
+The closeness of DRHE's 3.30 on ColoRadar to Kiem's 3.25 on his recordings was
+taken, early on, as confirmation that the implementation was right. The
+implementation \emph{is} right (Section~\ref{sec:kc_audit}), but the match is a
+coincidence: the two ratios are produced by different mechanisms.
+
+\paragraph{ColoRadar's 3.30.} Section~\ref{sec:decomposition} decomposed it.
+The capture uses 9.8 of the 16 FX16 bits, which is worth a factor of \num{1.64}
+before any coding; the sparsity of a range-FFT frame is worth \num{2.13}
+through the entropy coder; and DRHE's predictor, applied along a
+transmitter-interleaved axis, \emph{costs} \SI{4.9}{\percent}, so the no-prediction ratio, 3.479 over
+50 frames, is higher than DRHE's.
+
+\paragraph{Kiem's 3.25.} On his single-transmitter radar the predictor runs on
+the right axis, and his dictionary --- built from his own residuals --- is
+optimal for residuals of 6 to 8\,LSB (Section~\ref{sec:kr_fingerprint}). His
+ratio is what a matched coder gives on residuals of that size; on his own
+simulated scene the replication reaches it only when the FX16 noise is about
+4.6\,LSB.
+
+\paragraph{Why they cannot be compared directly.} Beyond the different scenes,
+four properties of the chain differ between the two datasets, each of which moves
+the ratio on its own:
+
+\begin{itemize}
+\item \textbf{FX16 scaling.} This thesis maps a full-scale sinusoid to 32767;
+Kiem's FFT core to about 8191. The same signal occupies two more bits here.
+\item \textbf{ADC width and gain.} Kiem's CTRX is 14-bit (12-bit in his use
+case) and his data is scaled by $16 - \mathit{bitWidth} + 16$; ColoRadar is
+recorded in a 16-bit container but peaks near 1100 codes, so its effective
+gain is low.
+\item \textbf{Real against complex samples.} His FFT input is real and half the
+spectrum is redundant; ColoRadar's is complex and the negative half is
+discarded by choice.
+\item \textbf{One against twelve transmitters.} His ramp axis is slow time; ours
+is interleaved.
+\end{itemize}
+
+\noindent
+What \emph{can} be said is this. Applied to ColoRadar, Kiem's algorithm gives
+exactly DRHE-1's 3.310, because it is DRHE-1. Applied to Kiem's scene, this
+thesis's DRHE gives exactly his algorithm's ratio at every noise level, because
+it is his algorithm. The comparison of \emph{algorithms} is therefore settled;
+the comparison of \emph{datasets} cannot be made.
+
+\section{Run-length coding}
+\label{sec:kc_rle}
+
+Kiem removed the run-length half of the original coder after finding that it
+changed the ratio from 3.25 to 3.24. The same comparison, with ideal
+dictionaries in both cases, holds on both datasets available here: 3.25
+against 3.24 on the replicated scene at $-87.9$\,dBFS
+(Table~\ref{tab:kr_m88}), and on ColoRadar (every fifth frame, 4 RX) 3.466
+against 3.457 for DRHE-1 and 4.340 against 4.273 for DRHE-$n$, a gain of at
+most \SI{1.6}{\percent}. His simplification is sound for this sensor too.
+
+\section{The fixed dictionary}
+\label{sec:kc_dict}
+
+Kiem fixed his dictionary on one recording and found the cost small. On his
+simulated scene at the noise level that reproduces his ratio, the fixed
+dictionary costs \SI{0.3}{\percent} (3.23 against 3.24). On ColoRadar the
+answer depends on the predictor. Re-deriving the dictionary from five frames and
+testing it on the other 45 raises the ratio by 3--\SI{8}{\percent} for the raw
+codes and the lag-1 predictors, and by 12--\SI{18}{\percent} for the corrected
+predictors, whose residuals are much smaller than the ones the dictionary was
+built for (Section~\ref{sec:dictresults}). A dictionary is a
+property of the data it was trained on, and this one was trained on a
+different radar.
+
+\section{Linear prediction}
+\label{sec:kc_lpc}
+
+\begin{table}[htbp]
+\centering
+\caption[The LPC question in one table]{Kiem's statement about LPC and what was
+measured. CRs with Kiem's fixed dictionary unless stated.}
+\label{tab:kc_lpc}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Comparison & DRHE & LPC & Source\\
+\midrule
+\multicolumn{4}{@{}l}{\emph{LPC-Huffman of \cite{meucci2022} (fast time, raw ADC) --- the method Kiem meant}}\\
+Kiem's scene, $-75$\,dBFS, $p = 10$     & 1.85 / 2.28\,(R4S4) & 1.32 & Table~\ref{tab:kr_m75}\\
+Kiem's scene, $-87.9$\,dBFS, $p = 10$   & 3.23 / 3.25\,(R4S4) & 1.54 & Table~\ref{tab:kr_m88}\\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Slow-time LPC on FX16 (this thesis)}}\\
+Kiem's scene, $-75$\,dBFS               & 1.85 & 2.06 & Table~\ref{tab:kr_m75}\\
+Kiem's scene, $-87.9$\,dBFS             & 3.23 & 3.38 & Table~\ref{tab:kr_m88}\\
+ColoRadar, lag 1 (HLS, 50 frames)       & 3.310 & 3.385 & Table~\ref{tab:tdmhls}\\
+ColoRadar, lag $n_{\mathrm{Tx}}$ (HLS)  & \textbf{3.751} & 3.697 & Table~\ref{tab:tdmhls}\\
+ColoRadar, lag $n_{\mathrm{Tx}}$, re-derived dictionary & 4.207 & \textbf{4.371} & Section~\ref{sec:dictresults}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+Table~\ref{tab:kc_lpc} answers the question with measurements. Kiem's remark
+is right about the method he meant, and for a reason he did not state: coding
+raw ADC samples losslessly means keeping about four bits of noise per value that
+his FX16 step discards (Section~\ref{sec:kr_lpcraw}). His remark does not carry
+over to the LPC of this thesis, which predicts in the same domain and along the
+same axis as DRHE. That LPC is level with DRHE everywhere it was measured: a
+little ahead on his scene and on ColoRadar before the correction, a little
+behind after it with his dictionary, and ahead again once the dictionary is
+fitted to the data. The ranking on compression ratio is within a few per cent
+and depends on the coder; what separates the two algorithms is structure ---
+DRHE streams, LPC needs the whole frame --- and that is the basis of the choice
+made in Section~\ref{sec:headtohead}.
+
+\section{Detection metrics and the noise floor}
+\label{sec:kc_det}
+
+Kiem's FX16 row loses \SI{0.59}{\percent} of detections and adds
+\SI{1.18}{\percent} spurious ones; this thesis's loses \SI{3.77}{\percent} and
+adds \SI{1.11}{\percent}. Both measure the same thing --- the cost of quantising
+to 16-bit fixed point, since every lossless coder shares FX16's metrics --- but on
+different sensors, scenes and chains, and they are not comparable. Two
+differences probably dominate. The ColoRadar codes use 9.8 of 16 bits, so the
+quantisation step is coarse relative to the weakest returns; the quantisation
+study shows that filling the container removes almost all of the error
+(Table~\ref{tab:jr_lfr}). And the detection chain here integrates sixteen
+receive channels over a Doppler FFT taken across transmitter-interleaved ramps
+(Section~\ref{sec:refchain}), which spreads each target over several Doppler
+cells and makes its local maxima more fragile.
+
+The noise floors ($-70.7$ against $-105.4$\,dBFS) are not comparable at all:
+0\,dBFS is not defined in Kiem's thesis, the sensors and gains differ, and NCI
+over 16 channels and a 192-point Doppler FFT change the level. Within one
+dataset, the noise floor is useful only for comparing schemes with each other.
+
+\section{What the comparison finally says}
+\label{sec:kc_summary}
+
+\begin{keybox}
+\textbf{Same:} the DRHE algorithm, to the bit; the finding that run-length
+coding adds almost nothing; that DRHE beats every lossy scheme in the design
+space on the combination of ratio and detection; that the design meets
+\SI{100}{\mega\hertz} on his speed grade and fits his device.
+
+\textbf{Different, and explained:} every hardware resource figure and the
+initiation interval (float datapath, packer, closed loop, state clearing ---
+each measured by the ladder); the throughput (a factor of two, once his
+theoretical binary figure is compared with ours); the value of his fixed
+dictionary on other data; the LPC ranking, which holds for his LPC and not for
+ours.
+
+\textbf{Not comparable:} the compression ratios and detection metrics on the
+two datasets. The algorithms are the same; the datasets and their scaling are
+not, and the similarity of 3.25 and 3.30 is a coincidence.
+
+\textbf{Unexplained:} his published LUT and flip-flop counts exceed what his
+described design needs by about 2.7 and 1.8 times (Section~\ref{sec:acc_lutff});
+and his reported noise floor is 17\,dB higher than a white-noise scene with his
+compression ratio would have (Section~\ref{sec:kr_nfcr}). The second most
+likely reflects the difference between a real noise floor and a simulated one.
+\end{keybox}

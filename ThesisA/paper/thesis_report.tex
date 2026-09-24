@@ -24,6 +24,8 @@
                 shapes.geometric,fit,backgrounds,3d}
 
 \sisetup{detect-weight=true,detect-family=true,group-separator={,},group-digits=integer,group-minimum-digits=4}
+\sisetup{text-micro=\ensuremath{\mu}}
+\renewcommand{\S}{\ensuremath{\mathsection}}
 
 \definecolor{accent}{HTML}{2F5D7C}
 \definecolor{warm}{HTML}{B5553F}
@@ -88,70 +90,49 @@ Bachelor of Engineering (Electrical Engineering)\par}
 
 High-resolution cascaded MIMO radar produces data faster than a vehicle's
 network and central processor can comfortably absorb it. Compressing that data
-at the sensor, before it enters the network, is an attractive way to buy back
-bandwidth --- but only if the compressor is fast, cheap in silicon, and
-lossless, because a radar that quietly discards weak targets to save bits is
-not a safe radar.
+at the sensor is an attractive way to buy back bandwidth, but only if the
+compressor is fast, small and lossless, because a radar that quietly discards
+weak targets to save bits is not a safe radar.
 
-This thesis implements, verifies and critically evaluates two lossless
-compressors for radar range--FFT data on an AMD Kintex UltraScale+ FPGA:
-\emph{Doppler Redundancy Hybrid Encoding} (DRHE), a streaming polar-domain
-predictor, and a second-order \emph{Linear Predictive Coder} (LPC) with
-Yule--Walker coefficients. Both share a category-plus-append entropy back end
-with a fixed Huffman dictionary. Both were developed in MATLAB against a
-double-precision reference, translated to C++ for Vitis HLS, verified
-bit-exactly over 50 frames of the real ColoRadar cascade dataset, and
-characterised through RTL co-simulation and Vivado placement and routing.
+This thesis starts from Kiem's design of Doppler Redundancy Hybrid Encoding
+(DRHE) for a single-transmitter radar and follows it onto a twelve-transmitter
+cascade. Early simulations compressed to about 1.1 where Kiem reports 3.25; a
+quantisation study showed that filling the 16-bit container removes the
+quantisation error but also almost all of the compression; and an eight-scheme
+benchmark on 50 frames of the public ColoRadar dataset selected DRHE (3.30) and
+a second-order linear predictive coder (3.37) --- an LPC designed as a
+controlled comparison with DRHE, predicting in the same domain with the same
+coder, and not the raw-ADC ``LPC-Huffman'' that Kiem excluded. Both were
+implemented with matching decompressors in Vitis HLS for an AMD Kintex
+UltraScale+ FPGA, verified bit-exactly at three levels of abstraction, and
+taken through Vivado placement and routing.
 
-The headline results are not the ones that were expected. A systematic audit of
-the compression ratio found that \emph{neither predictor was contributing
-anything}: coding the quantised FFT output through the identical entropy coder
-with no prediction whatsoever achieves a compression ratio of \num{3.489},
-against \num{3.319} for DRHE and \num{3.397} for LPC. Both predictors were
-making the data measurably harder to compress. The cause was traced to an
-assumption inherited from the single-transmitter literature. In a
-twelve-transmitter time-division MIMO cascade the ramp index interleaves
-transmitters, so ``the previous ramp'' belongs to a different physical antenna
-eleven times out of twelve, separated in space by the array baseline rather
-than in time by a pulse interval. Predicting instead from the previous ramp of
-the \emph{same} transmitter --- lag $n_{\mathrm{Tx}}$ rather than lag 1 ---
-converts a \SI{4.9}{\percent} loss into an \SI{8.2}{\percent} gain. Measured in
-hardware simulation over the full dataset, compression rises from \num{3.310}
-to \num{3.751} for DRHE and from \num{3.385} to \num{3.697} for LPC, in both
-cases with every sample still reconstructed exactly. For DRHE the correction
-costs \num{40} additional block RAMs --- \SI{4}{\percent} of the device ---
-with logic and measured frame latency unchanged and the clock still well above
-\SI{100}{\mega\hertz}.
+The results were not the ones expected. Coding the quantised data with no
+prediction at all compresses better (3.479) than either predictor as first built
+(3.310 and 3.385), because on a time-division MIMO cascade ``the previous
+ramp'' belongs to a different transmitter eleven times in twelve. Predicting
+from the previous ramp of the same transmitter raises the measured ratio to
+3.751 for DRHE and 3.697 for LPC, still exactly lossless; for DRHE the fix costs
+40 block RAMs and nothing else. Of the ratio, \num{1.64}$\times$ comes from an
+under-filled container and \num{2.13}$\times$ from spectral sparsity before
+prediction contributes anything. After the correction Kiem's fixed Huffman
+dictionary no longer suits the residuals: re-deriving it raises DRHE to 4.21 and
+LPC to 4.37 on held-out frames, so the ranking on ratio depends on the coder,
+and DRHE is preferred on structure --- it streams with no frame buffer --- rather
+than on ratio. Two latent defects were found and fixed by synthetic edge cases.
+Implemented, DRHE uses fewer LUTs than Kiem's IP and meets
+\SI{100}{\mega\hertz}; a replica of his design and a ladder of single-change
+variants account for every other hardware difference, most of which is the
+floating-point datapath, which buys only \SI{0.07}{\percent} of ratio.
 
-Two implementation defects were also found and fixed, neither visible on real
-data and both caught by synthetic edge cases: a residual value of $-32768$ that
-the entropy code cannot represent and which aliased silently onto $+32767$, and
-a 128-bit to single-precision conversion in the Yule--Walker solver that
-returned zero for operands above $2^{64}$. The reference design's published
-throughput was also found to be a theoretical figure in gibibits rather than a
-measured one in gigabits; compared like for like, the gap to it is exactly the
-factor of two that one extra memory access per cycle costs.
-
-Implemented through placement and routing, the designs overturned their own
-synthesis estimates: DRHE uses about a third of the logic HLS predicted, fewer
-LUTs than the published reference design, and every design meets
-\SI{100}{\mega\hertz} where the estimates said none of them would. To account for every
-remaining difference from the reference, it was rebuilt from its description
-in the same tool flow and connected to our design by a ladder of single-change
-variants, each implemented and verified lossless. Each difference in block RAM,
-DSPs, pipeline depth and initiation interval has one measured cause, and most
-of the logic is the floating-point datapath: changing only the arithmetic to
-the reference's fixed point removes \HW{ablf}{pDLUT}\,\% of the logic and
-\HW{ablf}{pDDSP}\,\% of the DSPs and compresses to within
-\SI{0.07}{\percent} of the floating-point design. The reference's own published
-logic count remains larger than its description requires, and only part of
-that difference could be explained.
-
-The thesis closes with a decomposition of where the compression ratio genuinely
-comes from --- \num{1.63}$\times$ from an under-filled fixed-point container,
-\num{2.14}$\times$ from spectral sparsity, and only then a modest contribution
-from prediction --- and argues that reporting a no-prediction baseline alongside
-any such ratio should be standard practice.
+Finally, Kiem's simulation was rebuilt from his text alone. It reproduces his
+DRHE pattern (3.25 with run-length coding, 3.24 without), explains the early
+1.1 completely (a four-fold FX16 scaling difference and a noise floor seventeen
+decibels too high), confirms his ranking for the LPC he meant --- which codes
+raw ADC noise that the FX16 step discards --- but not for the LPC built here,
+and shows two independent implementations of his algorithm and this thesis's
+agree to the bit. Every reported result was re-run and independently recomputed
+before submission.
 
 \chapter*{Acknowledgements}
 \addcontentsline{toc}{chapter}{Acknowledgements}
@@ -353,22 +334,32 @@ this way and would have been invisible under any tolerance-based criterion.
 \label{sec:objectives}
 
 The starting point for this thesis is the master's work of Lukas Kiem
-\cite{kiem2025}, which evaluated a wide range of radar compression schemes and
-identified Doppler Redundancy Hybrid Encoding as the best of them, reaching a
-compression ratio of \num{3.2} at a latency of \SI{0.08}{\milli\second} on a
-Zynq UltraScale+ device. Kiem's work left three openings, which became the
-objectives of this thesis:
+\cite{kiem2025}, which evaluated a range of radar compression schemes on
+recordings from an Infineon single-MMIC radar, identified Doppler Redundancy
+Hybrid Encoding as the best of them (CR \num{3.25} in simulation), and
+implemented it on a Zynq UltraScale+ device (CR \num{3.17} in hardware, added
+latency \SI{0.08}{\milli\second}). Chapter~\ref{ch:kiem} describes his work in
+detail. It left openings that became the objectives of this thesis:
 
 \begin{enumerate}
-\item \textbf{Validate on real data.} Kiem's FPGA implementation was exercised
-with synthetic stimulus. This thesis drives both compressors with real captured
-data --- 50 consecutive frames from a Texas Instruments MMWCAS-RF-EVM cascade,
-taken from the public ColoRadar dataset \cite{kramer2022} --- through the entire
-verification chain, from MATLAB to RTL co-simulation.
+\item \textbf{Validate on public, larger, MIMO data.} Kiem's results come from
+private recordings of a single-transmitter radar with 512 ramps of 512 samples.
+This thesis drives both compressors with 50 consecutive frames from the public
+ColoRadar dataset \cite{kramer2022}, recorded with a Texas Instruments
+MMWCAS-RF-EVM twelve-transmitter cascade, through the entire verification
+chain from MATLAB to RTL co-simulation. (Earlier project documents said Kiem
+had tested only on synthetic data. That was wrong; Section~\ref{sec:kiem_data}
+corrects it.)
 
-\item \textbf{Broaden the algorithm comparison.} DRHE is compared here not only
-against the schemes Kiem considered but against a second-order linear
-predictive coder with Yule--Walker coefficients, and against a
+\item \textbf{Address the quantisation error.} Kiem identified the 16-bit
+fixed-point step as the source of his detection errors. This thesis measures
+how much of that error can be removed and what it costs
+(Section~\ref{sec:jr_quant}), and tests floating point both as a storage format
+and as the predictor's arithmetic.
+
+\item \textbf{Broaden the algorithm comparison.} DRHE is compared here with
+block-adaptive and range-dependent quantisers, with a second-order linear
+predictive coder with Yule--Walker coefficients, and with a
 \emph{no-prediction} baseline that turns out to be the most informative
 comparison of all.
 
@@ -377,6 +368,11 @@ only. This thesis implements compression \emph{and} decompression for both
 algorithms, which is what makes bit-exact verification possible at every level,
 and which exposed a subtle encoder/decoder divergence described in
 Section~\ref{sec:defect32768}.
+
+\item \textbf{Account for every difference from Kiem.} Where this thesis's
+numbers differ from his, explain why, with a measurement: in hardware by
+rebuilding his design (Chapter~\ref{ch:interpret}), and in simulation by
+rebuilding his workflow (Chapter~\ref{ch:replication}).
 \end{enumerate}
 
 \section{Contributions}
@@ -414,7 +410,58 @@ author's own earlier reporting}: a throughput figure quoted in gibibits and
 compared against decimal figures; a detection metric labelled as a false
 positive rate that is in fact a false discovery rate; and two malformed source
 citations.
+
+\item \textbf{A replication of Kiem's simulation from his text alone}, which
+reproduces his DRHE result pattern, explains why this project's first
+simulations compressed to 1.1 instead of 3.25, and shows that his remark that
+LPC is less promising holds for the raw-ADC method he meant but not for the
+slow-time LPC built here (Chapter~\ref{ch:replication}).
+
+\item \textbf{A result-by-result comparison with Kiem}, including a line-by-line
+audit showing that the DRHE implemented here is his algorithm to the bit, and
+the reason for each of the five places where the hardware deliberately differs
+(Chapter~\ref{ch:kiemcompare}).
+
+\item \textbf{Evidence that the DRHE-versus-LPC ranking on ratio depends on the
+coder}: with a dictionary re-derived for the corrected residuals, LPC overtakes
+DRHE (Section~\ref{sec:dictresults}).
 \end{enumerate}
+
+\section{The story in one page}
+\label{sec:story}
+
+The project began by rebuilding Kiem's MATLAB workflow and running it on
+synthetic scenes shaped like his. DRHE compressed them to about 1.1, not 3.25,
+and the explanation adopted at the time --- white noise has no slow-time
+correlation to predict --- sent the project looking for real data. After a
+failed attempt with a laboratory radar it settled on the public ColoRadar
+cascade. A study of the quantisation step showed that its error could be
+removed, but only by filling the 16-bit container, which also removed almost
+all of the compression. A benchmark of eight schemes on 50 real frames then
+picked DRHE (3.30) and a linear predictive coder (3.37), the lossy schemes
+paying for their ratio in missed and invented detections
+(Chapter~\ref{ch:journey}).
+
+Both were implemented in HLS with decoders, verified bit-exactly, and found two
+latent defects in synthetic edge cases (Chapters~\ref{ch:algorithms}
+to~\ref{ch:implementation}). Everything passed. An audit then asked what the
+ratio actually measured, and found that coding the data with \emph{no}
+predictor did better than either predictor: the cascade interleaves twelve
+transmitters along the ramp axis, so both algorithms had been predicting from
+the wrong neighbour. Predicting from the same transmitter recovered the gain
+they were designed for, and showed that Kiem's fixed dictionary, built for
+larger residuals, was now holding both designs back (Chapter~\ref{ch:results}).
+Placement and routing then
+overturned the synthesis estimates, and a replica of Kiem's hardware with a
+ladder of single-change variants accounted for every hardware difference from
+his design (Chapter~\ref{ch:interpret}).
+
+Last, Kiem's simulation was rebuilt independently. It reproduced his DRHE
+pattern, explained the early 1.1 as a scaling and noise-level effect rather
+than a correlation effect, tested the LPC he had excluded, and closed the loop
+from his specification to this thesis's hardware (Chapters~\ref{ch:replication}
+and~\ref{ch:kiemcompare}). Every result was re-run and recomputed
+independently before submission (Appendix~\ref{app:verify}).
 
 \section{How to read this report}
 \label{sec:structure}
@@ -431,26 +478,35 @@ be compressed, how lossless compression works in general, and what an FPGA
 gives you and charges you for. A reader already fluent in these can skip to
 Section~\ref{sec:sota}.
 
+\textbf{Chapter~\ref{ch:kiem}} describes the baseline, Kiem's thesis, in
+enough detail that later comparisons can be followed without it.
+
+\textbf{Chapter~\ref{ch:journey}} tells how the project got from its plan to
+two algorithms: the early synthetic experiments, the move to real data, the
+quantisation study, and the eight-scheme benchmark.
+
 \textbf{Chapter~\ref{ch:algorithms}} specifies the two algorithms and the
 entropy coder they share, in enough detail to reimplement them.
 
-\textbf{Chapter~\ref{ch:method}} sets out the four-phase verification framework
-and defines every metric used, including several that are commonly used
-loosely.
+\textbf{Chapter~\ref{ch:method}} sets out the verification framework and
+defines every metric used, including several that are commonly used loosely.
 
 \textbf{Chapter~\ref{ch:implementation}} describes the hardware architectures
 and the two defects.
 
-\textbf{Chapter~\ref{ch:results}} reports results, and is where the audit and
-the prediction-axis correction appear.
+\textbf{Chapter~\ref{ch:results}} reports results, and is where the audit, the
+prediction-axis correction and the dictionary result appear.
 
-\textbf{Chapter~\ref{ch:interpret}} explains what each hardware number means:
-what it represents, why it is measured, what it should be compared against ---
-the reference design where that is valid, the sensor, the link and the device
-where it is not --- and at what point it becomes a problem.
+\textbf{Chapter~\ref{ch:interpret}} explains what each hardware number means
+and accounts for every hardware difference from Kiem's design.
+
+\textbf{Chapter~\ref{ch:replication}} rebuilds Kiem's simulation and runs every
+coder on his scene, and \textbf{Chapter~\ref{ch:kiemcompare}} compares every
+one of his results and claims with this thesis's.
 
 \textbf{Chapter~\ref{ch:discussion}} discusses what the numbers support and what
 they do not, and \textbf{Chapter~\ref{ch:conclusion}} concludes.
+Appendix~\ref{app:verify} records the final re-verification of every result.
 
 % ===================================================================
 \chapter{Background}
@@ -784,10 +840,12 @@ H = -\sum_x p(x) \log_2 p(x) \quad\text{bits per symbol},
 and no code that treats symbols independently can average fewer bits than $H$
 \cite{sayood2017}. This gives a concrete yardstick: measure $H$ for the data,
 compare it against what the coder actually achieves, and the gap is the coder's
-inefficiency. Section~\ref{sec:decomposition} does exactly this, and finds the
-entropy coder used here runs only \SI{6.2}{\percent} above the order-0 entropy
-of its input --- which is good, and which means the room for improvement is not
-in the entropy coder.
+inefficiency. Section~\ref{sec:decomposition} does exactly this. It finds the
+fixed entropy coder used here runs \SI{12.0}{\percent} above the order-0 entropy
+of the raw codes and \SI{6.2}{\percent} above it on the residuals it was
+first used with --- but \SI{21}{\percent} and more above it on the smaller
+residuals of the corrected predictors, which is why Section~\ref{sec:dictresults}
+comes back to the coder.
 
 \subsection{The standard two-stage structure}
 
@@ -1132,27 +1190,32 @@ end of the ratio spectrum.
 
 The direct predecessor of this work is Lukas Kiem's master's thesis
 \cite{kiem2025}, which performed a design-space exploration across
-Exponential-Golomb variants, Infineon common-exponent formats, and predictive
-coders, and concluded that Doppler Redundancy Hybrid Encoding gave the best
-combination of compression ratio, noise-floor impact and detection accuracy. He
-implemented DRHE on a Zynq UltraScale+ device (\texttt{XCZU3CG-SFVC784-1-e},
-Vitis and Vivado 2022.2), reporting a compression ratio of
-\num{3.2}, an IP-core latency of \SI{230}{\nano\second} and a throughput of
+Exponential-Golomb variants, block-floating-point formats and predictive
+coders, and concluded that Doppler Redundancy Hybrid Encoding (DRHE) gave the
+best combination of compression ratio, noise-floor impact and detection
+accuracy. He implemented DRHE on a Zynq UltraScale+ device
+(\texttt{XCZU3CG-SFVC784-1-e}, Vitis and Vivado 2022.2), reporting a
+compression ratio of \num{3.25} in simulation and \num{3.17} measured on the
+hardware, an IP-core latency of \SI{230}{\nano\second} and a throughput of
 ``\SI{11.92}{Gbit\per\second}'' at \SI{100}{\mega\hertz}.
 
-That thesis is the source of the DRHE specification used here, including the
-filter coefficients and the Huffman dictionary, both of which were verified
-entry-by-entry against it (Section~\ref{sec:huffman}). It left three gaps ---
-synthetic-only validation, a narrow algorithm comparison, and a
-compression-only implementation --- which Section~\ref{sec:objectives} listed as
-this thesis's objectives.
+All of Kiem's published compression results come from recordings made with a
+single-transmitter automotive MMIC; a synthetic scene appears in his thesis
+only to illustrate the processing. That thesis is the source of the DRHE
+specification used here, including the filter coefficients and the Huffman
+dictionary, both of which were verified entry-by-entry against it
+(Section~\ref{sec:huffman}). Because it is so central, the whole of
+Chapter~\ref{ch:kiem} is given over to explaining what he did, how he did it,
+and what he left open; Chapter~\ref{ch:replication} then rebuilds his
+simulation, and Chapter~\ref{ch:kiemcompare} compares his results with ours
+one by one.
 
-It also, as Chapter~\ref{ch:results} shows, contains an assumption that does not
-survive the move to a TDM-MIMO cascade. That is not a criticism of the work: a
-single-transmitter radar has no transmitter-interleaved ramp axis, and on such
-a radar the specification is correct as written. It becomes wrong only when
-applied, unmodified, to a sensor of a different kind --- which is exactly what
-this thesis did before measuring it.
+His work also, as Chapter~\ref{ch:results} shows, contains an assumption that
+does not survive the move to a TDM-MIMO cascade. That is not a criticism of the
+work: a single-transmitter radar has no transmitter-interleaved ramp axis, and
+on such a radar the specification is correct as written. It becomes wrong only
+when applied, unmodified, to a sensor of a different kind --- which is exactly
+what this thesis did before measuring it.
 
 \section{Summary of what the later chapters assume}
 
@@ -1171,6 +1234,9 @@ confounding variable in any measured ratio.
 \item FPGA cost is measured in LUTs, flip-flops, BRAMs and DSPs, and timing in
 initiation interval, pipeline depth and $F_{\max}$.
 \end{enumerate}
+
+\input{ch_kiem}
+\input{ch_journey}
 
 % ===================================================================
 \chapter{The Two Algorithms}
@@ -1774,26 +1840,35 @@ two are independent and only one of them turned out to be the problem.
 
 The order-0 entropy of the raw FX16 values --- the theoretical floor for any
 code that treats values independently, from Equation~\eqref{eq:entropy} --- is
-\SI{4.094}{bits}. The coder achieves \SI{4.576}{bits} on the same data. That is
-an overhead of \SI{0.48}{bits}, or \SI{11.8}{\percent}, for a dictionary fixed
-at design time against a different dataset; on the five-frame average used in
-Chapter~\ref{ch:results} the figure is \SI{6.2}{\percent}.
+\SI{4.094}{bits} per value over the five audit frames. The coder achieves
+\SI{4.586}{bits} on the same data: an overhead of \SI{0.492}{bits}, or
+\SI{12.0}{\percent}. On the residuals of the lag-1 DRHE predictor, the
+configuration this coder was first used with here, the entropy is
+\SI{4.538}{bits} and the coder achieves \SI{4.821}{bits}, an overhead of only
+\SI{0.283}{bits} or \SI{6.2}{\percent}. For a dictionary fixed at design time
+against a different dataset, either figure is respectable.
 
-That is a good result, and it has a clear implication: \textbf{there is very
-little left to win in the entropy coder}. Even a perfect, data-derived,
-per-frame-optimal code would improve the compression ratio by only a few
-per cent. All the remaining leverage is in the predictor --- which is what makes
-a predictor that was contributing nothing such an expensive thing not to have
-noticed.
+The first conclusion drawn from this, in an earlier version of this report, was
+that \emph{there is very little left to win in the entropy coder}, and that all
+the leverage is in the predictor. That is true of the uncorrected designs, and
+it is what directed attention to the predictor, where the real defect was. It
+is not true once the predictor is fixed. The corrected predictors produce much
+smaller residuals than the ones the dictionary was designed for, and the
+overhead grows: \SI{20.6}{\percent} for DRHE at lag $n_{\mathrm{Tx}}$ (4.240
+bits against an entropy of 3.516) and \SI{34.9}{\percent} for the LPC residuals
+at lags $n_{\mathrm{Tx}},2n_{\mathrm{Tx}}$ (4.102 against 3.040).
 
-One caveat is worth recording for future work. The dictionary gives its
-two-bit codewords to categories 2, 3 and 4, which suits a distribution centred
-there. After the prediction-axis correction the distribution has moved
-\emph{down}: categories 0, 1 and 2 now hold \SI{86}{\percent} of values, and
-category 0 --- exactly zero --- is paying four bits for what is now the second
-most common symbol. Re-deriving the dictionary for the corrected residual
-distribution is an obvious and cheap improvement that this thesis does not
-make.
+The reason is visible in the dictionary's shape. It gives its two-bit
+codewords to categories 2, 3 and 4, which suits a distribution centred there ---
+residuals of 6 to 8 LSB, the size Kiem's single-transmitter recordings
+produced (Section~\ref{sec:kr_fingerprint}). After the prediction-axis
+correction the distribution has moved \emph{down}: categories 0, 1 and 2 now
+hold \SI{86}{\percent} of values, and category 0 --- exactly zero --- is paying
+four bits for what is now the second most common symbol. No value can ever cost
+fewer than four bits, so no frame can ever compress by more than
+\num{4.0}. Section~\ref{sec:dictresults} re-derives the dictionary and measures
+what this costs: 12 to \SI{18}{\percent} of compression ratio on the corrected
+designs.
 
 \subsection{A representability hole}
 \label{sec:hole}
@@ -2011,6 +2086,50 @@ This is the fundamental trade between the two algorithms, and
 Section~\ref{sec:headtohead} argues it matters more than the difference in
 compression ratio.
 
+\subsection{Coefficient quantisation}
+
+The Yule--Walker solution of Equation~\eqref{eq:yw} is computed in floating
+point and then quantised before use, because the decoder must use exactly the
+coefficients the encoder used and must be able to read them from the
+bitstream. $a_1$ is stored as \texttt{ap\_fixed<16,2>} (range $[-2, 2)$, step
+$2^{-14}$) and $a_2$ as \texttt{ap\_fixed<16,1>} (range $[-1, 1)$, step
+$2^{-15}$), both with truncation towards $-\infty$, which is the HLS default.
+The prediction is then formed in fixed point and rounded to an integer before
+the residual is taken, so encoder and decoder agree to the bit. The MATLAB model
+of Phase~1 reproduces this quantisation; the independent Python implementation
+of Appendix~\ref{app:verify} does too, and matches the HLS bit counts exactly
+on all 50 frames.
+
+\subsection{What this LPC is not}
+\label{sec:lpc_notkiem}
+
+Kiem's thesis mentions an ``LPC-Huffman'' method as a close relative of DRHE
+that he judged less promising and did not implement. It would be natural to
+read the LPC of this section as that method. It is not, and the difference
+matters for every comparison later in the report.
+
+The method Kiem described, following the work he cites, predicts each raw ADC
+sample from the previous $p$ samples of the \emph{same chirp} --- a predictor
+along fast time, before the range FFT --- and codes the residuals with a
+Huffman code derived from the data. The LPC here predicts each range-FFT
+\emph{code} from the same range bin in earlier \emph{ramps} --- along slow
+time, after the range FFT, exactly where DRHE predicts --- and codes the
+residuals with DRHE's own fixed dictionary. It was designed this way on
+purpose: by keeping DRHE's input, DRHE's axis and DRHE's coder and changing
+only the predictor, any difference in compression ratio can be attributed to
+the predictor alone. Kiem's LPC-Huffman would have differed from DRHE in four
+things at once.
+
+Chapter~\ref{ch:journey} explains how this design was arrived at
+(Table~\ref{tab:lpc_vs_kiemlpc} compares the two methods line by line);
+Chapter~\ref{ch:replication} implements Kiem's fast-time LPC-Huffman as well,
+on his own simulated scene, and measures what he did not; and
+Section~\ref{sec:kc_lpc} brings the two sets of numbers together. The short
+version is that Kiem's judgement about \emph{his} LPC is borne out --- fast-time
+prediction of raw ADC samples compresses poorly --- while the slow-time LPC of
+this thesis lands within \SI{1.5}{\percent} of DRHE once both use the correct
+prediction axis, and ahead of it when the dictionary is re-derived.
+
 \section{Side-by-side}
 
 \begin{table}[t]
@@ -2165,11 +2284,31 @@ width. Section~\ref{sec:threats} notes the consequence for comparisons against
 the 16-channel MATLAB benchmark.
 
 \subsection{Detection and metrics}
-The reconstructed data is put through Doppler and angle processing and a
-threshold detector, and the resulting detections are compared against those
-from the double-precision reference. The threshold is the mean of the lowest
-\SI{75}{\percent} of sorted magnitudes plus a fixed \SI{15}{\decibel} offset,
-with 8-connected local-maximum suppression.
+The reconstructed data is put through a Doppler FFT and a threshold detector,
+and the resulting detections are compared against those from the
+double-precision reference. Three details of this chain matter for how its
+results should be read, and were confirmed by re-reading the code for this
+report:
+
+\begin{itemize}
+\item the Doppler FFT is a 192-point FFT across \emph{all} ramps of the frame,
+in the order they were recorded --- that is, across the transmitter-interleaved
+ramp axis of Section~\ref{sec:tdm}, not across the 16 ramps of any one
+transmitter;
+\item there is no angle FFT: the 16 receive channels are combined by
+non-coherent integration (summing magnitudes), so ``detection'' here means a
+peak in a range--Doppler map, not a localised point in space;
+\item the threshold is the mean of the lowest \SI{75}{\percent} of sorted
+magnitudes plus a fixed \SI{15}{\decibel} offset, with 8-connected
+local-maximum suppression.
+\end{itemize}
+
+\noindent
+Neither of the first two affects any lossless result, since a lossless
+compressor returns the input exactly and every downstream stage then agrees by
+construction. They matter only for the lossy comparison points, whose detection
+losses are measured by a chain that is simpler than a production one
+(Section~\ref{sec:threats}).
 
 \section{Metrics, defined precisely}
 \label{sec:metrics}
@@ -2270,8 +2409,10 @@ identically in C-simulation and co-simulation.
 \begin{table}[t]
 \centering
 \caption[Synthetic edge cases]{The synthetic edge-case suite. Each case has its
-own allowed reconstruction error --- zero for all but the two that exercise the
-saturation described in Section~\ref{sec:defect32768}.}
+own allowed reconstruction error --- zero for all but the three that can
+produce the value $-32768$ and therefore exercise the saturation described in
+Section~\ref{sec:defect32768}. Uniformly random \texttt{int16} input produces a
+residual of $-32768$ by chance, so it is one of them.}
 \label{tab:edgecases}
 \small
 \begin{tabular}{@{}llc@{}}
@@ -2280,7 +2421,7 @@ Case & What it exercises & Allowed $\mathrm{MaxDiff}$ \\
 \midrule
 all-zeros        & the $S_4 = 0$ path and the best case & 0 \\
 dc-constant      & a perfectly predictable sequence & 0 \\
-random-int16     & the worst case: incompressible input & 0 \\
+random-int16     & the worst case: incompressible input & 1 \\
 tone-192ramp     & a periodic sequence the AR model should fit & 0 \\
 tone-1ramp       & a sequence too short to fit & 0 \\
 max-amplitude    & full-scale values, and 128-bit correlations & 0 \\
@@ -2298,7 +2439,7 @@ returned to in Section~\ref{sec:lessons}.
 
 \section{Toolchain and reproducibility}
 
-All MATLAB work used R2024b with the Signal Processing Toolbox. All hardware
+All MATLAB work used R2026a with the Signal Processing Toolbox. All hardware
 work used AMD Vitis HLS 2026.1 targeting \texttt{xcku5p-ffvb676-2-e} at a
 \SI{100}{\mega\hertz} clock, with XSIM for co-simulation and Vivado 2026.1 for
 out-of-context synthesis, placement and routing (\texttt{vitis-run --mode hls
@@ -2663,59 +2804,35 @@ correction and its consequences.
 
 \subsection{Eight algorithms on real data}
 
-Table~\ref{tab:phase1} gives the 50-frame average over \num{9934} reference
-detections, using all 16 receive channels. The reference against which
-everything is compared is the double-precision path, so FP16 --- half-precision
-floating point --- registers as effectively lossless.
+The eight-scheme benchmark was the experiment that selected DRHE and LPC, and
+it is reported, with the reasoning that followed from it, in
+Section~\ref{sec:jr_bench} (Table~\ref{tab:phase1}). It is summarised here
+only so that this chapter is complete.
 
-\begin{table}[t]
-\centering
-\caption[Phase 1 benchmark]{Phase 1: eight compression schemes, 50-frame
-average, 16 receive channels, \num{9934} reference detections. FP\% is a false
-discovery rate (Section~\ref{sec:detectionmetrics}). NF is the noise floor.}
-\label{tab:phase1}
-\small
-\begin{tabular}{@{}lrrrrr@{}}
-\toprule
-Algorithm & CR & FN\% & FP\% & NF (dBFS) & SNR (dB)\\
-\midrule
-FP16          & 1.00 & 0.00  & 0.00 & $-105.638$ & 35.504\\
-DRHEfp16      & 1.04 & 0.05  & 0.01 & $-105.637$ & 35.505\\
-FX16          & 1.00 & 3.77  & 1.11 & $-105.374$ & 35.359\\
-\textbf{DRHE} & \textbf{3.30} & 3.77 & 1.11 & $-105.374$ & 35.359\\
-BAQ           & 3.76 & 10.44 & 9.69 & $-105.080$ & 35.081\\
-RDVLE         & 1.12 & 24.01 & 4.62 & $-102.275$ & 33.165\\
-RDVLE\_UDRE   & 2.56 & 28.73 & 4.44 & $-101.782$ & 33.004\\
-\textbf{LPC}  & \textbf{3.37} & 3.77 & 1.11 & $-105.374$ & 35.359\\
-\bottomrule
-\end{tabular}
-\end{table}
+Over 50 ColoRadar frames, 16 receive channels and \num{9934} reference
+detections, the two predictive lossless coders reached \num{3.30} (DRHE) and
+\num{3.37} (LPC), and --- because they reconstruct the FX16 codes exactly ---
+shared FX16's detection metrics to every decimal place: \SI{3.77}{\percent} of
+reference detections missed and \SI{1.11}{\percent} of reported detections
+spurious, all of it the cost of quantising to 16 bits, none of it the cost of
+compression. The best lossy scheme, BAQ, reached \num{3.76} at the price of
+\SI{10.44}{\percent} missed and \SI{9.69}{\percent} spurious.
 
-Three things are worth drawing out.
+The benchmark was re-run from the current sources for this report, on 24
+September 2026, and reproduced every cell of Table~\ref{tab:phase1} exactly
+(Appendix~\ref{app:verify}).
 
-\paragraph{The lossless coders share FX16's detection metrics exactly.}
-FX16, DRHE and LPC report identical FN\%, FP\%, noise floor and SNR. As
-Section~\ref{sec:detectionmetrics} explained, this is not a coincidence but a
-tautology: all three reconstruct the FX16 codes bit-exactly, so the detector
-sees identical data. What the table is really showing in those rows is the cost
-of \emph{quantisation}, which is \SI{3.77}{\percent} of detections missed and
-\SI{1.11}{\percent} of reported detections spurious.
+\subsection{What the benchmark ratio was taken to mean}
 
-\paragraph{The lossy comparison is instructive.}
-BAQ reaches a nominally better ratio --- \num{3.76} against \num{3.30} --- but
-misses \SI{10.44}{\percent} of detections instead of \SI{3.77}{\percent}, and
-\SI{9.69}{\percent} of what it does report is spurious against
-\SI{1.11}{\percent}. That is nearly three times the miss rate and nearly nine
-times the false discovery rate, for a \SI{14}{\percent} improvement in ratio.
-In a system that brakes the car, that is not a trade anyone should take. This
-is the empirical form of the argument made on principle in
-Section~\ref{sec:lossless}.
-
-\paragraph{The predictive coders reach the target.}
-DRHE's \num{3.30} matches the \num{3.2} reported for the baseline design
-\cite{kiem2025}, which at the time was taken as confirmation that the
-implementation was correct. Section~\ref{sec:decomposition} revisits that
-interpretation.
+DRHE's \num{3.30} is close to the \num{3.25} Kiem reports in simulation and the
+\num{3.17} he measured in hardware \cite{kiem2025}, and at the time this was
+taken as confirmation that the implementation was correct. The implementation
+\emph{is} correct --- Phase~2 and the independent re-implementation of
+Appendix~\ref{app:verify} establish that --- but the closeness of the two
+ratios is a coincidence of two different mechanisms.
+Section~\ref{sec:decomposition} takes our ratio apart, and
+Section~\ref{sec:kc_cr} explains, with the help of the replication of
+Chapter~\ref{ch:replication}, why Kiem's is what it is.
 
 \section{Phase 2: bit-exactness}
 \label{sec:phase2}
@@ -2965,23 +3082,32 @@ Order-0 entropy confirms the direction independently of the coder:
 \toprule
 Quantity & Value \\
 \midrule
-Order-0 entropy of raw FX16 codes    & \SI{4.094}{bits} \\
-Order-0 entropy of DRHE residuals    & \SI{4.538}{bits} \\
-Achieved bits/value (no prediction)  & \SI{4.586}{bits} \\
-Huffman overhead above entropy       & \SI{0.283}{bits} (\SI{6.2}{\percent}) \\
+Order-0 entropy of raw FX16 codes               & \SI{4.094}{bits} \\
+Order-0 entropy of DRHE (lag 1) residuals       & \SI{4.538}{bits} \\
+Achieved bits/value, no prediction              & \SI{4.586}{bits} \\
+Achieved bits/value, DRHE lag 1                 & \SI{4.821}{bits} \\
+Coder overhead above entropy, raw codes         & \SI{0.492}{bits} (\SI{12.0}{\percent}) \\
+Coder overhead above entropy, DRHE lag 1        & \SI{0.283}{bits} (\SI{6.2}{\percent}) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \noindent
-The predictor is \emph{increasing} the entropy of the data it is supposed to be
-decorrelating. That is not a marginal inefficiency; it is a predictor that is
-actively wrong.
+DRHE's predictor is \emph{increasing} the entropy of the data it is supposed to
+be decorrelating. That is not a marginal inefficiency; it is a predictor that
+is actively wrong. LPC's case is milder, and Section~\ref{sec:lpcshrink}
+returns to it: its residuals alone cost slightly less than the raw codes, and
+it falls behind no prediction only once its coefficient table is paid for.
 
-Note also that the entropy coder itself is doing fine: \SI{4.586}{bits}
+Note also that the entropy coder itself is doing reasonably: \SI{4.586}{bits}
 achieved against \SI{4.094}{bits} of entropy is an overhead of
-\SI{6.2}{\percent}, which for a fixed dictionary designed for a different
-dataset is a good result. The problem is not in the second stage.
+\SI{12.0}{\percent} on the raw codes, and on the lag-1 DRHE residuals the
+overhead is only \SI{6.2}{\percent}. For a fixed dictionary designed for a
+different radar, either is a respectable result, and neither can explain a
+predictor that loses to no prediction. The problem, for the uncorrected
+designs, is not in the second stage. (It becomes partly a second-stage problem
+after the correction, when the residuals shrink below the size the dictionary
+was built for; Section~\ref{sec:dictresults} measures that.)
 
 \subsection{Where the ratio really comes from}
 
@@ -3001,18 +3127,19 @@ Prediction on the original ramp axis contributes nothing at all --- it costs
 \label{fig:waterfall}
 \end{figure}
 
-\paragraph{Unused container headroom: a factor of \num{1.63}.}
+\paragraph{Unused container headroom: a factor of \num{1.64}.}
 Equation~\eqref{eq:scale} calibrates the FX16 scale factor to a theoretical
 full-scale ADC sinusoid. The ColoRadar capture sits far below full scale: the
-peak raw ADC sample is \num{914} out of a possible \num{32767}. After
+peak raw ADC sample after DC removal is \num{914} out of a possible
+\num{32767} over the five audit frames (\num{1094} over all fifty). After
 windowing, transform and scaling, the peak \texttt{int16} FFT code is
-\num{436}. Only $\log_2(436) + 1 = 9.8$ of the \num{16} container bits ever
-carry information; the remaining \num{6.2} are zero in every single sample. An
-entropy coder removes them whether or not any prediction happens, and that
-alone is a factor of $16/9.8 = 1.63$.
+\num{436} over the five audit frames and \num{437} over all fifty. Only $\log_2(436) + 1 = 9.77$ of the \num{16} container bits ever
+carry information; the remaining \num{6.2} are copies of the sign bit in every
+single sample and carry none. An entropy coder removes them whether or not any prediction happens, and that
+alone is a factor of $16/9.77 = 1.64$.
 
-\paragraph{Spectral sparsity: a factor of \num{2.14}.}
-The remaining $9.8 \rightarrow 4.59$ bits is the genuine statistical gain, and
+\paragraph{Spectral sparsity: a factor of \num{2.13}.}
+The remaining $9.77 \rightarrow 4.59$ bits is the genuine statistical gain, and
 it is a real property of radar data: a range--FFT frame is sparse. Most bins
 contain noise near zero and a few contain targets, so the $S_4$ categories
 concentrate heavily at the low end. This is what the entropy coder is for and it
@@ -3082,6 +3209,62 @@ LPC, per-transmitter blocks, $N = 16$                & 6.093 & 2.626 & 0.753\\
 Predicting on the true slow-time axis converts DRHE's \SI{4.9}{\percent} loss
 into an \SI{8.2}{\percent} gain, and LPC's \SI{2.6}{\percent} loss into a
 \SI{7.4}{\percent} gain. The hypothesis is confirmed.
+
+\subsection{Why LPC lost less than DRHE on the wrong axis}
+\label{sec:lpcshrink}
+
+Table~\ref{tab:predaxis} has a detail that is easy to pass over. On the wrong
+axis LPC lost \SI{2.6}{\percent} to no prediction and DRHE lost
+\SI{4.9}{\percent}; and \SI{0.167}{bits} of LPC's 4.710 bits per value is its
+coefficient table (\num{32768} bits per frame spread over \num{196608} values).
+Take the table away and LPC's \emph{residuals} cost 4.543 bits per value ---
+slightly \emph{better} than the 4.586 of no prediction. On the wrong axis, LPC's
+predictor did not hurt; it very nearly did nothing, and LPC lost to no
+prediction only because it paid for coefficients that were close to useless.
+
+The reason is in the coefficients themselves (Figure~\ref{fig:lpccoef}).
+Yule--Walker picks the coefficients that minimise the residual energy, and
+when ramp $m-1$ is a different transmitter from ramp $m$ there is little
+correlation to exploit, so the best coefficients are small. Over all
+\num{51200} coefficient sets of the 50 frames (128 bins, 4 channels, I and Q),
+the median fitted $a_1$ at lags 1,\,2 is $-0.02$ and the median $a_2$ is
+$-0.04$; half of all $a_1$ values lie between $-0.13$ and $0.09$. A predictor
+with $a_1 = a_2 = 0$ \emph{is} no prediction, and the fit drives LPC most of
+the way there on its own. The median residual keeps \SI{97.7}{\percent} of the
+energy of the raw codes. At lags $n_{\mathrm{Tx}},2n_{\mathrm{Tx}}$ the same
+fit finds real correlation: the median $a_1$ rises to $0.40$, and the median
+residual keeps only \SI{63}{\percent} of the raw energy.
+
+DRHE cannot do this. Its filter coefficients $\alpha$ and $\beta$ are fixed at
+design time, so on an axis where the phase does not advance smoothly it goes on
+extrapolating a phase trend that is not there, and produces residuals larger
+than the samples themselves. A fitted model's worst case is ``predict
+nothing''; a fixed model's worst case is ``predict wrongly''. That is the real
+content of the Phase~1 finding that LPC compressed slightly better than DRHE:
+not that LPC was predicting Doppler better, but that it was failing more
+gracefully. It is also why the correction helps DRHE more than LPC --- DRHE had
+further to come back from.
+
+Once both are on the right axis, the ranking of the residuals reverses a second
+time: LPC's residuals cost 4.102 bits per value against DRHE's 4.240. LPC's
+fitted model is the better predictor of the two. It finishes behind DRHE on
+ratio with Kiem's dictionary only because of its \SI{0.167}{bits} of side
+information --- and, as Section~\ref{sec:dictresults} shows, only with Kiem's
+dictionary.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{fig_lpccoef.pdf}
+\caption[Fitted LPC coefficients]{Distribution of the fitted, quantised LPC
+coefficients over 50 frames (\num{51200} sets). On the transmitter-interleaved
+axis (lags 1,\,2, red) the fit drives both coefficients towards zero --- the
+predictor nearly switches itself off. On the true slow-time axis (lags
+$n_{\mathrm{Tx}}, 2n_{\mathrm{Tx}}$, green) $a_1$ moves to a median of
+$0.40$, with a cluster near $1$ from bins containing strong, slowly changing
+returns. Computed by the independent implementation of
+Appendix~\ref{app:verify}.}
+\label{fig:lpccoef}
+\end{figure}
 
 \subsection{The variant that does not work, and why}
 
@@ -3187,6 +3370,43 @@ predicted by the five-frame MATLAB study of Table~\ref{tab:predaxis}, to within
 the frame-to-frame spread. That agreement between an independent MATLAB
 prediction and a hardware measurement is the cross-check that the correction is
 real rather than an artefact of either environment.
+
+Table~\ref{tab:tdmhls} compares each design against its own uncorrected
+version. The more telling comparison is against doing nothing at all, and that
+must be made on the same 50 frames with the same padding, not against the
+five-frame figure of Table~\ref{tab:decomp}. The no-prediction ratio was
+therefore computed on all 50 frames, four channels, with each frame padded to a
+256-bit boundary exactly as the HLS designs pad theirs
+(Table~\ref{tab:fifty}). It is \num{3.47876}; unpadded it is \num{3.47929}.
+
+\begin{table}[t]
+\centering
+\caption[All designs against no prediction, 50 frames]{Every design against the
+no-prediction baseline on the same 50 frames, four receive channels, 256-bit
+padding. The no-prediction row is computed by the independent implementation of
+Appendix~\ref{app:verify}; the others are HLS C-simulation, and the independent
+implementation reproduces their bit counts exactly on every frame.}
+\label{tab:fifty}
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Design & CR & vs.\ no prediction\\
+\midrule
+No prediction (S4 + Huffman only)                   & \num{3.47876} & ---\\
+DRHE, lag 1                                         & \num{3.30987} & $-4.9\,\%$\\
+LPC, lags 1, 2                                      & \num{3.38497} & $-2.7\,\%$\\
+\textbf{DRHE, lag $n_{\mathrm{Tx}}$}                & \textbf{\num{3.75082}} & $\mathbf{+7.8\,\%}$\\
+\textbf{LPC, lags $n_{\mathrm{Tx}}, 2n_{\mathrm{Tx}}$} & \textbf{\num{3.69681}} & $\mathbf{+6.3\,\%}$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+The five-frame study and the 50-frame hardware measurement tell the same story
+to within a few tenths of a per cent: as first built, both predictors are worse
+than no prediction; corrected, DRHE gains \SI{7.8}{\percent} and LPC
+\SI{6.3}{\percent} over it. That is the whole of the predictors' contribution
+on this dataset with this coder --- modest, real, and only on the right axis.
 
 \begin{figure}[t]
 \centering
@@ -3316,6 +3536,125 @@ cycle-accurate run: \num{50} frames of RTL simulation with floating-point IP
 takes many hours of wall-clock time for no additional information, since the
 latency per frame is deterministic.
 
+\section{The dictionary, revisited}
+\label{sec:dictresults}
+
+Every ratio so far uses Kiem's fixed Huffman dictionary
+(Appendix~\ref{app:huffman}), exactly as he specified it. That was the right
+choice for the benchmark and for the hardware: it is his design, and changing
+it would have confounded every comparison with his work. But the audit showed
+that the coder's overhead above entropy grows as the residuals shrink
+(Section~\ref{sec:decomposition}), and the replication showed where the
+dictionary comes from: it is optimal for residuals with a standard deviation of
+6 to 8~LSB, the size Kiem's own recordings produced
+(Section~\ref{sec:kr_fingerprint}). The corrected predictors' residuals are
+smaller than that. So the question is how much of the corrected designs'
+performance the dictionary is leaving on the table.
+
+\subsection{Method}
+
+A dictionary is a design-time constant, so any fair replacement must also be
+one. A new set of sixteen codeword lengths was therefore derived for each
+design by building a Huffman code on the $S_4$ category counts of frames 0--4
+only, and then \emph{tested} on the held-out frames 5--49 with 256-bit padding
+and, for LPC, the full coefficient table charged. A count of one is added to
+every category before the code is built, so that categories never seen in
+training (the highest ones) still receive a codeword and the code remains
+lossless on any input; only the lengths change,
+and the hardware change would be a different sixteen-entry ROM.
+
+\subsection{Result}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{fig_dict.pdf}
+\caption[Fixed against re-derived dictionary]{Compression ratio on held-out
+frames 5--49 with Kiem's fixed dictionary and with a dictionary re-derived from
+frames 0--4. The gain is 3--\SI{8}{\percent} for the raw codes and the
+uncorrected predictors and 12--\SI{18}{\percent} for the corrected ones, and
+with the re-derived dictionary LPC overtakes DRHE.}
+\label{fig:dict}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption[Re-derived dictionaries]{Kiem's dictionary against a re-derived one,
+held-out frames 5--49, four receive channels, padded. The re-derived codeword
+lengths are for categories $0,1,\dots,15$.}
+\label{tab:dictresults}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrl@{}}
+\toprule
+Design & Kiem's & Re-derived & Gain & Re-derived lengths $\ell_0\ldots\ell_{15}$\\
+\midrule
+No prediction           & 3.478 & 3.720 & $+7.0\,\%$  & \texttt{2 2 2 3 4 5 6 7 8 9 12 12 12 12 11 11}\\
+DRHE, lag 1             & 3.309 & 3.419 & $+3.3\,\%$  & \texttt{3 2 2 2 4 5 6 7 8 9 12 12 12 12 11 11}\\
+LPC, lags 1, 2          & 3.384 & 3.640 & $+7.6\,\%$  & \texttt{2 2 2 3 4 5 6 7 8 9 12 12 12 12 11 11}\\
+DRHE, lag $n_{\mathrm{Tx}}$ & 3.748 & 4.207 & $+12.2\,\%$ & \texttt{3 2 1 4 5 6 7 8 9 10 11 14 14 13 13 13}\\
+LPC, lags $n_{\mathrm{Tx}},2n_{\mathrm{Tx}}$ & 3.691 & \textbf{4.371} & $+18.4\,\%$ & \texttt{3 1 2 4 5 6 7 8 9 10 13 13 13 13 12 12}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:dictresults} and Figure~\ref{fig:dict} give the result. Three
+things stand out.
+
+\paragraph{The gain is largest where the residuals are smallest.} For the raw
+codes and the two uncorrected predictors a re-derived dictionary gains 3 to
+\SI{8}{\percent}; their category distributions are not far from the one
+Kiem's dictionary was built for. For the corrected predictors it gains
+\SI{12.2}{\percent} (DRHE) and \SI{18.4}{\percent} (LPC). The re-derived
+lengths show why: the one-bit codeword moves to category 2 for DRHE and to
+category 1 for LPC, so the commonest residuals cost three or two bits instead
+of four. Kiem's dictionary can never code a value in fewer than four bits
+(Table~\ref{tab:huffman}), which caps any frame at a ratio of \num{4.0}; the
+re-derived dictionaries lower that floor to three and two bits.
+
+\paragraph{The ranking of DRHE and LPC depends on the dictionary.} With Kiem's
+dictionary DRHE leads LPC by \SI{1.5}{\percent}. With a dictionary matched to
+each design's own residuals LPC leads DRHE by \SI{3.9}{\percent} (4.371
+against 4.207). This is Section~\ref{sec:lpcshrink} seen from the other side:
+LPC's residuals were always the smaller of the two, and a coder that can
+charge fewer than four bits for a small residual lets that show.
+
+\paragraph{How close to the limit this gets.} Over the five audit frames, an
+ideal $S_4$ dictionary --- a Huffman code built on each design's own category
+counts --- and the order-0 entropy of the residual values give the following
+bits per value, against 4.586, 4.821, 4.240 and 4.102 for Kiem's dictionary:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Design (residuals only) & Kiem's dictionary & ideal $S_4$ & order-0 entropy\\
+\midrule
+No prediction               & 4.586 & 4.214 & 4.094\\
+DRHE, lag 1                 & 4.821 & 4.627 & 4.538\\
+DRHE, lag $n_{\mathrm{Tx}}$ & 4.240 & 3.711 & 3.516\\
+LPC, lags $n_{\mathrm{Tx}},2n_{\mathrm{Tx}}$ & 4.102 & 3.242 & 3.040\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+The $S_4$ construction itself costs only 2 to \SI{7}{\percent} over the
+entropy; almost all of the fixed coder's excess on the corrected residuals is
+the particular dictionary, not the category scheme.
+
+\subsection{What this does and does not change}
+
+It does not change anything in Chapters~\ref{ch:implementation}
+and~\ref{ch:interpret} or the hardware comparisons with Kiem, all of which use
+his dictionary; and the re-derived dictionaries were not synthesised, although a
+sixteen-entry ROM change should cost almost nothing. It does change the
+reading of the compression ratios. The corrected designs' 3.75 and 3.70 are a
+lower bound set partly by a dictionary built for another radar, and the
+headline ``DRHE compresses better than LPC'' is true only of that dictionary.
+The reasons this thesis still recommends DRHE (Section~\ref{sec:headtohead})
+were never about ratio --- they are streaming, memory and latency --- and they
+are unaffected.
+
 \section{DRHE against LPC, after the correction}
 \label{sec:headtohead}
 
@@ -3346,12 +3685,18 @@ Side information       & \textbf{none} & \SI{1.04}{\percent}\\
 \end{table}
 
 After the correction the ranking on compression ratio reverses: DRHE is ahead,
-\num{3.751} against \num{3.697}, where before it was behind. That is because
-the correction helps DRHE more (\SI{+13.3}{\percent}) than LPC
-(\SI{+9.2}{\percent}), which makes sense --- DRHE's phase model is
-\emph{specifically} a constant-Doppler model, so putting it on the Doppler axis
-recovers exactly what it was designed to find, whereas LPC's general AR model
-was always going to fit \emph{something}.
+\num{3.751} against \num{3.697}, where before it was behind. The correction
+helps DRHE more (\SI{+13.3}{\percent}) than LPC (\SI{+9.2}{\percent}) because
+DRHE had further to come back from: on the wrong axis its fixed filters
+extrapolated a phase trend that was not there, while LPC's fit had shrunk its
+coefficients towards zero and nearly switched itself off
+(Section~\ref{sec:lpcshrink}). Two qualifications keep this ranking in
+proportion. LPC's \emph{residuals} are in fact the smaller of the two (4.102
+against 4.240 bits per value); DRHE's lead is LPC's \SI{0.167}{bits} of
+coefficient table. And with a dictionary re-derived for each design's own
+residuals the order flips again, LPC \num{4.371} against DRHE \num{4.207}
+(Section~\ref{sec:dictresults}). On ratio the two are, for practical purposes,
+level; which one is ahead depends on the coder.
 
 On logic the two are almost level once implemented: LPC uses
 \HW{lpcn}{vsDLUT} times DRHE's LUTs and \HW{lpcn}{vsDFF} times its
@@ -3361,10 +3706,12 @@ buffer at all, first output immediately, and a fifth of the frame latency.
 
 For the application that motivates this thesis --- a compression IP sitting
 between the range FFT and the memory bus in a streaming sensor front end ---
-latency and streaming behaviour outrank a \SI{1.5}{\percent} difference in
-ratio. \textbf{DRHE is the better choice}, and after the correction it happens
-to win on ratio too. LPC's case rested on a logic saving that the
-implementation did not confirm.
+latency and streaming behaviour outrank a difference in ratio of a few
+per cent in either direction. \textbf{DRHE is the better choice}: with Kiem's
+dictionary it also happens to win on ratio, and with a re-derived one it gives
+up about \SI{4}{\percent} of ratio in exchange for needing no frame buffer and
+a fifth of the latency. LPC's case, as it was argued at the start, rested on a
+logic saving that the implementation did not confirm.
 
 \section{Summary of results}
 
@@ -3385,9 +3732,20 @@ only from \HW{drheone}{fmax} to \HW{drhen}{fmax}\,MHz.
 \HW{lpcn}{pBBRAM}\,\% less block RAM after routing (\SI{25}{\percent} in the
 HLS estimate), $\mathrm{II} = 1$ throughout, against \num{1.65}$\times$ the
 frame latency.
-\item The ratio decomposes as \num{1.63}$\times$ from unused container
-headroom, \num{2.14}$\times$ from spectral sparsity, and \num{1.08}$\times$
+\item The ratio decomposes as \num{1.64}$\times$ from unused container
+headroom, \num{2.13}$\times$ from spectral sparsity, and \num{1.08}$\times$
 from prediction once it is applied correctly.
+\item Against no prediction on the same 50 frames (\num{3.479}), the corrected
+DRHE gains \SI{7.8}{\percent} and the corrected LPC \SI{6.3}{\percent}; the
+uncorrected designs lose \SI{4.9}{\percent} and \SI{2.7}{\percent}.
+\item On the wrong axis LPC's fitted coefficients shrink towards zero, so its
+residuals are no worse than the raw codes; it loses to no prediction only
+through its coefficient table. On the right axis its residuals are smaller than
+DRHE's.
+\item Kiem's fixed dictionary cannot code a value in fewer than four bits.
+Re-derived on five frames and tested on the other 45, a dictionary matched to
+the corrected residuals gains \SI{12.2}{\percent} for DRHE (\num{4.207}) and
+\SI{18.4}{\percent} for LPC (\num{4.371}), which puts LPC ahead.
 \item Implemented through placement and routing, all four designs meet
 \SI{100}{\mega\hertz}, and the HLS estimates had over-stated their logic by
 about three times. Chapter~\ref{ch:interpret} accounts for what the
@@ -3395,6 +3753,8 @@ implemented numbers mean, and for every difference from Kiem's design.
 \end{enumerate}
 
 \input{ch_interpret}
+\input{ch_replication}
+\input{ch_compare}
 
 % ===================================================================
 \chapter{Discussion}
@@ -3403,10 +3763,13 @@ implemented numbers mean, and for every difference from Kiem's design.
 \section{Comparison with the baseline design}
 \label{sec:kiemcompare}
 
-Chapter~\ref{ch:interpret} accounted for every difference between this
-design and Kiem's \cite{kiem2025} individually. This section draws the threads
-together, because the overall picture changed twice during the project and the
-reasons are worth recording.
+Chapter~\ref{ch:kiemcompare} set every one of Kiem's published results
+\cite{kiem2025} beside the corresponding result of this thesis and explained
+each agreement and each difference; Chapter~\ref{ch:interpret} accounted for
+every difference between the two hardware designs individually. This section
+draws the hardware threads together, because the overall picture changed twice
+during the project and the reasons are worth recording. The compression and
+algorithm comparisons are not repeated here.
 
 \subsection{Three corrections to the comparison}
 
@@ -3479,7 +3842,7 @@ DRHE-1's LUTs, a third of its DSPs and a fifth of its flip-flops.
 
 \section{What the compression ratio means elsewhere}
 
-Section~\ref{sec:decomposition} showed that \num{1.63} of the \num{3.489}
+Section~\ref{sec:decomposition} showed that \num{1.64} of the \num{3.489}
 no-prediction ratio is unused container headroom. This has a consequence that
 should be stated plainly: \textbf{these ratios do not transfer to a
 differently-scaled sensor}.
@@ -3541,6 +3904,38 @@ What the metrics measure is the cost of the FX16 quantisation step.
 detections, not by true negatives. It is a legitimate metric but not the one
 its conventional name denotes, and it is reported under its correct name here.
 
+\item \textbf{The detection chain is simpler than a production one.} Its
+Doppler FFT runs across all 192 ramps in recorded order, so across the
+transmitter-interleaved axis, and it has no angle FFT; the 16 receive channels
+are combined non-coherently (Section~\ref{sec:refchain}). A detection is
+therefore a peak in a smeared range--Doppler map. This does not affect any
+lossless result, but it means the detection losses of the lossy schemes are
+measured on a map that is not the one a TDM-MIMO radar would actually threshold,
+and the absolute FN\% and FP\% figures should be read as relative, not
+absolute.
+
+\item \textbf{BAQ is implemented as block floating point.} The BAQ comparison
+point quantises each block of 16 range bins to a 4-bit mantissa with one shared
+8-bit exponent, which gives a fixed ratio of \num{3.76}. That is a
+block-floating-point format in the spirit of BAQ rather than the
+statistics-driven quantiser of the original SAR algorithm \cite{kwok1989}. A
+better-tuned BAQ could lose fewer detections at the same ratio; it would still
+be lossy.
+
+\item \textbf{The DRHE--LPC ratio ranking depends on the dictionary.} With
+Kiem's fixed dictionary DRHE leads by \SI{1.5}{\percent}; with dictionaries
+re-derived for each design's residuals LPC leads by \SI{3.9}{\percent}
+(Section~\ref{sec:dictresults}). The re-derived dictionaries were trained on
+five frames and tested on 45 of the same recording; a different scene could
+move both.
+
+\item \textbf{The replication rests on Kiem's synthetic scene, not his
+data.} Kiem's recordings are not public, so Chapter~\ref{ch:replication}
+reproduces his processing chain on the synthetic scene of his Table~3.2 and
+calibrates its noise level against his published ratios. Where the replication
+reaches his numbers it shows the chain is understood; it cannot show that his
+recordings would behave the same way (Section~\ref{sec:kr_limits}).
+
 \item \textbf{Detection matching has no positional tolerance.} A target
 displaced by one range--Doppler cell is scored as both a miss and a false
 discovery, which inflates both rates relative to a matched-detection criterion.
@@ -3591,13 +3986,16 @@ C-simulation, which exercises identical logic but not identical timing. Nothing
 in either design is frame-count dependent, but this is an assumption rather
 than a measurement.
 
-\item \textbf{Two source citations required correction.} The BAQ baseline is
+\item \textbf{Three source citations required correction.} The BAQ baseline is
 properly attributed to Kwok and Johnson \cite{kwok1989} --- IEEE TGRS vol.~27,
 no.~4, pp.~375--383, 1989, on \emph{synthetic} aperture radar. An earlier
 version of this work carried an author name, title and page range that do not
 correspond to any such paper. The ColoRadar citation is likewise vol.~41,
-no.~4, pp.~351--360 (2022) \cite{kramer2022}, not vol.~40 (2021). Both are
-corrected here.
+no.~4, pp.~351--360 (2022) \cite{kramer2022}, not vol.~40 (2021). And the
+low-frequency-rejection quantiser of the early quantisation study
+(Section~\ref{sec:jr_quant}) is due to Deng and Huang \cite{deng2024}; the
+Thesis~A report attached other authors to their title. All three are corrected
+here.
 
 \item \textbf{The literature description of DRHE does not match the
 implementation.} A common summary of DRHE describes differencing \emph{raw ADC}
@@ -3663,6 +4061,16 @@ one of \num{4915200} complex samples exactly in software simulation, and the
 frame run in RTL co-simulation exactly as well. Matching decompressors were implemented for both, which is
 what made that verification possible.
 
+Around that core, three further pieces of work were done to make the results
+interpretable. Kiem's own MATLAB simulation was rebuilt from his text, on his
+synthetic scene and his processing chain, and every coder of this thesis was run
+on it (Chapter~\ref{ch:replication}). Every one of his published results was then
+set beside ours and each agreement and difference explained
+(Chapter~\ref{ch:kiemcompare}). And, before this report was finalised, every
+result was re-run from the current sources and the whole compression chain was
+re-implemented independently in Python, which reproduced the hardware bit counts
+exactly on every frame (Appendix~\ref{app:verify}).
+
 \section{What was found}
 
 \subsection{The prediction axis}
@@ -3672,9 +4080,13 @@ way the literature describes --- predicting each ramp from its immediate
 predecessor --- \emph{neither predictor was contributing anything}. Coding the
 quantised FFT output through the identical entropy coder with no prediction
 whatsoever reaches a compression ratio of \num{3.489}, against \num{3.319} for
-DRHE and \num{3.397} for LPC. Both were making the data measurably harder to
-compress, and the order-0 entropy of the residuals confirmed it independently:
-\SI{4.538}{bits} for DRHE residuals against \SI{4.094}{bits} for the raw codes.
+DRHE and \num{3.397} for LPC. DRHE was making the data measurably harder to
+compress, and the order-0 entropy of its residuals confirmed it independently:
+\SI{4.538}{bits} against \SI{4.094}{bits} for the raw codes. LPC failed more
+gracefully: its fitted coefficients shrank towards zero, so its residuals were
+almost exactly as costly as the raw codes (4.543 against 4.586 bits per value),
+and it lost to no prediction only through the cost of transmitting its
+coefficients.
 
 The cause is that a twelve-transmitter time-division MIMO cascade interleaves
 its transmitters along the ramp axis, so ``the previous ramp'' belongs to a
@@ -3697,10 +4109,10 @@ frame latency.
 \subsection{What a compression ratio actually measures}
 
 The audit that exposed the above also decomposed the ratio into its genuine
-sources. Of the no-prediction factor of \num{3.489}, roughly \num{1.63} comes
+sources. Of the no-prediction factor of \num{3.489}, roughly \num{1.64} comes
 from an under-filled fixed-point container --- the ColoRadar capture peaks at
-\num{436} of a possible \num{32767}, so \num{6.2} of every \num{16} bits are
-structurally zero --- and \num{2.14} from the genuine spectral sparsity of a
+\num{436} of a possible \num{32767}, so \num{6.2} of every \num{16} bits carry
+no information --- and \num{2.13} from the genuine spectral sparsity of a
 range--FFT frame. Prediction, correctly applied, adds a further \num{1.08}.
 
 The practical recommendation that follows is simple and, as far as the author
@@ -3748,13 +4160,56 @@ theoretical the gap to this design is exactly two, the cost of
 $\mathrm{II} = 2$. Its BRAM figure is in \SI{36}{\kilo bit} tiles, which halves
 the apparent block-RAM gap (Chapter~\ref{ch:interpret}).
 A detection metric conventionally labelled a false positive rate was identified
-as a false discovery rate, and two source citations were corrected.
+as a false discovery rate, and three source citations were corrected.
+
+\subsection{Kiem's results, reproduced and explained}
+
+Rebuilt from his text, Kiem's simulation reproduces his DRHE pattern --- 3.25
+with run-length coding, 3.24 without, and almost nothing lost to his fixed
+dictionary --- at one noise level, $-87.9$\,dBFS, where the FX16 noise is
+\num{4.63}\,LSB. On the scene of his Table~3.2 at its stated $-75$\,dBFS, the
+same chain gives 2.28. His ratio is therefore a property of how large his
+residuals were: his dictionary is optimal for residuals of 6 to 8\,LSB, and his
+3.25 is what a matched dictionary gives on residuals of that size. The
+closeness of this thesis's 3.30 to his 3.25 is a coincidence of two different
+mechanisms --- ours is mostly container headroom and spectral sparsity, with a
+predictor that was costing bits --- and it was wrongly taken, early on, as
+confirmation. The early synthetic scenes of this project, which compressed to
+about 1.1, are explained completely by the FX16 scaling and their noise floor.
+
+The replication also confirmed, by running both side by side on the same frames,
+that the DRHE of this thesis is Kiem's Section~3.5.3 to the bit.
+
+\subsection{Two methods called LPC}
+
+Kiem judged LPC ``the same approach as DRHE'' but less promising, and did not
+implement it. The method he meant predicts raw ADC samples along fast time and
+codes them with a data-derived Huffman code; on his own scene it compresses to
+1.32--1.54, well below DRHE, largely because it codes ADC noise that the FX16
+step would discard. His judgement of that method stands. The LPC of this thesis
+is a different design: it predicts FX16 range-FFT codes along slow time and
+shares DRHE's coder exactly, so that only the predictor differs. That LPC is
+level with DRHE --- \num{3.697} against \num{3.751} with Kiem's dictionary ---
+and its residuals are the smaller of the two.
+
+\subsection{The dictionary}
+
+Kiem's fixed dictionary cannot code any value in fewer than four bits, which
+caps every frame at a ratio of \num{4.0}, and it was built for residuals larger
+than the corrected predictors produce. Re-derived on five frames and tested on
+the other 45, a matched dictionary raises the corrected DRHE from \num{3.748}
+to \num{4.207} (\SI{+12.2}{\percent}) and the corrected LPC from \num{3.691} to
+\num{4.371} (\SI{+18.4}{\percent}), which puts LPC ahead. The ratio ranking of
+the two algorithms is therefore a property of the coder as much as of the
+predictors.
 
 \subsection{Which algorithm}
 
 After the correction, DRHE is the better choice for the application that
-motivates this work. It compresses slightly better (\num{3.751} against
-\num{3.697}), it needs no frame buffer at all where LPC needs
+motivates this work. With Kiem's dictionary it compresses slightly better
+(\num{3.751} against \num{3.697}); with a re-derived one it compresses about
+\SI{4}{\percent} worse. Either way the ratios are close, and the deciding
+differences lie elsewhere: DRHE needs no frame buffer at all where LPC needs
 \SI{3.0}{\mebi bit}, it emits its first bits immediately where LPC must wait a
 full frame, and its frame latency is a fifth of LPC's. LPC was estimated to
 save \SI{30}{\percent} of the LUTs, but that saving was mostly an artefact of
@@ -3827,13 +4282,15 @@ but they distribute the slow-time structure differently, and whether a slow-time
 predictor helps on them is an open question that the no-prediction baseline test
 would answer cheaply.
 
-\item \textbf{Revisit the entropy coder for the corrected residuals.} The fixed
-Huffman dictionary was designed for a different residual distribution. After the
-prediction-axis correction, \SI{84.6}{\percent} of residuals fall in categories
-0--2 --- a much more concentrated distribution than the dictionary assumes.
-Re-deriving the dictionary for this distribution, or adding a category-16
-extension to close the representability hole of Section~\ref{sec:hole}, would
-both be worth measuring.
+\item \textbf{Adopt a dictionary matched to the corrected residuals.} This
+thesis measured the gain --- \SI{12.2}{\percent} for DRHE and
+\SI{18.4}{\percent} for LPC on held-out frames (Section~\ref{sec:dictresults})
+--- but did not synthesise it. In hardware it is a change to a sixteen-entry
+ROM. Two further steps are worth measuring with it: training the dictionary on
+more varied scenes than five consecutive frames of one recording, so that it
+generalises; and adding a category-16 extension to close the representability
+hole of Section~\ref{sec:hole}, which would remove the need for the
+saturation.
 
 \item \textbf{Evaluate the corrected algorithms against the neural and spectral
 approaches} of Section~\ref{sec:sota}, which were out of scope here but define
@@ -3959,7 +4416,23 @@ Computer Vision and Pattern Recognition (CVPR)}, 2026.
 
 \bibitem{zivkovic2015}
 Z.~Zivkovic and L.~Li, ``On-the-fly range-velocity radar data compression
-exploring Doppler spectrum redundancy,'' 2015.
+exploring Doppler spectrum redundancy,'' in \emph{Proceedings of the 16th
+International Radar Symposium (IRS)}, Dresden, Germany, 2015, pp.~321--326.
+
+\bibitem{li2014}
+L.~Li, ``Embedded data compression in automotive FMCW radar system,'' MSc
+thesis, University of Twente, Enschede, The Netherlands, 2014.
+
+\bibitem{meucci2022}
+G.~Meucci and F.~Mancuso, ``FMCW radar data compression,'' project report,
+Data Compression course, PhD programme in Information Engineering, University
+of Pisa, 2022. [Online]. Available:
+\url{https://github.com/mandugo/FMCW-Radar-Data-Compression}
+
+\bibitem{deng2024}
+J.~Deng and L.~Huang, ``Synthetic aperture radar image compression based on
+low-frequency rejection and quality map guidance,'' \emph{Remote Sensing},
+vol.~16, no.~5, art.~891, 2024, doi:10.3390/rs16050891.
 
 \end{thebibliography}
 
@@ -4095,6 +4568,40 @@ File & Purpose \\
 \end{tabular}
 \end{table}
 
+\section{The replication and the verification record}
+
+The replication of Kiem's simulation lives in \texttt{ThesisA/kiem\_replication}
+and is listed stage by stage in Table~\ref{tab:kr_files}. It uses base MATLAB
+only; \texttt{run\_kiem\_replication.m} runs the whole workflow at both
+operating points and writes its logs to \texttt{kiem\_replication/results/}.
+The verification of Appendix~\ref{app:verify} is in two places:
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lp{85mm}@{}}
+\toprule
+File & Purpose \\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Independent implementation} (\texttt{ThesisA/verify\_indep/}, Python 3 and NumPy)}\\
+\texttt{indep.py}      & the whole chain from raw frame to bit count; checks stimulus, all four designs and the audit \\
+\texttt{coefstats.py}  & LPC coefficient statistics (Section~\ref{sec:lpcshrink}) \\
+\texttt{idealdict.py}  & ideal $S_4$ dictionaries and order-0 entropies \\
+\texttt{retrain\_complete.py} & dictionaries re-derived on frames 0--4, tested on 5--49 (Section~\ref{sec:dictresults}) \\
+\texttt{rle.py}        & R4S4 + run-length coding against $S_4$ only, on ColoRadar \\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Re-runs} (\texttt{ThesisA/\_verify/})}\\
+\texttt{run\_phase1.m}, \texttt{phase1\_rerun.log} & the eight-scheme benchmark, re-run \\
+\texttt{run\_lfr.m}, \texttt{lfr\_rerun.log}       & the quantisation study, re-run \\
+\texttt{old\_csim/}, \texttt{new\_csim/}           & C-simulation logs of all four designs and both edge suites \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+\texttt{indep.py} needs the 50 raw ColoRadar frames and the HLS stimulus file;
+it reads both from paths set at the top of the script.
+
 \section{Build commands}
 
 C-simulation, synthesis and co-simulation respectively, for the corrected DRHE:
@@ -4132,5 +4639,7 @@ Co-simulation is run against a single-frame export, produced by setting
 floating-point IP takes many hours and returns no information the single-frame
 run does not, since the per-frame latency is deterministic. The 50-frame file
 should be restored afterwards for C-simulation.
+
+\input{app_verify}
 
 \end{document}

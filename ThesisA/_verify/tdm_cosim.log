@@ -1,0 +1,1032 @@
+
+****** vitis-run v2026.1 (64-bit)
+  **** SW Build 6511674 on 2026-06-16-13:14:00
+  **** Start of session at: Tue Sep 15 23:10:40 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+  **** HLS Build v2026.1 6493734
+INFO: [HLS 200-2005] Using work_dir D:/Thesis/ThesisA/hls_component/hls_tdm 
+INFO: [HLS 200-2176] Writing Vitis IDE component file D:/Thesis/ThesisA/hls_component/hls_tdm/vitis-comp.json
+INFO: [HLS 200-10] Creating and opening component 'D:/Thesis/ThesisA/hls_component/hls_tdm'.
+INFO: [HLS 200-1611] Setting target device to 'xcku5p-ffvb676-2-e'
+INFO: [HLS 200-2174] Applying component config ini file test_tdm.cfg
+INFO: [HLS 200-1465] Applying config ini 'syn.file=drhe_tdm_compress.cpp' from test_tdm.cfg(5)
+INFO: [HLS 200-10] Adding design file 'D:/Thesis/ThesisA/hls_component/drhe_tdm_compress.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.file=drhe_tdm_decompress.cpp' from test_tdm.cfg(6)
+INFO: [HLS 200-10] Adding design file 'D:/Thesis/ThesisA/hls_component/drhe_tdm_decompress.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.file=drhe_tdm.cpp' from test_tdm.cfg(7)
+INFO: [HLS 200-10] Adding design file 'D:/Thesis/ThesisA/hls_component/drhe_tdm.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'tb.file=drhe_tdm_tb.cpp' from test_tdm.cfg(9)
+INFO: [HLS 200-10] Adding test bench file 'D:/Thesis/ThesisA/hls_component/drhe_tdm_tb.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'tb.file=coloradar_multiframe.bin' from test_tdm.cfg(10)
+INFO: [HLS 200-10] Adding test bench file 'D:/Thesis/ThesisA/hls_component/coloradar_multiframe.bin' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.top=drhe_tdm_compress' from test_tdm.cfg(8)
+INFO: [HLS 200-1465] Applying config ini 'part=xcku5p-ffvb676-2-e' from test_tdm.cfg(1)
+INFO: [HLS 200-1465] Applying config ini 'clock=100MHz' from test_tdm.cfg(4)
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1465] Applying config ini 'package.output.format=ip_catalog' from test_tdm.cfg(12)
+INFO: [HLS 200-2176] Writing Vitis IDE component file D:/Thesis/ThesisA/hls_component/hls_tdm/vitis-comp.json
+INFO: [COSIM 212-47] Using XSIM for RTL simulation.
+INFO: [COSIM 212-14] Instrumenting C test bench ...
+   Build using "D:/Xilinx/2026.1/Vitis/win64/tools/clang-16/bin/clang++"
+   Compiling apatb_drhe_tdm_compress.cpp
+   Compiling apatb_drhe_tdm_compress_util.cpp
+   Compiling drhe_tdm.cpp_pre.cpp
+   Compiling drhe_tdm_compress.cpp_pre.cpp
+   Compiling drhe_tdm_decompress.cpp_pre.cpp
+   Compiling drhe_tdm_tb.cpp_pre.cpp
+   Compiling apatb_drhe_tdm_compress_ir.ll
+   Generating cosim.tv.exe
+INFO: [COSIM 212-302] Starting C TB testing ... 
+==========================================================
+ DRHE-TDM Compression & Decompression Testbench            
+ Prediction lag = nTx (per-transmitter predictor state)    
+ Target FPGA: AMD Kintex UltraScale+ (xcku5p-ffvb676-2-e) 
+==========================================================
+[INFO] Loaded header: 50 frames x 192 ramps x 128 samples x 4 RX channels;  nTx = 12
+  Frame 0: CR=3.79142x  MaxDiff=0  Bits=3145728->829696  [LOSSLESS]
+  Frame 1: CR=3.78675x  MaxDiff=0  Bits=3145728->830720  [LOSSLESS]
+  Frame 2: CR=3.77628x  MaxDiff=0  Bits=3145728->833024  [LOSSLESS]
+  Frame 3: CR=3.7624x  MaxDiff=0  Bits=3145728->836096  [LOSSLESS]
+  Frame 4: CR=3.74977x  MaxDiff=0  Bits=3145728->838912  [LOSSLESS]
+  Frame 5: CR=3.76355x  MaxDiff=0  Bits=3145728->835840  [LOSSLESS]
+  Frame 6: CR=3.78325x  MaxDiff=0  Bits=3145728->831488  [LOSSLESS]
+  Frame 7: CR=3.79025x  MaxDiff=0  Bits=3145728->829952  [LOSSLESS]
+  Frame 8: CR=3.79259x  MaxDiff=0  Bits=3145728->829440  [LOSSLESS]
+  Frame 9: CR=3.78675x  MaxDiff=0  Bits=3145728->830720  [LOSSLESS]
+  Frame 10: CR=3.7786x  MaxDiff=0  Bits=3145728->832512  [LOSSLESS]
+  Frame 11: CR=3.7624x  MaxDiff=0  Bits=3145728->836096  [LOSSLESS]
+  Frame 12: CR=3.7395x  MaxDiff=0  Bits=3145728->841216  [LOSSLESS]
+  Frame 13: CR=3.74292x  MaxDiff=0  Bits=3145728->840448  [LOSSLESS]
+  Frame 14: CR=3.76817x  MaxDiff=0  Bits=3145728->834816  [LOSSLESS]
+  Frame 15: CR=3.79142x  MaxDiff=0  Bits=3145728->829696  [LOSSLESS]
+  Frame 16: CR=3.79259x  MaxDiff=0  Bits=3145728->829440  [LOSSLESS]
+  Frame 17: CR=3.76933x  MaxDiff=0  Bits=3145728->834560  [LOSSLESS]
+  Frame 18: CR=3.71913x  MaxDiff=0  Bits=3145728->845824  [LOSSLESS]
+  Frame 19: CR=3.718x  MaxDiff=0  Bits=3145728->846080  [LOSSLESS]
+  Frame 20: CR=3.73269x  MaxDiff=0  Bits=3145728->842752  [LOSSLESS]
+  Frame 21: CR=3.73269x  MaxDiff=0  Bits=3145728->842752  [LOSSLESS]
+  Frame 22: CR=3.7578x  MaxDiff=0  Bits=3145728->837120  [LOSSLESS]
+  Frame 23: CR=3.77744x  MaxDiff=0  Bits=3145728->832768  [LOSSLESS]
+  Frame 24: CR=3.8126x  MaxDiff=0  Bits=3145728->825088  [LOSSLESS]
+  Frame 25: CR=3.78792x  MaxDiff=0  Bits=3145728->830464  [LOSSLESS]
+  Frame 26: CR=3.79845x  MaxDiff=0  Bits=3145728->828160  [LOSSLESS]
+  Frame 27: CR=3.81023x  MaxDiff=0  Bits=3145728->825600  [LOSSLESS]
+  Frame 28: CR=3.79845x  MaxDiff=0  Bits=3145728->828160  [LOSSLESS]
+  Frame 29: CR=3.80905x  MaxDiff=0  Bits=3145728->825856  [LOSSLESS]
+  Frame 30: CR=3.81496x  MaxDiff=0  Bits=3145728->824576  [LOSSLESS]
+  Frame 31: CR=3.79845x  MaxDiff=0  Bits=3145728->828160  [LOSSLESS]
+  Frame 32: CR=3.80433x  MaxDiff=0  Bits=3145728->826880  [LOSSLESS]
+  Frame 33: CR=3.80316x  MaxDiff=0  Bits=3145728->827136  [LOSSLESS]
+  Frame 34: CR=3.74634x  MaxDiff=0  Bits=3145728->839680  [LOSSLESS]
+  Frame 35: CR=3.77396x  MaxDiff=0  Bits=3145728->833536  [LOSSLESS]
+  Frame 36: CR=3.76933x  MaxDiff=0  Bits=3145728->834560  [LOSSLESS]
+  Frame 37: CR=3.72138x  MaxDiff=0  Bits=3145728->845312  [LOSSLESS]
+  Frame 38: CR=3.68345x  MaxDiff=0  Bits=3145728->854016  [LOSSLESS]
+  Frame 39: CR=3.76471x  MaxDiff=0  Bits=3145728->835584  [LOSSLESS]
+  Frame 40: CR=3.73495x  MaxDiff=0  Bits=3145728->842240  [LOSSLESS]
+  Frame 41: CR=3.71688x  MaxDiff=0  Bits=3145728->846336  [LOSSLESS]
+  Frame 42: CR=3.73155x  MaxDiff=0  Bits=3145728->843008  [LOSSLESS]
+  Frame 43: CR=3.68235x  MaxDiff=0  Bits=3145728->854272  [LOSSLESS]
+  Frame 44: CR=3.68014x  MaxDiff=0  Bits=3145728->854784  [LOSSLESS]
+  Frame 45: CR=3.68345x  MaxDiff=0  Bits=3145728->854016  [LOSSLESS]
+  Frame 46: CR=3.68125x  MaxDiff=0  Bits=3145728->854528  [LOSSLESS]
+  Frame 47: CR=3.64737x  MaxDiff=0  Bits=3145728->862464  [LOSSLESS]
+  Frame 48: CR=3.60352x  MaxDiff=0  Bits=3145728->872960  [LOSSLESS]
+  Frame 49: CR=3.51689x  MaxDiff=0  Bits=3145728->894464  [LOSSLESS]
+
+==========================================================
+ GLOBAL VERIFICATION RESULTS (50 frames)
+==========================================================
+ Max LSB Difference    : 0
+ Mean Squared Error    : 0
+ Signal-to-Noise Ratio : INFINITE (Lossless)
+ Average CR (per-frame): 3.75082x
+ Overall CR (aggregate): 3.74993x
+==========================================================
+[SUCCESS] All 50 frames: LOSSLESS reconstruction!
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 24576
+INFO: [COSIM 212-333] Generating C post check test bench ...
+INFO: [COSIM 212-12] Generating RTL test bench ...
+INFO: [Common 17-3922] A valid Vivado Design Suite BASIC license has been detected. Your current license is active and will expire on 14-sep-2027.
+
+****** Vivado v2026.1 (64-bit)
+  **** SW Build 6511674 on Tue Jun 16 11:02:23 MDT 2026
+  **** IP Build 6504888 on Tue Jun 09 09:05:25 MDT 2026
+  **** SharedData Build 6501428 on Mon Jun 08 17:34:18 MDT 2026
+  **** Start of session at: Tue Sep 15 23:12:51 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source run_vivado_gen_ip.tcl -notrace
+create_project: Time (s): cpu = 00:00:13 ; elapsed = 00:00:19 . Memory (MB): peak = 580.859 ; gain = 267.480
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'D:/Xilinx/2026.1/Vivado/data/ip'.
+WARNING: [IP_Flow 19-4832] The IP name 'drhe_tdm_compress_faddfsub_32ns_32ns_32_4_full_dsp_1_ip' you have specified is long. The Windows operating system has path length limitations. It is recommended you use shorter names to reduce the likelihood of issues.
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'drhe_tdm_compress_faddfsub_32ns_32ns_32_4_full_dsp_1_ip'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'drhe_tdm_compress_faddfsub_32ns_32ns_32_4_full_dsp_1_ip'...
+WARNING: [IP_Flow 19-4832] The IP name 'drhe_tdm_compress_fadd_32ns_32ns_32_4_full_dsp_1_ip' you have specified is long. The Windows operating system has path length limitations. It is recommended you use shorter names to reduce the likelihood of issues.
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'drhe_tdm_compress_fadd_32ns_32ns_32_4_full_dsp_1_ip'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'drhe_tdm_compress_fadd_32ns_32ns_32_4_full_dsp_1_ip'...
+WARNING: [IP_Flow 19-4832] The IP name 'drhe_tdm_compress_fcmp_32ns_32ns_1_2_no_dsp_0_ip' you have specified is long. The Windows operating system has path length limitations. It is recommended you use shorter names to reduce the likelihood of issues.
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'drhe_tdm_compress_fcmp_32ns_32ns_1_2_no_dsp_0_ip'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'drhe_tdm_compress_fcmp_32ns_32ns_1_2_no_dsp_0_ip'...
+WARNING: [IP_Flow 19-4832] The IP name 'drhe_tdm_compress_fdiv_32ns_32ns_32_9_no_dsp_1_ip' you have specified is long. The Windows operating system has path length limitations. It is recommended you use shorter names to reduce the likelihood of issues.
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'drhe_tdm_compress_fdiv_32ns_32ns_32_9_no_dsp_1_ip'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'drhe_tdm_compress_fdiv_32ns_32ns_32_9_no_dsp_1_ip'...
+WARNING: [IP_Flow 19-4832] The IP name 'drhe_tdm_compress_fmul_32ns_32ns_32_3_max_dsp_1_ip' you have specified is long. The Windows operating system has path length limitations. It is recommended you use shorter names to reduce the likelihood of issues.
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'drhe_tdm_compress_fmul_32ns_32ns_32_3_max_dsp_1_ip'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'drhe_tdm_compress_fmul_32ns_32ns_32_3_max_dsp_1_ip'...
+WARNING: [IP_Flow 19-4832] The IP name 'drhe_tdm_compress_fsqrt_32ns_32ns_32_8_no_dsp_1_ip' you have specified is long. The Windows operating system has path length limitations. It is recommended you use shorter names to reduce the likelihood of issues.
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'drhe_tdm_compress_fsqrt_32ns_32ns_32_8_no_dsp_1_ip'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'drhe_tdm_compress_fsqrt_32ns_32ns_32_8_no_dsp_1_ip'...
+WARNING: [IP_Flow 19-4832] The IP name 'drhe_tdm_compress_fsub_32ns_32ns_32_4_full_dsp_0_ip' you have specified is long. The Windows operating system has path length limitations. It is recommended you use shorter names to reduce the likelihood of issues.
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'drhe_tdm_compress_fsub_32ns_32ns_32_4_full_dsp_0_ip'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'drhe_tdm_compress_fsub_32ns_32ns_32_4_full_dsp_0_ip'...
+WARNING: [IP_Flow 19-4832] The IP name 'drhe_tdm_compress_sitofp_32s_32_4_no_dsp_1_ip' you have specified is long. The Windows operating system has path length limitations. It is recommended you use shorter names to reduce the likelihood of issues.
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'drhe_tdm_compress_sitofp_32s_32_4_no_dsp_1_ip'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'drhe_tdm_compress_sitofp_32s_32_4_no_dsp_1_ip'...
+INFO: [Common 17-206] Exiting Vivado at Tue Sep 15 23:13:49 2026...
+INFO: [COSIM 212-1] *** C/RTL co-simulation file generation completed. ***
+INFO: [COSIM 212-323] Starting verilog simulation. 
+INFO: [COSIM 212-15] Starting XSIM ...
+
+D:\Thesis\ThesisA\hls_component\hls_tdm\hls\sim\verilog>set PATH= 
+
+D:\Thesis\ThesisA\hls_component\hls_tdm\hls\sim\verilog>call D:/Xilinx/2026.1/Vivado/bin/xelab xil_defaultlib.apatb_drhe_tdm_compress_top xil_defaultlib.glbl -Oenable_linking_all_libraries -prj drhe_tdm_compress.prj -L smartconnect_v1_0 -L axi_protocol_checker_v1_1_12 -L axi_protocol_checker_v1_1_13 -L axis_protocol_checker_v1_1_11 -L axis_protocol_checker_v1_1_12 -L xil_defaultlib -L unisims_ver -L xpm  -L floating_point_v7_1_22 -L floating_point_v7_0_27 --lib "ieee_proposed=./ieee_proposed" -L uvm -relax -i ./svr -i ./axivip -i ./svtb -i ./file_agent -i ./drhe_tdm_compress_subsystem  -s drhe_tdm_compress  
+Vivado Simulator v2026.1
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+Running: D:/Xilinx/2026.1/Vivado/bin/unwrapped/win64.o/xelab.exe xil_defaultlib.apatb_drhe_tdm_compress_top xil_defaultlib.glbl -Oenable_linking_all_libraries -prj drhe_tdm_compress.prj -L smartconnect_v1_0 -L axi_protocol_checker_v1_1_12 -L axi_protocol_checker_v1_1_13 -L axis_protocol_checker_v1_1_11 -L axis_protocol_checker_v1_1_12 -L xil_defaultlib -L unisims_ver -L xpm -L floating_point_v7_1_22 -L floating_point_v7_0_27 --lib ieee_proposed=./ieee_proposed -L uvm -relax -i ./svr -i ./axivip -i ./svtb -i ./file_agent -i ./drhe_tdm_compress_subsystem -s drhe_tdm_compress 
+Multi-threading is on. Using 10 slave threads.
+Determining compilation order of HDL files.
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/glbl.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module glbl
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/AESL_deadlock_idx0_monitor.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module AESL_deadlock_idx0_monitor
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/AESL_deadlock_idx1_monitor.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module AESL_deadlock_idx1_monitor
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/AESL_deadlock_kernel_monitor_top.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module AESL_deadlock_kernel_monitor_top
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress.autotb.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module apatb_drhe_tdm_compress_top
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_addsub_0_0_ap_fixed_40_1_5_3_0_ap_fixed_40_1_0_3_0_ap_uint_1_s.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_addsub_0_0_ap_fixed_40_1_5_3_0_ap_fixed_40_1_0_3_0_ap_uint_1_s
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_addsub_0_0_ap_fixed_43_4_5_3_0_ap_fixed_43_4_5_3_0_ap_uint_1_s.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_addsub_0_0_ap_fixed_43_4_5_3_0_ap_fixed_43_4_5_3_0_ap_uint_1_s
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_addsub_0_0_ap_fixed_43_4_5_3_0_ap_fixed_43_4_5_3_0_bool_s.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_addsub_0_0_ap_fixed_43_4_5_3_0_ap_fixed_43_4_5_3_0_bool_s
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_atan2_cordic_float_s.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_atan2_cordic_float_s
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_atan2_generic_float_s.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_atan2_generic_float_s
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_bitselect_1ns_40ns_6ns_1_1_1.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_bitselect_1ns_40ns_6ns_1_1_1
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_control_s_axi.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_control_s_axi
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_ctlz_30_30_1_0.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_ctlz_30_30_1_0
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_ctlz_32_32_1_0.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_ctlz_32_32_1_0
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_ctlz_40_40_1_1.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_ctlz_40_40_1_1
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_drhe_tdm_compress_Pipeline_SAMPLE_LOOP.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_drhe_tdm_compress_Pipeline_SAMPLE_LOOP
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0bkb.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0bkb
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0dEe.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_drhe_tdm_compress_Pipeline_SAMPLE_LOOP_drhe_tdm_compress_stream_stream_axis_0dEe
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_faddfsub_32ns_32ns_32_4_full_dsp_1.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_faddfsub_32ns_32ns_32_4_full_dsp_1
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_fadd_32ns_32ns_32_4_full_dsp_1.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_fadd_32ns_32ns_32_4_full_dsp_1
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_fcmp_32ns_32ns_1_2_no_dsp_0.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_fcmp_32ns_32ns_1_2_no_dsp_0
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_fdiv_32ns_32ns_32_9_no_dsp_1.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_fdiv_32ns_32ns_32_9_no_dsp_1
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_fmul_32ns_32ns_32_3_max_dsp_1.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_fmul_32ns_32ns_32_3_max_dsp_1
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_fsqrt_32ns_32ns_32_8_no_dsp_1.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_fsqrt_32ns_32ns_32_8_no_dsp_1
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_fsub_32ns_32ns_32_4_full_dsp_0.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_fsub_32ns_32ns_32_4_full_dsp_0
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_generic_round_float_s.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_generic_round_float_s
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_generic_round_float_s_mask_table_ROM_AUTO_1R.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_generic_round_float_s_mask_table_ROM_AUTO_1R
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_generic_round_float_s_one_half_table_ROM_AUTO_1R.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_generic_round_float_s_one_half_table_ROM_AUTO_1R
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_mul_15ns_15ns_30_1_0.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_mul_15ns_15ns_30_1_0
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_mul_15ns_15s_30_1_0.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_mul_15ns_15s_30_1_0
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_mul_23s_22ns_45_1_0.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_mul_23s_22ns_45_1_0
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_mul_30s_29ns_58_1_0.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_mul_30s_29ns_58_1_0
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_mul_80s_24ns_80_1_0.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_mul_80s_24ns_80_1_0
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_p_hls_fptosi_float_i32.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_p_hls_fptosi_float_i32
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_regslice_both.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_regslice_both
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_sin_or_cos_float_s.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_sin_or_cos_float_s
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_sin_or_cos_float_s_ref_4oPi_table_100_ROM_1P_LUTRAM_1R.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_sin_or_cos_float_s_ref_4oPi_table_100_ROM_1P_LUTRAM_1R
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_sin_or_cos_float_s_second_order_float_sin_cos_K0_ROM_1P_LUTRAM_1R.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_sin_or_cos_float_s_second_order_float_sin_cos_K0_ROM_1P_LUTRAM_1R
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_sin_or_cos_float_s_second_order_float_sin_cos_K1_ROM_1P_LUTRAM_1R.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_sin_or_cos_float_s_second_order_float_sin_cos_K1_ROM_1P_LUTRAM_1R
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_sin_or_cos_float_s_second_order_float_sin_cos_K2_ROM_1P_LUTRAM_1R.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_sin_or_cos_float_s_second_order_float_sin_cos_K2_ROM_1P_LUTRAM_1R
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_sitofp_32s_32_4_no_dsp_1.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_sitofp_32s_32_4_no_dsp_1
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_sparsemux_17_3_1_1_0.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_sparsemux_17_3_1_1_0
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_sparsemux_33_4_14_1_1.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_sparsemux_33_4_14_1_1
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_sparsemux_33_4_1_1_0.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_sparsemux_33_4_1_1_0
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_sparsemux_33_4_4_1_1.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_sparsemux_33_4_4_1_1
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_sparsemux_7_2_32_1_1.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module drhe_tdm_compress_sparsemux_7_2_32_1_1
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/dataflow_monitor.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module dataflow_monitor
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/file_agent/file_agent_pkg.sv" into library xil_defaultlib
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/svr/svr_pkg.sv" into library xil_defaultlib
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/svr/svr_if.sv" into library xil_defaultlib
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/axivip/axi_pkg.sv" into library xil_defaultlib
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/axivip/axi_if.sv" into library xil_defaultlib
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/drhe_tdm_compress_subsystem/drhe_tdm_compress_subsystem_pkg.sv" into library xil_defaultlib
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/svtb/misc_interface.sv" into library xil_defaultlib
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/svtb/sv_module_top.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module sv_module_top
+INFO: [VRFC 10-163] Analyzing VHDL file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/ip/xil_defaultlib/drhe_tdm_compress_faddfsub_32ns_32ns_32_4_full_dsp_1_ip.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'drhe_tdm_compress_faddfsub_32ns_32ns_32_4_full_dsp_1_ip'
+INFO: [VRFC 10-163] Analyzing VHDL file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/ip/xil_defaultlib/drhe_tdm_compress_fadd_32ns_32ns_32_4_full_dsp_1_ip.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'drhe_tdm_compress_fadd_32ns_32ns_32_4_full_dsp_1_ip'
+INFO: [VRFC 10-163] Analyzing VHDL file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/ip/xil_defaultlib/drhe_tdm_compress_fcmp_32ns_32ns_1_2_no_dsp_0_ip.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'drhe_tdm_compress_fcmp_32ns_32ns_1_2_no_dsp_0_ip'
+INFO: [VRFC 10-163] Analyzing VHDL file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/ip/xil_defaultlib/drhe_tdm_compress_fdiv_32ns_32ns_32_9_no_dsp_1_ip.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'drhe_tdm_compress_fdiv_32ns_32ns_32_9_no_dsp_1_ip'
+INFO: [VRFC 10-163] Analyzing VHDL file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/ip/xil_defaultlib/drhe_tdm_compress_fmul_32ns_32ns_32_3_max_dsp_1_ip.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'drhe_tdm_compress_fmul_32ns_32ns_32_3_max_dsp_1_ip'
+INFO: [VRFC 10-163] Analyzing VHDL file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/ip/xil_defaultlib/drhe_tdm_compress_fsqrt_32ns_32ns_32_8_no_dsp_1_ip.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'drhe_tdm_compress_fsqrt_32ns_32ns_32_8_no_dsp_1_ip'
+INFO: [VRFC 10-163] Analyzing VHDL file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/ip/xil_defaultlib/drhe_tdm_compress_fsub_32ns_32ns_32_4_full_dsp_0_ip.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'drhe_tdm_compress_fsub_32ns_32ns_32_4_full_dsp_0_ip'
+INFO: [VRFC 10-163] Analyzing VHDL file "D:/Thesis/ThesisA/hls_component/hls_tdm/hls/sim/verilog/ip/xil_defaultlib/drhe_tdm_compress_sitofp_32s_32_4_no_dsp_1_ip.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'drhe_tdm_compress_sitofp_32s_32_4_no_dsp_1_ip'
+Starting static elaboration
+Pass Through NonSizing Optimizer
+Completed static elaboration
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling package std.standard
+Compiling package std.textio
+Compiling package ieee.std_logic_1164
+Compiling package ieee.numeric_std
+Compiling package floating_point_v7_1_22.floating_point_v7_1_22_viv_comp
+Compiling package xbip_utils_v3_0_16.xbip_utils_v3_0_16_pkg
+Compiling package axi_utils_v2_0_12.axi_utils_v2_0_12_pkg
+Compiling package floating_point_v7_1_22.floating_point_v7_1_22_consts
+Compiling package ieee.math_real
+Compiling package floating_point_v7_1_22.floating_point_v7_1_22_exp_table...
+Compiling package mult_gen_v12_0_25.mult_gen_v12_0_25_pkg
+Compiling package floating_point_v7_1_22.floating_point_v7_1_22_pkg
+Compiling package floating_point_v7_1_22.flt_utils
+Compiling package unisim.vcomponents
+Compiling package xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv_comp
+Compiling package ieee.vital_timing
+Compiling package ieee.vital_primitives
+Compiling package unisim.vpkg
+Compiling package floating_point_v7_1_22.vt2mutils
+Compiling package floating_point_v7_1_22.vt2mcomps
+Compiling package xil_defaultlib.$unit_sv_module_top_sv
+Compiling package uvm.uvm_pkg
+Compiling package std.std
+Compiling package xil_defaultlib.svr_pkg
+Compiling package xil_defaultlib.file_agent_pkg
+Compiling package xil_defaultlib.axi_pkg
+Compiling package xil_defaultlib.drhe_tdm_compress_subsystem_pkg
+Compiling package xil_defaultlib.$unit_dataflow_monitor_sv
+Compiling module xil_defaultlib.drhe_tdm_compress_drhe_tdm_compr...
+Compiling module xil_defaultlib.drhe_tdm_compress_drhe_tdm_compr...
+Compiling module xil_defaultlib.drhe_tdm_compress_sin_or_cos_flo...
+Compiling module xil_defaultlib.drhe_tdm_compress_sin_or_cos_flo...
+Compiling module xil_defaultlib.drhe_tdm_compress_sin_or_cos_flo...
+Compiling module xil_defaultlib.drhe_tdm_compress_sin_or_cos_flo...
+Compiling module xil_defaultlib.drhe_tdm_compress_mul_23s_22ns_4...
+Compiling module xil_defaultlib.drhe_tdm_compress_mul_30s_29ns_5...
+Compiling module xil_defaultlib.drhe_tdm_compress_mul_80s_24ns_8...
+Compiling module xil_defaultlib.drhe_tdm_compress_ctlz_30_30_1_0...
+Compiling module xil_defaultlib.drhe_tdm_compress_sparsemux_17_3...
+Compiling module xil_defaultlib.drhe_tdm_compress_sparsemux_33_4...
+Compiling module xil_defaultlib.drhe_tdm_compress_mul_15ns_15ns_...
+Compiling module xil_defaultlib.drhe_tdm_compress_mul_15ns_15s_3...
+Compiling module xil_defaultlib.drhe_tdm_compress_ctlz_32_32_1_0...
+Compiling module xil_defaultlib.drhe_tdm_compress_sin_or_cos_flo...
+Compiling module xil_defaultlib.drhe_tdm_compress_generic_round_...
+Compiling module xil_defaultlib.drhe_tdm_compress_generic_round_...
+Compiling module xil_defaultlib.drhe_tdm_compress_sparsemux_7_2_...
+Compiling module xil_defaultlib.drhe_tdm_compress_generic_round_...
+Compiling module xil_defaultlib.drhe_tdm_compress_p_hls_fptosi_f...
+Compiling module xil_defaultlib.drhe_tdm_compress_addsub_0_0_ap_...
+Compiling module xil_defaultlib.drhe_tdm_compress_addsub_0_0_ap_...
+Compiling module xil_defaultlib.drhe_tdm_compress_addsub_0_0_ap_...
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=23,length=0)\]
+Compiling architecture muxcy_v of entity unisim.MUXCY [muxcy_default]
+Compiling architecture xorcy_v of entity unisim.XORCY [xorcy_default]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=25,length=0,fast_in...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_div_mant_addsub [\flt_div_mant_addsub(c_xdevicefa...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=26,length=0)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(length=0)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=23)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=24,length=0)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=25,fast_input=true)...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_div_mant_addsub [\flt_div_mant_addsub(c_xdevicefa...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=26)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [delay_default]
+Compiling architecture virtex of entity floating_point_v7_1_22.flt_div_mant [\flt_div_mant(c_xdevicefamily="k...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=10,length=0,fast_in...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(length=0,fast_input=true)...]
+Compiling architecture rtl of entity floating_point_v7_1_22.special_detect [\special_detect(c_xdevicefamily=...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(length=6,fast_input=true)...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=2,length=0,fast_inp...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=4,length=0,fast_inp...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=8,length=6)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=3,length=6,fast_inp...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=4,length=6,fast_inp...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=14,length=0)\]
+Compiling architecture rtl of entity floating_point_v7_1_22.flt_div_exp [\flt_div_exp(c_xdevicefamily="no...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=8,length=0)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=12,length=0,fast_in...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=3,length=0)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=2,length=0)\]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture rtl of entity floating_point_v7_1_22.flt_round_bit [\flt_round_bit(c_xdevicefamily="...]
+Compiling architecture rtl of entity floating_point_v7_1_22.renorm_and_round_logic [\renorm_and_round_logic(c_xdevic...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_dec_op_lat [\flt_dec_op_lat(c_xdevicefamily=...]
+Compiling architecture virtex of entity floating_point_v7_1_22.flt_div [\flt_div(c_xdevicefamily="kintex...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=32,length=0)\]
+Compiling architecture xilinx of entity floating_point_v7_1_22.floating_point_v7_1_22_viv [\floating_point_v7_1_22_viv(c_xd...]
+Compiling architecture xilinx of entity floating_point_v7_1_22.floating_point_v7_1_22 [\floating_point_v7_1_22(c_xdevic...]
+Compiling architecture drhe_tdm_compress_fdiv_32ns_32ns_32_9_no_dsp_1_ip_arch of entity xil_defaultlib.drhe_tdm_compress_fdiv_32ns_32ns_32_9_no_dsp_1_ip [drhe_tdm_compress_fdiv_32ns_32ns...]
+Compiling module xil_defaultlib.drhe_tdm_compress_fdiv_32ns_32ns...
+Compiling module xil_defaultlib.drhe_tdm_compress_ctlz_40_40_1_1...
+Compiling module xil_defaultlib.drhe_tdm_compress_bitselect_1ns_...
+Compiling module xil_defaultlib.drhe_tdm_compress_atan2_generic_...
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=7,length=0)\]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.compare_eq_im [\compare_eq_im(c_xdevicefamily="...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=24,length=0,fast_in...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=16,length=0)\]
+Compiling architecture dsp48e1_v of entity unisim.DSP48E1 [\DSP48E1(acascreg=0,adreg=0,alum...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=4,length=0)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=48,length=0)\]
+Compiling architecture rtl of entity floating_point_v7_1_22.dsp48e1_wrapper [\dsp48e1_wrapper(c_part="xcku5p-...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=13,length=0)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=27,length=0)\]
+Compiling architecture synth of entity floating_point_v7_1_22.align_add_dsp48e1_sgl [\align_add_dsp48e1_sgl(c_xdevice...]
+Compiling architecture fdre_v of entity unisim.FDRE [fdre_default]
+Compiling architecture fde_v of entity unisim.FDE [fde_default]
+Compiling architecture lut5_v of entity unisim.LUT5 [\LUT5(init="00000000000000001111...]
+Compiling architecture lut5_v of entity unisim.LUT5 [\LUT5(init="00000000000000000000...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=27)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=5,length=0)\]
+Compiling architecture rtl of entity floating_point_v7_1_22.lead_zero_encode_shift [\lead_zero_encode_shift(ab_fw=24...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=4)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=3)\]
+Compiling architecture lut6_v of entity unisim.LUT6 [\LUT6(init="11111110010101001011...]
+Compiling architecture lut5_v of entity unisim.LUT5 [\LUT5(init="00010001010111110000...]
+Compiling architecture lut5_v of entity unisim.LUT5 [\LUT5(init="11101110101000001111...]
+Compiling architecture dsp48e1_v of entity unisim.DSP48E1 [\DSP48E1(acascreg=0,adreg=0,alum...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=25,length=0)\]
+Compiling architecture rtl of entity floating_point_v7_1_22.dsp48e1_wrapper [\dsp48e1_wrapper(a_width=24,c_wi...]
+Compiling architecture rtl of entity floating_point_v7_1_22.norm_and_round_dsp48e1_sgl [\norm_and_round_dsp48e1_sgl(c_mu...]
+Compiling architecture lut5_v of entity unisim.LUT5 [\LUT5(init="10011001100110011001...]
+Compiling architecture lut5_v of entity unisim.LUT5 [\LUT5(init="11111111000000001111...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=9,length=0)\]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=10,length=0)\]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.compare_eq_im [\compare_eq_im(c_xdevicefamily="...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(fast_input=true)\]
+Compiling architecture rtl of entity floating_point_v7_1_22.special_detect [\special_detect(c_xdevicefamily=...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.compare_gt [\compare_gt(c_xdevicefamily="kin...]
+Compiling architecture synth of entity floating_point_v7_1_22.compare [\compare(c_xdevicefamily="kintex...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=8)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=9)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=2,fast_input=true)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=12,length=0)\]
+Compiling architecture rtl of entity floating_point_v7_1_22.flt_add_exp_sp [\flt_add_exp_sp(c_xdevicefamily=...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_dec_op [\flt_dec_op(c_xdevicefamily="kin...]
+Compiling architecture rtl of entity floating_point_v7_1_22.flt_add_dsp [\flt_add_dsp(c_xdevicefamily="ki...]
+Compiling architecture rtl of entity floating_point_v7_1_22.flt_add [\flt_add(c_xdevicefamily="kintex...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture xilinx of entity floating_point_v7_1_22.floating_point_v7_1_22_viv [\floating_point_v7_1_22_viv(c_xd...]
+Compiling architecture xilinx of entity floating_point_v7_1_22.floating_point_v7_1_22 [\floating_point_v7_1_22(c_xdevic...]
+Compiling architecture drhe_tdm_compress_fsub_32ns_32ns_32_4_full_dsp_0_ip_arch of entity xil_defaultlib.drhe_tdm_compress_fsub_32ns_32ns_32_4_full_dsp_0_ip [drhe_tdm_compress_fsub_32ns_32ns...]
+Compiling module xil_defaultlib.drhe_tdm_compress_fsub_32ns_32ns...
+Compiling architecture synth of entity floating_point_v7_1_22.compare_eq_im [\compare_eq_im(c_xdevicefamily="...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.compare_ne_im [\compare_ne_im(c_xdevicefamily="...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.compare_eq_im [\compare_eq_im(c_xdevicefamily="...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=11,length=0)\]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.compare_eq [\compare_eq(c_xdevicefamily="kin...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.compare_gt [\compare_gt(c_xdevicefamily="kin...]
+Compiling architecture rtl of entity floating_point_v7_1_22.fp_cmp [\fp_cmp(c_xdevicefamily="kintexu...]
+Compiling architecture xilinx of entity floating_point_v7_1_22.floating_point_v7_1_22_viv [\floating_point_v7_1_22_viv(c_xd...]
+Compiling architecture xilinx of entity floating_point_v7_1_22.floating_point_v7_1_22 [\floating_point_v7_1_22(c_xdevic...]
+Compiling architecture drhe_tdm_compress_fcmp_32ns_32ns_1_2_no_dsp_0_ip_arch of entity xil_defaultlib.drhe_tdm_compress_fcmp_32ns_32ns_1_2_no_dsp_0_ip [drhe_tdm_compress_fcmp_32ns_32ns...]
+Compiling module xil_defaultlib.drhe_tdm_compress_fcmp_32ns_32ns...
+Compiling module xil_defaultlib.drhe_tdm_compress_atan2_cordic_f...
+Compiling architecture rtl of entity floating_point_v7_1_22.flt_add [\flt_add(c_xdevicefamily="kintex...]
+Compiling architecture xilinx of entity floating_point_v7_1_22.floating_point_v7_1_22_viv [\floating_point_v7_1_22_viv(c_xd...]
+Compiling architecture xilinx of entity floating_point_v7_1_22.floating_point_v7_1_22 [\floating_point_v7_1_22(c_xdevic...]
+Compiling architecture drhe_tdm_compress_fadd_32ns_32ns_32_4_full_dsp_1_ip_arch of entity xil_defaultlib.drhe_tdm_compress_fadd_32ns_32ns_32_4_full_dsp_1_ip [drhe_tdm_compress_fadd_32ns_32ns...]
+Compiling module xil_defaultlib.drhe_tdm_compress_fadd_32ns_32ns...
+Compiling architecture rtl of entity floating_point_v7_1_22.flt_add [\flt_add(c_xdevicefamily="kintex...]
+Compiling architecture xilinx of entity floating_point_v7_1_22.floating_point_v7_1_22_viv [\floating_point_v7_1_22_viv(c_xd...]
+Compiling architecture xilinx of entity floating_point_v7_1_22.floating_point_v7_1_22 [\floating_point_v7_1_22(c_xdevic...]
+Compiling architecture drhe_tdm_compress_faddfsub_32ns_32ns_32_4_full_dsp_1_ip_arch of entity xil_defaultlib.drhe_tdm_compress_faddfsub_32ns_32ns_32_4_full_dsp_1_ip [drhe_tdm_compress_faddfsub_32ns_...]
+Compiling module xil_defaultlib.drhe_tdm_compress_faddfsub_32ns_...
+Compiling architecture dsp48e1_v of entity unisim.DSP48E1 [\DSP48E1(acascreg=0,adreg=0,alum...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=17,length=0)\]
+Compiling architecture rtl of entity floating_point_v7_1_22.dsp48e1_wrapper [\dsp48e1_wrapper(a_width=24,b_wi...]
+Compiling architecture dsp48e1_v of entity unisim.DSP48E1 [\DSP48E1(acascreg=0,adreg=0,alum...]
+Compiling architecture rtl of entity floating_point_v7_1_22.dsp48e1_wrapper [\dsp48e1_wrapper(a_width=24,b_wi...]
+Compiling architecture struct of entity floating_point_v7_1_22.fix_mult_dsp48e1_sgl [\fix_mult_dsp48e1_sgl(registers=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.fix_mult [\fix_mult(c_xdevicefamily="kinte...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=8,length=0,fast_inp...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.compare_eq_im [\compare_eq_im(c_xdevicefamily="...]
+Compiling architecture rtl of entity floating_point_v7_1_22.special_detect [\special_detect(c_xdevicefamily=...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=3,length=0,fast_inp...]
+Compiling architecture rtl of entity floating_point_v7_1_22.flt_mult_exp [\flt_mult_exp(c_xdevicefamily="k...]
+Compiling architecture dsp48e1_v of entity unisim.DSP48E1 [\DSP48E1(acascreg=0,adreg=0,alum...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=30,length=0)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=18,length=0)\]
+Compiling architecture rtl of entity floating_point_v7_1_22.dsp48e1_wrapper [\dsp48e1_wrapper(a_width=30,b_wi...]
+Compiling architecture struct of entity floating_point_v7_1_22.flt_round_dsp_opt_full [\flt_round_dsp_opt_full(c_xdevic...]
+Compiling architecture rtl of entity floating_point_v7_1_22.flt_mult_round [\flt_mult_round(c_xdevicefamily=...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_dec_op_lat [\flt_dec_op_lat(c_xdevicefamily=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.flt_mult [\flt_mult(c_xdevicefamily="kinte...]
+Compiling architecture xilinx of entity floating_point_v7_1_22.floating_point_v7_1_22_viv [\floating_point_v7_1_22_viv(c_xd...]
+Compiling architecture xilinx of entity floating_point_v7_1_22.floating_point_v7_1_22 [\floating_point_v7_1_22(c_xdevic...]
+Compiling architecture drhe_tdm_compress_fmul_32ns_32ns_32_3_max_dsp_1_ip_arch of entity xil_defaultlib.drhe_tdm_compress_fmul_32ns_32ns_32_3_max_dsp_1_ip [drhe_tdm_compress_fmul_32ns_32ns...]
+Compiling module xil_defaultlib.drhe_tdm_compress_fmul_32ns_32ns...
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture rtl of entity floating_point_v7_1_22.norm_zero_det [\norm_zero_det(data_width=7,norm...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=4,fast_input=true)\]
+Compiling architecture rtl of entity floating_point_v7_1_22.mux4 [\mux4(c_xdevicefamily="kintexupl...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=2)\]
+Compiling architecture rtl of entity floating_point_v7_1_22.mux4 [\mux4(c_xdevicefamily="kintexupl...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture rtl of entity floating_point_v7_1_22.lead_zero_encode [\lead_zero_encode(c_xdevicefamil...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=32)\]
+Compiling architecture rtl of entity floating_point_v7_1_22.shift_msb_first [\shift_msb_first(a_width=32,resu...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture rtl of entity floating_point_v7_1_22.renorm_and_round_logic [\renorm_and_round_logic(c_xdevic...]
+Compiling architecture synth of entity floating_point_v7_1_22.fix_to_flt_conv_exp [\fix_to_flt_conv_exp(c_xdevicefa...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_dec_op [\flt_dec_op(c_xdevicefamily="kin...]
+Compiling architecture struct of entity floating_point_v7_1_22.fix_to_flt_conv [\fix_to_flt_conv(c_xdevicefamily...]
+Compiling architecture xilinx of entity floating_point_v7_1_22.floating_point_v7_1_22_viv [\floating_point_v7_1_22_viv(c_xd...]
+Compiling architecture xilinx of entity floating_point_v7_1_22.floating_point_v7_1_22 [\floating_point_v7_1_22(c_xdevic...]
+Compiling architecture drhe_tdm_compress_sitofp_32s_32_4_no_dsp_1_ip_arch of entity xil_defaultlib.drhe_tdm_compress_sitofp_32s_32_4_no_dsp_1_ip [drhe_tdm_compress_sitofp_32s_32_...]
+Compiling module xil_defaultlib.drhe_tdm_compress_sitofp_32s_32_...
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=5,length=0,fast_inp...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=6,length=0,fast_inp...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=22,length=0)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=7,length=0,fast_inp...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=20,length=0)\]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=18)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=9,fast_input=true)\]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=6)\]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=11,length=0,fast_in...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=13,length=0,fast_in...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=14,fast_input=true)...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=11)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=6,length=0)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=15,length=0,fast_in...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=16,length=0,fast_in...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=17,length=0,fast_in...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=18,length=0,fast_in...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=15,length=0)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=19,fast_input=true)...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=16)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=20,length=0,fast_in...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=21,length=0,fast_in...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=22,length=0,fast_in...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=19,length=0)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=23,length=0,fast_in...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=24,fast_input=true)...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=21)\]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=26,length=0,fast_in...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=27,length=0,fast_in...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=28,length=0,fast_in...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_has_ce=...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=28,length=0)\]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=29,fast_input=true)...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant_addsub [\flt_sqrt_mant_addsub(c_xdevicef...]
+Compiling architecture synth of entity floating_point_v7_1_22.flt_sqrt_mant [\flt_sqrt_mant(c_xdevicefamily="...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=8,length=5,fast_inp...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(width=2,length=5,fast_inp...]
+Compiling architecture synth of entity xbip_pipe_v3_0_12.xbip_pipe_v3_0_12_viv [\xbip_pipe_v3_0_12_viv(c_latency...]
+Compiling architecture rtl of entity floating_point_v7_1_22.delay [\delay(length=5,fast_input=true)...]
+Compiling architecture rtl of entity floating_point_v7_1_22.flt_sqrt_exp [\flt_sqrt_exp(c_xdevicefamily="n...]
+Compiling architecture struct of entity floating_point_v7_1_22.carry_chain [\carry_chain(c_xdevicefamily="ki...]
+Compiling architecture rtl of entity floating_point_v7_1_22.flt_round_bit [\flt_round_bit(c_xdevicefamily="...]
+Compiling architecture rtl of entity floating_point_v7_1_22.renorm_and_round_logic [\renorm_and_round_logic(c_xdevic...]
+Compiling architecture virtex of entity floating_point_v7_1_22.flt_sqrt [\flt_sqrt(c_xdevicefamily="kinte...]
+Compiling architecture xilinx of entity floating_point_v7_1_22.floating_point_v7_1_22_viv [\floating_point_v7_1_22_viv(c_xd...]
+Compiling architecture xilinx of entity floating_point_v7_1_22.floating_point_v7_1_22 [\floating_point_v7_1_22(c_xdevic...]
+Compiling architecture drhe_tdm_compress_fsqrt_32ns_32ns_32_8_no_dsp_1_ip_arch of entity xil_defaultlib.drhe_tdm_compress_fsqrt_32ns_32ns_32_8_no_dsp_1_ip [drhe_tdm_compress_fsqrt_32ns_32n...]
+Compiling module xil_defaultlib.drhe_tdm_compress_fsqrt_32ns_32n...
+Compiling module xil_defaultlib.drhe_tdm_compress_sparsemux_33_4...
+Compiling module xil_defaultlib.drhe_tdm_compress_sparsemux_33_4...
+Compiling module xil_defaultlib.drhe_tdm_compress_drhe_tdm_compr...
+Compiling module xil_defaultlib.drhe_tdm_compress_control_s_axi
+Compiling module xil_defaultlib.drhe_tdm_compress_regslice_both(...
+Compiling module xil_defaultlib.drhe_tdm_compress_regslice_both(...
+Compiling module xil_defaultlib.drhe_tdm_compress_regslice_both(...
+Compiling module xil_defaultlib.drhe_tdm_compress_regslice_both(...
+Compiling module xil_defaultlib.drhe_tdm_compress_regslice_both(...
+Compiling module xil_defaultlib.drhe_tdm_compress
+Compiling module xil_defaultlib.misc_interface_default
+Compiling module xil_defaultlib.svr_if(DATA_WIDTH=161)
+Compiling module xil_defaultlib.svr_if(DATA_WIDTH=321)
+Compiling module xil_defaultlib.axi_if(ADDR_WIDTH=6,STRB_WIDTH=4...
+Compiling module xil_defaultlib.sv_module_top
+Compiling module xil_defaultlib.AESL_deadlock_idx1_monitor
+Compiling module xil_defaultlib.AESL_deadlock_idx0_monitor
+Compiling module xil_defaultlib.AESL_deadlock_kernel_monitor_top...
+Compiling module xil_defaultlib.nodf_module_intf_default
+Compiling module xil_defaultlib.pp_loop_intf(FSM_WIDTH=5)
+Compiling module xil_defaultlib.seq_loop_intf(FSM_WIDTH=7)
+Compiling module xil_defaultlib.dataflow_monitor_1
+Compiling module xil_defaultlib.apatb_drhe_tdm_compress_top
+Compiling module xil_defaultlib.glbl
+Built simulation snapshot drhe_tdm_compress
+
+****** xsim v2026.1 (64-bit)
+  **** SW Build 6511674 on Tue Jun 16 11:02:23 MDT 2026
+  **** IP Build 6504888 on Tue Jun 09 09:05:25 MDT 2026
+  **** SharedData Build 6501428 on Mon Jun 08 17:34:18 MDT 2026
+  **** Start of session at: Tue Sep 15 23:16:53 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/drhe_tdm_compress/xsim_script.tcl
+# xsim {drhe_tdm_compress} -testplusarg UVM_VERBOSITY=UVM_NONE -testplusarg UVM_TESTNAME=drhe_tdm_compress_test_lib -testplusarg UVM_TIMEOUT=20000000000000 -autoloadwcfg -tclbatch {drhe_tdm_compress.tcl}
+Time resolution is 1 ps
+source drhe_tdm_compress.tcl
+## run all
+UVM_INFO D:/Xilinx/2026.1/Vivado/data/system_verilog/uvm_1.2/xlnx_uvm_package.sv(18601) @ 0: reporter [UVM/RELNOTES] 
+----------------------------------------------------------------
+UVM-1.2
+(C) 2007-2014 Mentor Graphics Corporation
+(C) 2007-2014 Cadence Design Systems, Inc.
+(C) 2006-2014 Synopsys, Inc.
+(C) 2011-2013 Cypress Semiconductor Corp.
+(C) 2013-2014 NVIDIA Corporation
+----------------------------------------------------------------
+
+  ***********       IMPORTANT RELEASE NOTES         ************
+
+  You are using a version of the UVM library that has been compiled
+  with `UVM_NO_DEPRECATED undefined.
+
+  You are using a version of the UVM library that has been compiled
+  with `UVM_OBJECT_DO_NOT_NEED_CONSTRUCTOR undefined.
+
+      (Specify +UVM_NO_RELNOTES to turn off this notice)
+
+UVM_INFO D:/Xilinx/2026.1/Vivado/data/system_verilog/uvm_1.2/xlnx_uvm_package.sv(18648) @ 0: reporter [NO_DPI_TSTNAME] UVM_NO_DPI defined--getting UVM_TESTNAME directly, without DPI
+UVM_INFO D:/Xilinx/2026.1/Vivado/data/system_verilog/uvm_1.2/xlnx_uvm_package.sv(18752) @ 0: reporter [UVMTOP] UVM testbench topology:
+--------------------------------------------------------------------------------------------------------------------
+Name                                                    Type                                   Size  Value          
+--------------------------------------------------------------------------------------------------------------------
+uvm_test_top                                            drhe_tdm_compress_test_lib             -     @373           
+  top_env                                               drhe_tdm_compress_env                  -     @384           
+    axi_lite_control                                    uvm_env                                -     @431           
+      item_rtr_port                                     uvm_analysis_port                      -     @450           
+      item_wtr_port                                     uvm_analysis_port                      -     @440           
+      master                                            uvm_agent                              -     @843           
+        ardrv                                           uvm_driver #(REQ,RSP)                  -     @1518          
+          item_read_imp                                 uvm_analysis_port                      -     @1547          
+          rsp_port                                      uvm_analysis_port                      -     @1537          
+          seq_item_port                                 uvm_seq_item_pull_port                 -     @1527          
+          m_num_sent                                    integral                               32    'h0            
+        arsqr                                           axi_sequencer                          -     @1557          
+          rsp_export                                    uvm_analysis_export                    -     @1566          
+          seq_item_export                               uvm_seq_item_pull_imp                  -     @1684          
+          arbitration_queue                             array                                  0     -              
+          lock_queue                                    array                                  0     -              
+          num_last_reqs                                 integral                               32    'd1            
+          num_last_rsps                                 integral                               32    'd1            
+        awdrv                                           uvm_driver #(REQ,RSP)                  -     @990           
+          item_read_imp                                 uvm_analysis_port                      -     @1019          
+          rsp_port                                      uvm_analysis_port                      -     @1009          
+          seq_item_port                                 uvm_seq_item_pull_port                 -     @999           
+          m_num_sent                                    integral                               32    'h0            
+        awsqr                                           axi_sequencer                          -     @1029          
+          rsp_export                                    uvm_analysis_export                    -     @1038          
+          seq_item_export                               uvm_seq_item_pull_imp                  -     @1156          
+          arbitration_queue                             array                                  0     -              
+          lock_queue                                    array                                  0     -              
+          num_last_reqs                                 integral                               32    'd1            
+          num_last_rsps                                 integral                               32    'd1            
+        bdrv                                            uvm_driver #(REQ,RSP)                  -     @1342          
+          item_read_imp                                 uvm_analysis_port                      -     @1371          
+          rsp_port                                      uvm_analysis_port                      -     @1361          
+          seq_item_port                                 uvm_seq_item_pull_port                 -     @1351          
+          m_num_sent                                    integral                               32    'h0            
+        bsqr                                            axi_sequencer                          -     @1381          
+          rsp_export                                    uvm_analysis_export                    -     @1390          
+          seq_item_export                               uvm_seq_item_pull_imp                  -     @1508          
+          arbitration_queue                             array                                  0     -              
+          lock_queue                                    array                                  0     -              
+          num_last_reqs                                 integral                               32    'd1            
+          num_last_rsps                                 integral                               32    'd1            
+        rdrv                                            uvm_driver #(REQ,RSP)                  -     @1694          
+          item_read_imp                                 uvm_analysis_port                      -     @1723          
+          rsp_port                                      uvm_analysis_port                      -     @1713          
+          seq_item_port                                 uvm_seq_item_pull_port                 -     @1703          
+          m_num_sent                                    integral                               32    'h0            
+        rsqr                                            axi_sequencer                          -     @1733          
+          rsp_export                                    uvm_analysis_export                    -     @1742          
+          seq_item_export                               uvm_seq_item_pull_imp                  -     @1860          
+          arbitration_queue                             array                                  0     -              
+          lock_queue                                    array                                  0     -              
+          num_last_reqs                                 integral                               32    'd1            
+          num_last_rsps                                 integral                               32    'd1            
+        wdrv                                            uvm_driver #(REQ,RSP)                  -     @1166          
+          item_read_imp                                 uvm_analysis_port                      -     @1195          
+          rsp_port                                      uvm_analysis_port                      -     @1185          
+          seq_item_port                                 uvm_seq_item_pull_port                 -     @1175          
+          m_num_sent                                    integral                               32    'h0            
+        wsqr                                            axi_sequencer                          -     @1205          
+          rsp_export                                    uvm_analysis_export                    -     @1214          
+          seq_item_export                               uvm_seq_item_pull_imp                  -     @1332          
+          arbitration_queue                             array                                  0     -              
+          lock_queue                                    array                                  0     -              
+          num_last_reqs                                 integral                               32    'd1            
+          num_last_rsps                                 integral                               32    'd1            
+      monitor                                           uvm_monitor                            -     @665           
+        item_ar2r_port                                  uvm_analysis_port                      -     @734           
+        item_ar_port                                    uvm_analysis_port                      -     @704           
+        item_aw2b_port                                  uvm_analysis_port                      -     @724           
+        item_aw_port                                    uvm_analysis_port                      -     @674           
+        item_b_port                                     uvm_analysis_port                      -     @694           
+        item_r_port                                     uvm_analysis_port                      -     @714           
+        item_w_port                                     uvm_analysis_port                      -     @684           
+        checks_enable                                   integral                               1     'h1            
+        coverage_enable                                 integral                               1     'h1            
+      state                                             axi_state                              -     @744           
+        ar2r_imp                                        uvm_analysis_imp_ar2r                  -     @813           
+        ar_imp                                          uvm_analysis_imp_ar                    -     @783           
+        aw2b_imp                                        uvm_analysis_imp_aw2b                  -     @803           
+        aw_imp                                          uvm_analysis_imp_aw                    -     @753           
+        b_imp                                           uvm_analysis_imp_b                     -     @773           
+        item_rtr_port                                   uvm_analysis_port                      -     @833           
+        item_wtr_port                                   uvm_analysis_port                      -     @823           
+        r_imp                                           uvm_analysis_imp_r                     -     @793           
+        w_imp                                           uvm_analysis_imp_w                     -     @763           
+        avg_rate                                        integral                               32    'h0            
+        exp_rate                                        integral                               32    'h0            
+        win_size                                        integral                               32    'h0            
+        bqnum_for_slaseq                                integral                               32    'h0            
+        rq_from_model_num                               integral                               32    'h0            
+      vsqr                                              axi_virtual_sequencer                  -     @852           
+        rsp_export                                      uvm_analysis_export                    -     @861           
+        seq_item_export                                 uvm_seq_item_pull_imp                  -     @979           
+        arbitration_queue                               array                                  0     -              
+        lock_queue                                      array                                  0     -              
+        num_last_reqs                                   integral                               32    'd1            
+        num_last_rsps                                   integral                               32    'd1            
+      cfg                                               axi_cfg                                -     @403           
+        has_checker                                     integral                               1     'h1            
+        has_coverage                                    integral                               1     'h1            
+        id_num                                          integral                               32    'h1            
+        reset_level                                     reset_level_enum                       32    RESET_LEVEL_LOW
+        drv_type                                        drv_type_enum                          32    MASTER         
+        write_latency_mode                              latency_mode_enum                      32    CHANNEL_FIRST  
+        read_latency_mode                               latency_mode_enum                      32    CHANNEL_FIRST  
+        clatency                                        axi_latency                            -     @427           
+          wr_latency                                    integral                               32    'h0            
+          rd_latency                                    integral                               32    'h0            
+    drhe_tdm_compress_virtual_sqr                       drhe_tdm_compress_virtual_sequencer    -     @522           
+      rsp_export                                        uvm_analysis_export                    -     @531           
+      seq_item_export                                   uvm_seq_item_pull_imp                  -     @649           
+      arbitration_queue                                 array                                  0     -              
+      lock_queue                                        array                                  0     -              
+      num_last_reqs                                     integral                               32    'd1            
+      num_last_rsps                                     integral                               32    'd1            
+    env_master_svr_in_stream                            uvm_env                                -     @404           
+      m_agt                                             uvm_agent                              -     @1943          
+        drv                                             uvm_driver #(REQ,RSP)                  -     @2091          
+          rsp_port                                      uvm_analysis_port                      -     @2110          
+          seq_item_port                                 uvm_seq_item_pull_port                 -     @2100          
+        mon                                             uvm_monitor                            -     @2120          
+          item_collect_port                             uvm_analysis_port                      -     @2131          
+        sqr                                             uvm_sequencer                          -     @1954          
+          rsp_export                                    uvm_analysis_export                    -     @1963          
+          seq_item_export                               uvm_seq_item_pull_imp                  -     @2081          
+          arbitration_queue                             array                                  0     -              
+          lock_queue                                    array                                  0     -              
+          num_last_reqs                                 integral                               32    'd1            
+          num_last_rsps                                 integral                               32    'd1            
+    env_slave_svr_out_stream                            uvm_env                                -     @417           
+      s_agt                                             uvm_agent                              -     @2149          
+        drv                                             uvm_driver #(REQ,RSP)                  -     @2297          
+          rsp_port                                      uvm_analysis_port                      -     @2316          
+          seq_item_port                                 uvm_seq_item_pull_port                 -     @2306          
+        mon                                             uvm_monitor                            -     @2326          
+          item_collect_port                             uvm_analysis_port                      -     @2337          
+        sqr                                             uvm_sequencer                          -     @2160          
+          rsp_export                                    uvm_analysis_export                    -     @2169          
+          seq_item_export                               uvm_seq_item_pull_imp                  -     @2287          
+          arbitration_queue                             array                                  0     -              
+          lock_queue                                    array                                  0     -              
+          num_last_reqs                                 integral                               32    'd1            
+          num_last_rsps                                 integral                               32    'd1            
+    refm                                                drhe_tdm_compress_reference_model      -     @460           
+      trans_num_idx                                     integral                               32    'h0            
+    subsys_mon                                          drhe_tdm_compress_subsystem_monitor    -     @473           
+      control_rtr_imp                                   uvm_analysis_imp_axi_rtr_control       -     @512           
+      control_wtr_imp                                   uvm_analysis_imp_axi_wtr_control       -     @502           
+      scbd                                              drhe_tdm_compress_scoreboard           -     @2359          
+        refm                                            drhe_tdm_compress_reference_model      -     @460           
+          trans_num_idx                                 integral                               32    'h0            
+        file_rd_TVOUT_transaction_size                  <unknown>                              -     @2369          
+          TV_FILE                                       string                                 0     ""             
+          fp                                            integral                               32    'hxxxxxxxx     
+          TV_FILE_num                                   integral                               32    'h0            
+          HEX_read                                      integral                               32    'h0            
+          DEC_read                                      integral                               32    'h0            
+          is_binary                                     integral                               32    'h0            
+          TV_FILE_COMPARE                               string                                 0     ""             
+          fp_compare                                    integral                               32    'hxxxxxxxx     
+        TVOUT_transaction_size_queue                    da(integral)                           0     -              
+        file_wr_port_out_stream_out_stream_TDATA        <unknown>                              -     @2370          
+          TV_FILE                                       string                                 0     ""             
+          fp                                            integral                               32    'hxxxxxxxx     
+          file_open                                     integral                               32    'h0            
+          write_file_done                               integral                               32    'h0            
+          write_section_done                            integral                               32    'h0            
+          TRANSACTION_NUM                               integral                               32    'h0            
+          transaction_num_idx                           integral                               32    'h0            
+          TRANSACTION_DEPTH                             integral                               32    'h0            
+          TRANSACTION_DEPTH_queue                       da(integral)                           0     -              
+          TRANSACTION_DEPTH_queue_for_depth_check       da(integral)                           0     -              
+          transaction_depth_idx                         integral                               32    'h0            
+          ap_done_num_idx                               integral                               32    'h0            
+          is_binary                                     integral                               32    'h0            
+        write_file_done_out_stream_out_stream_TDATA     integral                               32    'h0            
+        write_section_done_out_stream_out_stream_TDATA  integral                               32    'h0            
+        file_wr_port_out_stream_out_stream_TKEEP        <unknown>                              -     @2371          
+          TV_FILE                                       string                                 0     ""             
+          fp                                            integral                               32    'hxxxxxxxx     
+          file_open                                     integral                               32    'h0            
+          write_file_done                               integral                               32    'h0            
+          write_section_done                            integral                               32    'h0            
+          TRANSACTION_NUM                               integral                               32    'h0            
+          transaction_num_idx                           integral                               32    'h0            
+          TRANSACTION_DEPTH                             integral                               32    'h0            
+          TRANSACTION_DEPTH_queue                       da(integral)                           0     -              
+          TRANSACTION_DEPTH_queue_for_depth_check       da(integral)                           0     -              
+          transaction_depth_idx                         integral                               32    'h0            
+          ap_done_num_idx                               integral                               32    'h0            
+          is_binary                                     integral                               32    'h0            
+        write_file_done_out_stream_out_stream_TKEEP     integral                               32    'h0            
+        write_section_done_out_stream_out_stream_TKEEP  integral                               32    'h0            
+        file_wr_port_out_stream_out_stream_TSTRB        <unknown>                              -     @2372          
+          TV_FILE                                       string                                 0     ""             
+          fp                                            integral                               32    'hxxxxxxxx     
+          file_open                                     integral                               32    'h0            
+          write_file_done                               integral                               32    'h0            
+          write_section_done                            integral                               32    'h0            
+          TRANSACTION_NUM                               integral                               32    'h0            
+          transaction_num_idx                           integral                               32    'h0            
+          TRANSACTION_DEPTH                             integral                               32    'h0            
+          TRANSACTION_DEPTH_queue                       da(integral)                           0     -              
+          TRANSACTION_DEPTH_queue_for_depth_check       da(integral)                           0     -              
+          transaction_depth_idx                         integral                               32    'h0            
+          ap_done_num_idx                               integral                               32    'h0            
+          is_binary                                     integral                               32    'h0            
+        write_file_done_out_stream_out_stream_TSTRB     integral                               32    'h0            
+        write_section_done_out_stream_out_stream_TSTRB  integral                               32    'h0            
+        file_wr_port_out_stream_out_stream_TLAST        <unknown>                              -     @2373          
+          TV_FILE                                       string                                 0     ""             
+          fp                                            integral                               32    'hxxxxxxxx     
+          file_open                                     integral                               32    'h0            
+          write_file_done                               integral                               32    'h0            
+          write_section_done                            integral                               32    'h0            
+          TRANSACTION_NUM                               integral                               32    'h0            
+          transaction_num_idx                           integral                               32    'h0            
+          TRANSACTION_DEPTH                             integral                               32    'h0            
+          TRANSACTION_DEPTH_queue                       da(integral)                           0     -              
+          TRANSACTION_DEPTH_queue_for_depth_check       da(integral)                           0     -              
+          transaction_depth_idx                         integral                               32    'h0            
+          ap_done_num_idx                               integral                               32    'h0            
+          is_binary                                     integral                               32    'h0            
+        write_file_done_out_stream_out_stream_TLAST     integral                               32    'h0            
+        write_section_done_out_stream_out_stream_TLAST  integral                               32    'h0            
+      svr_master_in_stream_imp                          uvm_analysis_imp_svr_master_in_stream  -     @482           
+      svr_slave_out_stream_imp                          uvm_analysis_imp_svr_slave_out_stream  -     @492           
+    env_master_svr_in_stream                            uvm_env                                -     @404           
+    env_slave_svr_out_stream                            uvm_env                                -     @417           
+    refm                                                drhe_tdm_compress_reference_model      -     @460           
+    drhe_tdm_compress_virtual_sqr                       drhe_tdm_compress_virtual_sequencer    -     @522           
+    drhe_tdm_compress_cfg                               drhe_tdm_compress_config               -     @398           
+      port_in_stream_cfg                                svr_config                             -     @399           
+        svr_type                                        svr_inst_type                          32    SVR_MASTER     
+        prt_type                                        svr_protocol_type                      32    AXIS           
+        is_active                                       svr_active_passive_enum                1     SVR_ACTIVE     
+        reset_level                                     svr_reset_level_enum                   1     RESET_LEVEL_LOW
+        spec_cfg                                        svr_spec_cfg_enum                      32    NORMAL         
+        clatency                                        svr_latency                            -     @400           
+          transfer_latency                              integral                               32    'h0            
+      port_out_stream_cfg                               svr_config                             -     @401           
+        svr_type                                        svr_inst_type                          32    SVR_SLAVE      
+        prt_type                                        svr_protocol_type                      32    AXIS           
+        is_active                                       svr_active_passive_enum                1     SVR_ACTIVE     
+        reset_level                                     svr_reset_level_enum                   1     RESET_LEVEL_LOW
+        spec_cfg                                        svr_spec_cfg_enum                      32    NORMAL         
+        clatency                                        svr_latency                            -     @402           
+          transfer_latency                              integral                               32    'h0            
+      control_cfg                                       axi_cfg                                -     @403           
+        has_checker                                     integral                               1     'h1            
+        has_coverage                                    integral                               1     'h1            
+        id_num                                          integral                               32    'h1            
+        reset_level                                     reset_level_enum                       32    RESET_LEVEL_LOW
+        drv_type                                        drv_type_enum                          32    MASTER         
+        write_latency_mode                              latency_mode_enum                      32    CHANNEL_FIRST  
+        read_latency_mode                               latency_mode_enum                      32    CHANNEL_FIRST  
+        clatency                                        axi_latency                            -     @427           
+          wr_latency                                    integral                               32    'h0            
+          rd_latency                                    integral                               32    'h0            
+      check_ena                                         integral                               32    'h0            
+      cover_ena                                         integral                               32    'h0            
+--------------------------------------------------------------------------------------------------------------------
+
+UVM_INFO D:/Xilinx/2026.1/Vivado/data/system_verilog/uvm_1.2/xlnx_uvm_package.sv(20867) @ 0: reporter [UVM/COMP/NAMECHECK] This implementation of the component name checks requires DPI to be enabled
+////////////////////////////////////////////////////////////////////////////////////
+// Inter-Transaction Progress: Completed Transaction / Total Transaction
+// Intra-Transaction Progress: Measured Latency / Latency Estimation * 100%
+//
+// RTL Simulation : "Inter-Transaction Progress" ["Intra-Transaction Progress"] @ "Simulation Time"
+////////////////////////////////////////////////////////////////////////////////////
+// RTL Simulation : 0 / 50 [n/a] @ "125000"
+EXITCODE=1

@@ -1055,22 +1055,31 @@ room for more channels, not the ability to use Gigabit Ethernet at all.
 
 \paragraph{Against Kiem: not valid.} Kiem's hardware CR was 3.17, on his own
 data. The number looks comparable, but it is not. Section~\ref{sec:decomposition}
-showed that 1.63 times of this thesis's ratio comes from unused headroom in the
+showed that 1.64 times of this thesis's ratio comes from unused headroom in the
 16-bit container. That is a property of how ColoRadar's data is scaled, not of
 the algorithm. A CR measured on a different sensor with different scaling
 measures a different thing, so a higher or lower number on another dataset says
-nothing about which implementation is better.
+nothing about which implementation is better. The replication of
+Chapter~\ref{ch:replication} makes the point from Kiem's side: on his own
+simulated scene his chain reaches his 3.25 only when the residuals are about
+the size his dictionary was built for, and much less or much more noise moves
+the ratio a long way from it. Chapter~\ref{ch:kiemcompare} goes through each of
+his results in turn.
 
 \paragraph{The valid yardsticks.} These are the internal ones:
 \begin{itemize}
 \item \textbf{No prediction.} The same entropy coder applied to the raw values
-gives 3.489. This is the test of whether prediction helps at all. The original
-designs failed it; the corrected designs beat it by \SI{7.5}{\percent} (DRHE)
-and \SI{6.0}{\percent} (LPC).
+gives 3.479 over the same 50 frames (3.489 over the five audit frames). This
+is the test of whether prediction helps at all. The original designs failed it;
+the corrected designs beat it by \SI{7.8}{\percent} (DRHE) and
+\SI{6.3}{\percent} (LPC) (Table~\ref{tab:fifty}).
 \item \textbf{The entropy bound.} The order-0 entropy is the least any coder
 of this type could spend per value. The fixed Huffman code runs
-\SI{6.2}{\percent} above it (Section~\ref{sec:decomposition}), so little is lost
-to the coder itself.
+\SI{12.0}{\percent} above it on the raw codes and \SI{6.2}{\percent} on the
+lag-1 DRHE residuals, but \SI{21}{\percent} and more on the corrected
+residuals, which are smaller than the dictionary was designed for; a
+re-derived dictionary recovers 12 to \SI{18}{\percent} of ratio
+(Section~\ref{sec:dictresults}).
 \item \textbf{Each other.} DRHE and LPC run on the same data through the same
 coder, so their ratios are directly comparable: 3.751 against 3.697.
 \end{itemize}
@@ -1078,8 +1087,8 @@ coder, so their ratios are directly comparable: 3.751 against 3.697.
 \paragraph{When does it become a problem?} When the compressed rate, plus
 protocol overhead, no longer fits the link. The caution from
 Section~\ref{sec:decomposition} matters here. A sensor whose ADC output filled
-the 16-bit container would lose the 1.63 times headroom factor. A rough
-estimate, multiplying the sparsity factor (2.14) by the corrected prediction
+the 16-bit container would lose the 1.64 times headroom factor. A rough
+estimate, multiplying the sparsity factor (2.13) by the corrected prediction
 gain (1.08), puts its ratio near 2.3, which is \emph{below} the 2.4 Kiem's link
 requires. That is an estimate from factors measured on ColoRadar, not a
 measurement on such a sensor. It shows that a CR of 3.75 on this dataset is not

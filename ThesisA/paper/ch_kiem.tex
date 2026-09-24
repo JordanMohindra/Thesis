@@ -1,0 +1,414 @@
+% ===================================================================
+\chapter{The Baseline in Detail: Kiem's Thesis}
+\label{ch:kiem}
+
+Almost every number in this thesis is eventually compared with a number from
+Lukas Kiem's master's thesis \cite{kiem2025}. A comparison is only as good as
+one's understanding of what the other number measures, so this chapter sets out
+what Kiem did, on what data, with what tools, and what he concluded --- in
+enough detail that the later comparisons (Chapters~\ref{ch:replication}
+and~\ref{ch:kiemcompare}) can be followed without his thesis open. Where
+this project's early understanding of his work was wrong, the chapter says so,
+because several of those misunderstandings shaped decisions described in
+Chapter~\ref{ch:journey}.
+
+\section{The problem he set himself}
+\label{sec:kiem_problem}
+
+Kiem worked at Infineon on the transport problem of
+Section~\ref{sec:motivation}: a single high-resolution radar MMIC produces more
+raw data than a cheap in-vehicle network can carry. He defined it
+quantitatively with a use case (his Section~3.3,
+Table~\ref{tab:kiem_usecase}). One Infineon CTRX8191F MMIC, four receive
+channels, 12-bit IF samples at an output sample rate of \SI{50}{MS/s}, gives
+\begin{equation}
+50\,\mathrm{MS/s} \times 12\,\mathrm{bit} \times 4 = \SI{2.4}{Gbit/s},
+\end{equation}
+so carrying it over one 1000BASE-T1 Gigabit Ethernet link needs a compression
+ratio of \num{2.4}, or \num{2.7} once protocol headers are counted. The
+sensor cycles at \SI{20}{\hertz} (\SI{50}{\milli\second}); a frame of 1024
+ramps of 1024 samples takes about \SI{21}{\milli\second} to acquire, and he
+allowed compression \SI{15}{\milli\second} of the remaining
+\SI{29}{\milli\second}.
+
+\begin{table}[htbp]
+\centering
+\caption[Kiem's use case]{Kiem's use case (his Table~3.3) and the
+requirements he derived from it (his Section~3.3).}
+\label{tab:kiem_usecase}
+\small
+\begin{tabular}{@{}lr@{}}
+\toprule
+Parameter & Value\\
+\midrule
+MMICs / transmitters used & 1 / 1\\
+Samples per ramp & 1024\\
+Ramps per frame & 1024\\
+Receive channels & 4\\
+IF data width & 12 bits\\
+Output sample rate & \SI{50}{MS/s}\\
+Raw data rate & \SI{2.4}{Gbit/s}\\
+Cycle time & \SI{50}{\milli\second} (\SI{20}{\hertz})\\
+\midrule
+Required compression ratio & 2.4 (2.7 with headers)\\
+Compression time budget & \SI{15}{\milli\second}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two features of this setting matter for everything that follows, and both
+differ from the sensor used in this thesis.
+
+\paragraph{One transmitter.} Kiem's radar is a single MMIC operated with one
+transmitter (his Table~4.4 fixes ``Number of TX: 1''). Consecutive ramps are
+therefore consecutive observations by the same antenna pair, one pulse interval
+apart. There is no transmitter interleaving on his ramp axis, so the question
+this thesis turns on (Section~\ref{sec:tdm}) never arises for him.
+
+\paragraph{Real-valued samples.} The CTRX delivers real IF samples. The FFT of
+a real sequence is conjugate-symmetric, so Kiem keeps the first half of the
+spectrum because the second half is redundant. The ColoRadar cascade delivers
+complex $I/Q$ samples; its spectrum is not symmetric, and the halving applied
+here is a deliberate choice to keep positive ranges
+(Section~\ref{sec:refchain}), not a consequence of symmetry.
+
+\section{His simulation workflow}
+\label{sec:kiem_workflow}
+
+Kiem evaluated compression schemes in a MATLAB environment (his Figure~3.1,
+Section~3.2.1) whose stages this thesis adopted almost unchanged:
+
+\begin{enumerate}
+\item \textbf{Input data}: a cube of raw ADC samples, real-world or synthetic.
+\item \textbf{Pre-processing}: shift the ADC samples left by
+$16 - \mathit{bitWidth} + 16$ bits into a 32-bit full-scale word, then apply a
+Hanning window of the ramp length.
+\item \textbf{Range FFT}, divided by the number of samples (to prevent overflow
+in his FFT IP core), keeping the first half.
+\item \textbf{Compress} and \textbf{decompress}, including any quantisation a
+scheme needs.
+\item \textbf{Second-stage processing} in double precision: a Hanning-windowed
+Doppler FFT divided by the number of ramps, non-coherent integration (NCI) of
+the power over all receive channels, and peak detection combining local maxima
+with a noise-based global threshold.
+\item \textbf{Comparator}: detections and metrics of each scheme against the
+reference path.
+\end{enumerate}
+
+His metrics (his Section~3.4.2) were the compression ratio; false negatives
+and false positives against the reference; the noise floor estimate, defined
+as ``the mean of the noisy part of the signal in dB'' in dBFS; and the SNR,
+defined as the RMS signal of the detected peaks in dB minus the noise floor.
+The reference format was 16-bit floating point (FP16). He does not state how
+0\,dBFS is defined, what exactly the ``noisy part'' is, or the detector's
+threshold. Section~\ref{sec:kr_assump} records how this thesis filled each gap.
+
+\section{His data}
+\label{sec:kiem_data}
+
+Kiem used two kinds of input (his Section~3.2.2), and it is important to be
+precise about which produced which result, because this project's early
+documents were not.
+
+\paragraph{Real-world recordings.} Measurements taken with the CTRX in several
+scenarios, from a single stationary target to several moving ones, all with the
+configuration of Table~\ref{tab:kiem_data}: one MMIC, 512 samples, 512 ramps,
+four receive channels, 14-bit IF data. His design-space table (Table~3.5), his
+removal of run-length coding (Table~3.6), the derivation of his fixed Huffman
+dictionary (``the real radar data with id~=~1'', Section~3.5.2) and his hardware
+evaluation (the SD-card input of Section~5.2.1) all use these recordings. They
+are not publicly available.
+
+\paragraph{Synthetic scenes.} Generated from a list of targets (range bin,
+Doppler bin, amplitude) with additive white Gaussian noise, for configurations
+where no recording existed. He shows one such scene (Table~\ref{tab:kiem_data},
+his Table~3.2 and Figures~3.5--3.7) but reports no compression results on it.
+
+\begin{table}[htbp]
+\centering
+\caption[Kiem's data]{Kiem's two kinds of input data (his Tables~3.1
+and~3.2).}
+\label{tab:kiem_data}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+& Real-world recordings (Table 3.1) & Synthetic scene (Table 3.2)\\
+\midrule
+MMICs & 1 & 1\\
+Samples $\times$ ramps & $512 \times 512$ & $1024 \times 512$\\
+Receive channels & 4 & 4\\
+IF bit width & 14 & 14\\
+Targets & real scenes & 5: range bins [100, 150, 150, 200, 400],\\
+& & Doppler bins [50, 50, 100, 200, 250],\\
+& & amplitudes [0.8, 0.3, 0.4, 0.5, 0.7]\\
+Noise & real & AWGN, $-75$\,dBFS after NCI\\
+Used for & every published result & illustration only\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{keybox}
+\textbf{A correction to this project's own record.} The Thesis~A report
+stated that Kiem's FPGA implementation ``was tested exclusively using simulated
+dummy data'', and the executive summary that he ``evaluated compression
+algorithms using simulated data with AWGN''. Both are wrong. Every compression
+result Kiem publishes, in simulation and in hardware, was measured on his
+real CTRX recordings; his synthetic scenes appear only as illustrations. What
+is true is that his recordings are private, come from a single-transmitter
+sensor, and are much smaller than a cascade frame --- which is the real case for
+validating the algorithm again on public MIMO data, and is how the first
+objective of this thesis is now stated (Section~\ref{sec:objectives}).
+\end{keybox}
+
+\section{His design space}
+\label{sec:kiem_space}
+
+Kiem surveyed the automotive schemes available to him (his Section~2.7) and
+took all but one into a design-space exploration (his Table~3.4).
+
+\begin{description}[leftmargin=!,labelwidth=24mm,style=nextline,font=\normalfont\bfseries]
+\item[FP16] Half-precision floating point: the reference format.
+\item[CMPRA, CMPRB] Infineon AURIX common-exponent formats that pack 16 or 32
+complex bins into one 256-bit word with a shared exponent: a fixed CR of 2 or 4
+against 16-bit data.
+\item[EGE10 \ldots EGE4] Texas Instruments' compression engine: order-$k$
+exponential-Golomb coding of blocks of range bins, with least significant bits
+dropped to meet a fixed CR of 16/$k$.
+\item[DRHE] Doppler Redundancy Hybrid Encoding, from Liang Li's master's thesis
+\cite{li2014} and Zivkovic and Li \cite{zivkovic2015}: prediction along the
+Doppler (slow-time) dimension of the range-FFT output with two IIR filters in
+polar form, then run-length and Huffman coding of the differences. The
+original papers report ``ideal'' compression ratios of 9.7--9.8 (his
+Table~2.1).
+\end{description}
+
+\noindent
+The exception was \textbf{LPC-Huffman}, the method of his reference [25]
+(Meucci and Mancuso \cite{meucci2022}). Its treatment is quoted here in full,
+because Section~\ref{sec:lpc_notkiem} and Chapter~\ref{ch:replication} depend
+on exactly what it says.
+
+\begin{quote}\small
+``In the work [25], the authors present a solution to compress FMCW radar data
+using a combination of linear predictive coding (LPC) and Huffman coding. The
+input data is said to be int16 data. Therefore, we assume that this work is
+performed on raw ADC data.'' (Section~2.7.4)
+
+``The test results in the work achieve a CR of 2.056.'' (Section~2.7.4)
+
+``We take all these solutions except the LPC-Huffman compression algorithm into
+the design space. LPC-Huffman compression is not taken because it has the same
+approach as DRHE, but instead of compressing range FFT data, it operates on raw
+ADC data; the results for DRHE are more promising.'' (Section~3.4.1)
+\end{quote}
+
+\noindent
+Three things follow directly from these sentences. Kiem \emph{assumed} the
+domain of \cite{meucci2022} rather than knowing it. He did not implement or run LPC-Huffman.
+And ``more promising'' compares two published numbers --- 2.056 on the data of
+\cite{meucci2022} against 9.7--9.8 on the data of the DRHE papers --- not two algorithms on
+the same data. His own Table~3.4 describes DRHE as ``LPC on range FFT data'':
+in his words the two methods differ in \emph{where} they predict, not in
+\emph{whether}. Chapter~\ref{ch:replication} runs the method he excluded on
+his own scene.
+
+\section{His design-space result}
+\label{sec:kiem_dse}
+
+Table~\ref{tab:kiem_t35} reproduces his Table~3.5. On his real recordings DRHE
+reached CR \num{3.25} with exactly FX16's detection metrics --- it is lossless
+with respect to the 16-bit codes, so the only degradation against FP16 comes
+from quantising to 16-bit fixed point. The lossy schemes either stayed at or
+below the CR requirement or degraded detection markedly.
+
+\begin{table}[htbp]
+\centering
+\caption[Kiem's design-space results]{Kiem's design-space exploration on his
+real recordings (his Table~3.5; Table~5.1 repeats it). FP\% is normalised by
+test detections, so it is a false discovery rate
+(Section~\ref{sec:detectionmetrics}).}
+\label{tab:kiem_t35}
+\small
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Algorithm & CR & FN\% & FP\% & NF (dBFS) & SNR (dB)\\
+\midrule
+FP16  & 1    & 0     & 0     & $-70.714$ & 22.407\\
+FX16  & 1    & 0.59  & 1.18  & $-70.691$ & 22.330\\
+CMPRA & 2    & 0.59  & 0.59  & $-70.687$ & 22.418\\
+CMPRB & 4    & 7.69  & 4.73  & $-70.253$ & 22.111\\
+EGE10 & 1.6  & 1.18  & 1.18  & $-70.689$ & 22.403\\
+EGE8  & 2    & 2.37  & 2.37  & $-70.640$ & 22.289\\
+EGE6  & 2.67 & 7.69  & 7.10  & $-70.367$ & 22.197\\
+EGE4  & 4    & 40.24 & 26.63 & $-74.689$ & 28.245\\
+\textbf{DRHE} & \textbf{3.25} & 0.59 & 1.18 & $-70.691$ & 22.330\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+A false-negative rate of \SI{0.59}{\percent} is one missed detection in about
+170, which is a useful check on the scale of his scene: a single frame of his
+recording contained on the order of 170 reference detections.
+
+\section{How he adapted DRHE for hardware}
+\label{sec:kiem_adapt}
+
+Two simplifications turned the published DRHE into his final scheme.
+
+\paragraph{Remove the run-length code (his Section~3.5.1).} The original coder
+emits an 8-bit symbol RRRRSSSS per non-zero residual --- a 4-bit run of
+preceding zeros and a 4-bit size category --- Huffman-codes the symbol and
+appends the value. On his data the R4S4 histogram was far from the one the
+dictionary had been designed for, and dropping the run-length half cost almost
+nothing: CR \num{3.25} with R4S4 against \num{3.24} with S4 alone
+(Table~\ref{tab:kiem_t36}), while shrinking the dictionary from 256 symbols to
+16 and bounding the longest codeword.
+
+\begin{table}[htbp]
+\centering
+\caption[Kiem: DRHE without RLE]{Kiem's Table~3.6: removing the run-length
+part of the coder.}
+\label{tab:kiem_t36}
+\small
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Algorithm & CR & FN\% & FP\% & NF (dBFS) & SNR (dB)\\
+\midrule
+DRHE (R4S4 + RLE) & 3.25 & 0.59 & 1.18 & $-70.691$ & 22.33\\
+DRHE (S4 only)    & 3.24 & 0.59 & 1.18 & $-70.691$ & 22.33\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Fix the Huffman dictionary (his Section~3.5.2).} A dictionary built
+per frame would need a histogram pass, a tree construction and transmission of
+the table, none of which suit a streaming IP core. He therefore built one
+dictionary once, from ``the real part of the S4 values for the real radar data
+with id = 1'', and fixed it for simulation and hardware (his Appendix~A; this
+thesis's Appendix~\ref{app:huffman}). Its shortest codewords --- two bits ---
+go to categories 2, 3 and 4, i.e.\ residuals of magnitude 2 to 15, so the
+dictionary is a record of what his residuals looked like.
+Section~\ref{sec:kr_fingerprint} uses exactly that property.
+
+\section{His final compression scheme}
+\label{sec:kiem_final}
+
+His Section~3.5.3 specifies the scheme implemented in hardware; this thesis
+audits its own implementation against it line by line in
+Section~\ref{sec:kc_audit}. In summary, for each range bin $n$ of ramp $m$ and
+each receive channel:
+\begin{align}
+\hat{a}[m,n] &= \alpha\hat{a}[m-1,n] + (1-\alpha)\,a[m-1,n], \\
+\hat{\theta}[m,n] &= \beta\hat{\theta}[m-1,n] + (2-\beta)\,\theta[m-1,n] - \theta[m-2,n],
+\end{align}
+with $\alpha = 0.6$, $\beta = 0.4$, $\hat\theta$ wrapped once into
+$[-\pi,\pi]$, the prediction converted back to Cartesian with rounding, and the
+difference $X - \hat{X}$ taken in 16-bit two's complement. Each difference is
+coded as its size category S4 (Table~3.7 of his thesis, reproduced here as
+Table~\ref{tab:catranges}), Huffman-coded with the fixed dictionary, followed by
+S4 APPEND bits holding $v$ for positive and $v + 2^{S_4} - 1$ for negative
+values. The model state is initialised to zero (his Section~3.5.4) and updated
+from the input samples.
+
+\section{His hardware}
+\label{sec:kiem_hw}
+
+He implemented the scheme with Vitis HLS and Vivado 2022.2 on an AMD Zynq
+UltraScale+ \texttt{XCZU3CG-SFVC784-1-e} on a Trenz TE0820 module, inside a
+complete system: a bare-metal program loads pre-windowed 16-bit ADC data from
+an SD card, an AXI DMA streams it through a Xilinx FFT IP core into the
+compression IP, and the compressed stream is written back to memory
+(his Figure~4.2). The compression IP (his Section~4.3.4):
+
+\begin{itemize}
+\item reads one 128-bit AXI4-Stream word per cycle --- one complex 16-bit bin
+for each of four channels --- and processes the channels in parallel;
+\item uses fixed point throughout: magnitudes \texttt{ap\_ufixed<16,16>},
+phases \texttt{ap\_fixed<16,3>}, intermediates \texttt{ap\_fixed<32,4>}, with
+\texttt{hls::sqrt}, \texttt{hls::atan2}, \texttt{hls::sin} and
+\texttt{hls::cos};
+\item holds the five state arrays per channel in block RAM, $4 \times 1024$
+words each;
+\item packs each channel's two codes into a 58-bit word and the four words into
+a 256-bit output buffer;
+\item runs at $\mathrm{II} = 1$ at \SI{100}{\mega\hertz}.
+\end{itemize}
+
+\noindent
+Table~\ref{tab:kiem_hwres} collects the numbers he reports.
+
+\begin{table}[htbp]
+\centering
+\caption[Kiem's hardware results]{Kiem's published hardware figures
+(Section~5.2 and Tables~5.2, 5.3, 5.5 of \cite{kiem2025}).}
+\label{tab:kiem_hwres}
+\small
+\begin{tabular}{@{}lr@{}}
+\toprule
+Quantity & Value\\
+\midrule
+Compression IP: LUT / FF / BRAM (36\,Kb) / DSP & \num{45892} / \num{9243} / 10 / 44\\
+Whole system: LUT / FF / BRAM / DSP & \num{59353} / \num{32552} / 38 / 80\\
+Clock & \SI{100}{\mega\hertz}\\
+IP latency (HLS estimate) & 23 cycles, \SI{230}{\nano\second}\\
+IP latency (logic analyser, to first output word) & 31 cycles\\
+System latency (last DMA read to last DMA write) & \SI{79410}{\nano\second}\\
+Input throughput & ``\SI{11.92}{Gbit/s}''\\
+CR, MATLAB (double-precision FFT) & 3.25\\
+CR, bit-accurate simulation & 3.24\\
+CR, hardware & 3.17\\
+FN / FP after hardware FFT & \SI{1.18}{\percent} / \SI{2.37}{\percent}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+Chapter~\ref{ch:interpret} shows that the throughput is a theoretical figure
+in binary units ($128 \times \SI{100}{\mega\hertz} = \SI{12.8}{Gbit/s} =
+\SI{11.92}{\gibi bit/s}$), and that the block RAM is counted in 36\,Kb tiles.
+His hardware CR is lower than his simulation CR because the hardware FFT is
+fixed point: the same ADC data produces slightly different 16-bit codes, which
+he confirmed by simulating the FFT core's bit-accurate model.
+
+\section{What he concluded, and what he left open}
+\label{sec:kiem_open}
+
+He concluded that DRHE met every requirement: CR \num{3.17} against 2.4 (2.7
+with headers), \SI{0.08}{\milli\second} against a \SI{15}{\milli\second}
+budget, and ``99.4\,\% detection matches with the reference''. His
+limitations and future work (his Chapter~6) were:
+
+\begin{itemize}
+\item the precision lost by 16-bit fixed point before and in the compressor,
+with the suggestion that, since the IP core far exceeds its real-time
+requirement, \emph{floating-point} arithmetic for the FFT and the model
+prediction could be investigated;
+\item a bit-accurate decompression model;
+\item tests with a real radar sensor in the loop and all configuration options;
+\item safe error handling and a guaranteed compression ratio;
+\item ``transpose compression'' to suit the Doppler FFT's memory access.
+\end{itemize}
+
+\noindent
+This thesis took up the first two directly: its DRHE uses floating-point
+prediction (Section~\ref{sec:drheimpl}; the cost is measured in
+Chapter~\ref{ch:interpret}), and it implements and verifies a decompressor for
+every design. It could not take up the third, since no board was available,
+and did not attempt the last two.
+
+\section{What the later chapters take from this one}
+
+\begin{enumerate}
+\item Kiem's published compression ratios come from private recordings of a
+single-transmitter, real-sampled radar. No number in this thesis was measured
+on the same data, so a CR here and a CR there are not like-for-like until
+something connects them. Chapter~\ref{ch:replication} is that connection.
+\item Kiem did not measure LPC. His statement that DRHE is ``more promising''
+compares published figures from different data, for a method (fast-time
+prediction of raw samples) that is not the LPC of this thesis.
+\item His final DRHE scheme is specified in enough detail to implement exactly,
+and Section~\ref{sec:kc_audit} checks that this thesis did.
+\item His fixed dictionary is a fingerprint of the residual statistics of his
+own data, which Section~\ref{sec:kr_fingerprint} reads.
+\end{enumerate}

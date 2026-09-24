@@ -1,0 +1,383 @@
+================================================================
+  BATCH SIMULATION - COLORADAR CASCADE
+  Processing 50 frames (out of 450 available)...
+================================================================
+  Processing frame_0.bin (1/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_0.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 869.543 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (190 ref detections)
+  Processing frame_1.bin (2/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_1.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 876.559 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (189 ref detections)
+  Processing frame_2.bin (3/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_2.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 871.84 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (186 ref detections)
+  Processing frame_3.bin (4/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_3.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 914.027 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (163 ref detections)
+  Processing frame_4.bin (5/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_4.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 895.105 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (147 ref detections)
+  Processing frame_5.bin (6/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_5.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 882.281 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (169 ref detections)
+  Processing frame_6.bin (7/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_6.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 883.094 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (186 ref detections)
+  Processing frame_7.bin (8/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_7.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 883.816 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (189 ref detections)
+  Processing frame_8.bin (9/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_8.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 923.812 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (190 ref detections)
+  Processing frame_9.bin (10/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_9.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 878.484 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (192 ref detections)
+  Processing frame_10.bin (11/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_10.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 865.664 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (187 ref detections)
+  Processing frame_11.bin (12/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_11.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 928.023 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (173 ref detections)
+  Processing frame_12.bin (13/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_12.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 910.191 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (149 ref detections)
+  Processing frame_13.bin (14/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_13.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 908.598 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (153 ref detections)
+  Processing frame_14.bin (15/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_14.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 811.812 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (167 ref detections)
+  Processing frame_15.bin (16/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_15.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 876.328 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (167 ref detections)
+  Processing frame_16.bin (17/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_16.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 943.07 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (157 ref detections)
+  Processing frame_17.bin (18/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_17.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 764.109 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (191 ref detections)
+  Processing frame_18.bin (19/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_18.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 1093.53 (auto bitWidth=12, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (203 ref detections)
+  Processing frame_19.bin (20/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_19.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 1051.83 (auto bitWidth=12, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (150 ref detections)
+  Processing frame_20.bin (21/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_20.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 899.188 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (170 ref detections)
+  Processing frame_21.bin (22/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_21.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 755.801 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (182 ref detections)
+  Processing frame_22.bin (23/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_22.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 743.703 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (202 ref detections)
+  Processing frame_23.bin (24/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_23.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 814.516 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (181 ref detections)
+  Processing frame_24.bin (25/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_24.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 789.145 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (172 ref detections)
+  Processing frame_25.bin (26/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_25.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 791.891 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (171 ref detections)
+  Processing frame_26.bin (27/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_26.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 783.766 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (182 ref detections)
+  Processing frame_27.bin (28/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_27.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 612.27 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (177 ref detections)
+  Processing frame_28.bin (29/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_28.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 640.074 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (197 ref detections)
+  Processing frame_29.bin (30/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_29.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 682.312 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (165 ref detections)
+  Processing frame_30.bin (31/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_30.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 610.383 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (189 ref detections)
+  Processing frame_31.bin (32/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_31.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 768.035 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (203 ref detections)
+  Processing frame_32.bin (33/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_32.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 735.473 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (191 ref detections)
+  Processing frame_33.bin (34/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_33.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 678.555 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (192 ref detections)
+  Processing frame_34.bin (35/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_34.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 591.172 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (238 ref detections)
+  Processing frame_35.bin (36/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_35.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 651.445 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (218 ref detections)
+  Processing frame_36.bin (37/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_36.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 694.273 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (179 ref detections)
+  Processing frame_37.bin (38/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_37.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 671.445 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (265 ref detections)
+  Processing frame_38.bin (39/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_38.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 597.398 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (271 ref detections)
+  Processing frame_39.bin (40/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_39.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 646.484 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (213 ref detections)
+  Processing frame_40.bin (41/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_40.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 617.801 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (204 ref detections)
+  Processing frame_41.bin (42/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_41.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 649.285 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (195 ref detections)
+  Processing frame_42.bin (43/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_42.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 604.262 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (220 ref detections)
+  Processing frame_43.bin (44/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_43.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 706.129 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (215 ref detections)
+  Processing frame_44.bin (45/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_44.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 763.02 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (226 ref detections)
+  Processing frame_45.bin (46/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_45.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 684.352 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (254 ref detections)
+  Processing frame_46.bin (47/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_46.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 691.352 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (245 ref detections)
+  Processing frame_47.bin (48/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_47.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 649.875 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (265 ref detections)
+  Processing frame_48.bin (49/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_48.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 636.668 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (306 ref detections)
+  Processing frame_49.bin (50/50)... --- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_49.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 634.141 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+Done. (348 ref detections)
+
+================================================================
+  BATCH SIMULATION COMPLETE - GLOBAL AVERAGES (50 FRAMES)
+  Total Reference Detections Across All Frames: 9934
+================================================================
+  Algorithm  Avg CR   FN (%)   FP (%)  Avg NF (dBFS) Avg SNR (dB)
+  ---------  ------   ------   ------  -------------   --------
+  FP16         1.00     0.00     0.00       -105.638     35.504
+  DRHEfp16     1.04     0.05     0.01       -105.637     35.505
+  FX16         1.00     3.77     1.11       -105.374     35.359
+  DRHE         3.30     3.77     1.11       -105.374     35.359
+  BAQ          3.76    10.44     9.69       -105.080     35.081
+  RDVLE        1.12    24.01     4.62       -102.275     33.165
+  RDVLE_UDRE   2.56    28.73     4.44       -101.782     33.004
+  LPC_Huffman   3.37     3.77     1.11       -105.374     35.359
+
+  Interpretation:
+   * These metrics represent the true global performance over a sequence of frames.
+   * False Positives and False Negatives are calculated as a percentage of the TOTAL
+     detections across the entire run, preventing single-frame anomalies from skewing results.
+{Unrecognized function or variable 't0'.
+
+Error in run_phase1 (line 3)
+t0=tic; main_simulation_coloradar_batch; fprintf('ELAPSED %.1f s\n',toc(t0)); diary off;
+                                                                        ^^
+Error in run (line 100)
+evalin('caller', strcat(scriptStem, ';'));
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+} 

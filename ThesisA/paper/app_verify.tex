@@ -1,0 +1,138 @@
+% ===================================================================
+\chapter{Verification Record}
+\label{app:verify}
+
+Before this report was finalised, every result it depends on was re-run from
+the current sources on 24 September 2026, and the compression results were
+also recomputed by an implementation written independently of both the MATLAB
+and the HLS code. This appendix records what was re-run, how, and whether the
+result agreed with the number reported.
+
+\section{The independent implementation}
+
+\texttt{verify\_indep/indep.py} is a from-scratch Python and NumPy
+implementation of the whole compression chain, written from the descriptions in
+Chapters~\ref{ch:algorithms} and~\ref{ch:method} without reusing any code:
+
+\begin{enumerate}
+\item read a raw ColoRadar frame and apply the TDM flattening, per-ramp DC
+removal, the 16-bit shift, a symmetric Hann window, the FFT divided by $N$, the
+first 128 bins, and the FX16 scaling with MATLAB's round-half-away-from-zero;
+\item DRHE at lag 1 and lag $n_{\mathrm{Tx}}$, in double precision with NumPy's
+trigonometric functions, with the $-32768$ clamp and closed loop;
+\item LPC at lags 1,\,2 and $n_{\mathrm{Tx}}$,\,$2n_{\mathrm{Tx}}$, with
+Yule--Walker coefficients quantised as the HLS quantises them
+(\texttt{ap\_fixed<16,2>} and \texttt{ap\_fixed<16,1>}, truncation towards
+$-\infty$) and the 16-bit coefficient table charged;
+\item the S4 + APPEND + fixed Huffman bit count, with and without 256-bit
+padding.
+\end{enumerate}
+
+\section{Results of the re-run}
+
+Each reported figure was run again and compared with the value printed in the
+earlier version of this report. The ``New in this report'' rows are results that
+first appear in this version; they were computed by the independent
+implementation, which had already been shown to reproduce every hardware bit
+count, and were run twice (once when first computed and once in the final
+check) with identical output.
+
+\begin{longtable}{@{}p{50mm}p{27mm}p{35mm}p{24mm}@{}}
+\caption[Verification record]{Every result re-run on 24 September 2026. ``Indep.''
+is the Python implementation above; ``re-run'' is the original tool run again
+from the current sources.}\label{tab:verify}\\
+\toprule
+Result & Reported & Re-run / independent & Agrees?\\
+\midrule
+\endfirsthead
+\toprule
+Result & Reported & Re-run / independent & Agrees?\\
+\midrule
+\endhead
+\multicolumn{4}{@{}l}{\textbf{Front end}}\\
+FX16 stimulus for HLS (50 frames, 4 RX) & --- & indep.: 0 of \num{9830400} values differ & exact\\
+Peak $|$FX16 code$|$, first 5 frames / 50 frames & 436 & 436 / 437 & yes\\
+Peak raw sample after DC removal, 16 RX, first 5 frames & 914 & 914.0 (frame 3); 1093.5 over 50 frames & yes\\
+\midrule
+\multicolumn{4}{@{}l}{\textbf{Phase 1 benchmark (MATLAB, 50 frames, 16 RX)}}\\
+Table~\ref{tab:phase1}, every cell & as printed & re-run: identical, \num{9934} detections & exact\\
+\midrule
+\multicolumn{4}{@{}l}{\textbf{Phase 2 (HLS C-simulation, 50 frames)}}\\
+DRHE-1 average CR, MaxDiff & 3.30987, 0 & re-run 3.30987, 0; indep.\ bits equal on 50/50 frames & exact\\
+DRHE-$n$ & 3.75082, 0 & re-run 3.75082, 0; indep.\ 50/50 & exact\\
+LPC-1,2 & 3.38497, 0 & re-run 3.38497, 0; indep.\ 50/50 & exact\\
+LPC-$n$,$2n$ & 3.69681, 0 & re-run 3.69681, 0; indep.\ 50/50 & exact\\
+DRHE padding per frame & 15--252 bits, mean 134 & 15--252, mean 134.0 & exact\\
+LPC padding model vs Vitis & $4.9\times10^{-6}$ & $4.886\times10^{-6}$ & yes\\
+DRHE edge suite & 8/8 & re-run 8/8 (random-int16 MaxDiff 1, allowed 1) & yes\\
+LPC edge suite & 8/8 & re-run 8/8 & yes\\
+\midrule
+\multicolumn{4}{@{}l}{\textbf{Audit (5 frames, 4 RX)}}\\
+No prediction, bits/value, CR & 4.586, 3.489 & indep.\ 4.586, 3.489 & exact\\
+DRHE lag 1 & 4.821, 3.319 & indep.\ 4.821, 3.319 & exact\\
+DRHE lag $n_{\mathrm{Tx}}$ & 4.240, 3.774 & indep.\ 4.240, 3.774 & exact\\
+LPC lags 1,2 (incl.\ coefficients) & 4.710, 3.397 & indep.\ 4.710, 3.397 & exact\\
+LPC lags $n_{\mathrm{Tx}}$,$2n_{\mathrm{Tx}}$ & 4.269, 3.748 & indep.\ 4.269, 3.748 & exact\\
+LPC per-TX blocks & 6.093, 2.626 & indep.\ 6.093, 2.626 & exact\\
+Order-0 entropy, raw / DRHE lag 1 & 4.094 / 4.538 & indep.\ 4.094 / 4.538 & exact\\
+Coder overhead above entropy & 6.2\,\% (raw codes) & 12.0\,\% raw codes; 6.2\,\% DRHE lag 1 & \textbf{corrected}\\
+LPC coefficient sets passing stability & 100\,\% & 100\,\% (50 frames) & yes\\
+99th percentile $|$residual$|$ & 80.6 / 102.4 / 15.8 / 8.2 & identical & exact\\
+S4 categories 0--2, DRHE lag $n_{\mathrm{Tx}}$ & 84.6\,\% & 84.56\,\% & yes\\
+Worked example (bin 75, ramps 168--183) & 176 / 66 bits & 176 / 66 & exact\\
+Frame-0 bit budget & 4.576 / 4.803 / 4.220 & 4.5760 / 4.8031 / 4.2198 & yes\\
+\midrule
+\multicolumn{4}{@{}l}{\textbf{New in this report (independent implementation only)}}\\
+No prediction, 50 frames, padded / unpadded & --- & \num{3.47876} / \num{3.47929} & ---\\
+LPC residual-only bits/value, lags 1,2 / $n_{\mathrm{Tx}}$,$2n_{\mathrm{Tx}}$ & --- & 4.543 / 4.102 & ---\\
+LPC coefficient medians ($a_1$), lags 1,2 / 12,24 & --- & $-0.021$ / $0.400$ & ---\\
+Ideal $S_4$ bits/value, 4 designs (5 frames) & --- & 4.214 / 4.627 / 3.711 / 3.242 & ---\\
+Order-0 entropy, DRHE-$n$ / LPC-$n$ residuals & --- & 3.516 / 3.040 & ---\\
+Re-derived dictionary, DRHE-$n$ / LPC-$n$ (frames 5--49) & --- & 4.207 / 4.371 & ---\\
+R4S4+RLE vs S4 only, ideal, DRHE-1 / DRHE-$n$ & --- & 3.466 vs 3.457 / 4.340 vs 4.273 & ---\\
+\midrule
+\multicolumn{4}{@{}l}{\textbf{Quantisation study (frame 0, 16 RX)}}\\
+FX16-uniform DRHE CR & 3.323 (earlier log) & re-run 3.320; indep.\ 3.3198 & corrected\\
+FX16-linear / LFR DRHE CR & 1.038 / 0.712 & 1.038 / 0.708 & yes\\
+\midrule
+\multicolumn{4}{@{}l}{\textbf{Hardware (routed reports)}}\\
+DRHE-1 LUT/FF/DSP/BRAM & per Chapter~\ref{ch:interpret} & \num{35343}/\num{23546}/132/40 read again & exact\\
+DRHE-$n$, LPC-1,2, LPC-$n$ & per Chapter~\ref{ch:interpret} & read again from the export reports & exact\\
+\midrule
+\multicolumn{4}{@{}l}{\textbf{Replication of Kiem (run 24 September 2026)}}\\
+Every table of Chapter~\ref{ch:replication} & --- & from the logs in \texttt{kiem\_replication/results} & ---\\
+\texttt{compress\_drhe.m} vs \texttt{kr\_drhe\_encode.m} & --- & identical residuals and bits & exact\\
+\bottomrule
+\end{longtable}
+
+\section{Corrections made as a result}
+
+The re-run and the reading of the sources that went with it led to the
+following corrections to earlier versions of this report and of the project's
+own documents.
+
+\begin{itemize}
+\item \textbf{Kiem's data.} Earlier documents said his hardware was tested on
+synthetic data and his algorithms on AWGN. Every compression result he
+publishes is from recordings (Section~\ref{sec:kiem_data}).
+\item \textbf{Coder overhead.} The ``\SI{6.2}{\percent} above entropy'' was
+the overhead on DRHE's lag-1 residuals; on the raw FX16 codes it is
+\SI{12.0}{\percent}.
+\item \textbf{Edge-case table.} The random-input case is allowed, and produces,
+a 1-LSB error from the $-32768$ clamp.
+\item \textbf{Detection chain.} It has no angle FFT, and its Doppler FFT runs
+across transmitter-interleaved ramps (Section~\ref{sec:refchain}).
+\item \textbf{Toolchain.} MATLAB R2026a, not R2024b.
+\item \textbf{Mixed windows.} Percentages that compared five-frame and
+50-frame figures are now computed on 50 frames throughout
+(Table~\ref{tab:fifty}).
+\item \textbf{LPC at lag 1.} Its \emph{residuals} are slightly better than no
+prediction; it loses to no prediction only once its coefficient table is paid
+for (Section~\ref{sec:lpcshrink}).
+\item \textbf{Two citations.} The quantisation-study reference of the Thesis~A
+report attached a different paper's authors to Deng and Huang's title
+\cite{deng2024}; and the peak raw sample of 914 is over the first five frames
+(1094 over all fifty).
+\item \textbf{Repository.} The TDM-corrected HLS sources existed only in the
+build clone on \texttt{D:}; they are now committed with the rest.
+\end{itemize}

@@ -1,0 +1,54 @@
+INFO: [SIM 2] *************** CSIM start ***************
+   Compiling ../../../../lpc_tb_edge.cpp in debug mode
+   Compiling ../../../../lpc_decompress.cpp in debug mode
+   Compiling ../../../../lpc_compress.cpp in debug mode
+   Generating csim.exe
+==========================================================
+ LPC Edge Case Testbench  (Test 2.4)                     
+ Synthetic degenerate inputs - no data file required      
+==========================================================
+
+[1/8] all-zeros  (192 ramps x 128 samples x 4 RX)  - CR very high, lossless
+      CR=3.8400  bits 3145728 -> 819200  MaxDiff=0 (allowed 0)  [LOSSLESS]
+
+[2/8] dc-constant  (192 ramps x 128 samples x 4 RX)  - CR very high, lossless
+      CR=3.3758  bits 3145728 -> 931840  MaxDiff=0 (allowed 0)  [LOSSLESS]
+
+[3/8] random-int16  (192 ramps x 128 samples x 4 RX)  - incompressible; may saturate
+      CR=0.6000  bits 3145728 -> 5242624  MaxDiff=0 (allowed 1)  [LOSSLESS]
+
+[4/8] tone-192ramp  (192 ramps x 128 samples x 4 RX)  - baseline for the 1-ramp case
+      CR=1.1006  bits 3145728 -> 2858240  MaxDiff=0 (allowed 0)  [LOSSLESS]
+
+[5/8] tone-1ramp  (1 ramps x 128 samples x 4 RX)  - no prediction history
+      CR=0.2771  bits 16384 -> 59136  MaxDiff=0 (allowed 0)  [LOSSLESS]
+
+[6/8] max-amplitude  (192 ramps x 128 samples x 4 RX)  - no overflow at +32767
+      CR=0.9868  bits 3145728 -> 3187712  MaxDiff=0 (allowed 0)  [LOSSLESS]
+
+[7/8] max-alternating  (192 ramps x 128 samples x 4 RX)  - worst-case two's-comp wrap
+      CR=0.9868  bits 3145728 -> 3187712  MaxDiff=1 (allowed 1)  [NEAR-LOSSLESS]
+
+[8/8] int16-min  (192 ramps x 128 samples x 4 RX)  - asymmetric -32768
+      CR=0.9868  bits 3145728 -> 3187712  MaxDiff=1 (allowed 1)  [NEAR-LOSSLESS]
+
+==========================================================
+ EDGE CASE SUMMARY
+==========================================================
+case                      CR   MaxDiff    result
+all-zeros             3.8400         0      PASS
+dc-constant           3.3758         0      PASS
+random-int16          0.6000         0      PASS
+tone-192ramp          1.1006         0      PASS
+tone-1ramp            0.2771         0      PASS
+max-amplitude         0.9868         0      PASS
+max-alternating       0.9868         1      PASS
+int16-min             0.9868         1      PASS
+----------------------------------------------------------
+ 8 / 8 cases within their allowed reconstruction error
+ (allowed = 0 means bit-exact; 1 means a -32768 residual may be clamped, costing 1 LSB)
+==========================================================
+[SUCCESS] All edge cases within allowed error.
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 24576
+INFO: [SIM 1] CSim done with 0 errors.
+INFO: [SIM 3] *************** CSIM finish ***************

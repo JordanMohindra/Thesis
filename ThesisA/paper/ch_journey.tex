@@ -1,0 +1,450 @@
+% ===================================================================
+\chapter{From Plan to Algorithms: The Early Experiments}
+\label{ch:journey}
+
+This chapter covers the part of the project that came before any hardware:
+what was planned, which experiments were run, what each one showed, and how
+two algorithms --- DRHE and a linear predictive coder --- came to be the ones
+implemented. It is written in the order things happened. Several conclusions
+drawn at the time later turned out to be wrong, and they are reported as they
+were believed then, each with a pointer to the chapter where it was
+overturned, because the reasons they were wrong are some of this thesis's
+results.
+
+\section{The plan}
+\label{sec:jr_plan}
+
+The Thesis~A report (April 2026) set three goals, each aimed at a limitation
+it attributed to Kiem's work.
+
+\begin{enumerate}
+\item \textbf{Mitigate quantisation error.} Kiem converts the range-FFT output
+to 16-bit fixed point (FX16) before compressing, and that step is where his
+detection errors come from (Table~\ref{tab:kiem_t35}: FX16 loses
+\SI{0.59}{\percent} of detections relative to FP16). Two remedies were
+proposed: a non-linear, piecewise companding transform applied before
+quantisation, borrowed from synthetic aperture radar image compression
+\cite{deng2024}; or a floating-point implementation, justified by the large
+latency headroom in Kiem's design.
+\item \textbf{Evaluate other compression algorithms}, in particular NXP's
+CP4/CP8 block-floating-point formats, Block Adaptive Quantization and the
+learned spectral scheme AdaRadar, against DRHE.
+\item \textbf{Run the whole chain end to end on hardware}, with an evaluation
+module streaming into an FPGA compressor and a PC decompressing.
+\end{enumerate}
+
+\noindent
+Goal~1 was investigated and turned into a finding about compression rather
+than a remedy for quantisation (Section~\ref{sec:jr_quant}). Goal~2 was carried
+out with a partly different list of algorithms (Section~\ref{sec:jr_bench}).
+Goal~3 was carried as far as possible without a board: implementation through
+placement and routing, but no silicon.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[font=\scriptsize,x=1cm,y=1cm]
+\draw[slate,line width=0.8pt,-{Latex[length=2mm]}] (0,0) -- (15.0,0);
+\foreach \x/\l/\d/\s in {
+  0.6/{Thesis A plan;\\Kiem's workflow\\rebuilt in MATLAB}/{Mar--Apr}/1,
+  2.4/{synthetic scenes:\\DRHE CR $\approx$ 1.1}/{Mar--May}/-1,
+  4.2/{Ancortek capture\\attempt; move to\\ColoRadar}/{by Jul}/1,
+  6.0/{quantisation (LFR)\\study; 8-algorithm\\benchmark}/{to Jul}/-1,
+  7.8/{HLS: DRHE and LPC,\\Phases 1--3,\\two defects}/{to 15 Sep}/1,
+  9.6/{audit: predictors\\not helping;\\TDM axis fix}/{15 Sep}/-1,
+  11.4/{Vivado, replica of\\Kiem, ablation\\ladder}/{23--24 Sep}/1,
+  13.4/{replication of\\Kiem's simulation;\\re-verification}/{24 Sep}/-1}{
+  \fill[accent] (\x,0) circle (2.2pt);
+  \draw[slate!60] (\x,0) -- (\x,0.35*\s);
+  \ifnum\s=1
+    \node[align=center,anchor=south,text=slate] at (\x,0.35) {\textcolor{accent}{\textbf{\d}}\\\l};
+  \else
+    \node[align=center,anchor=north,text=slate] at (\x,-0.35) {\textcolor{accent}{\textbf{\d}}\\\l};
+  \fi
+}
+\end{tikzpicture}
+\caption[Project timeline]{The order in which the work was done. Dates are
+from the supervisory meeting log and the repository history; the chapters of
+this report follow the same order, with the replication and comparison with
+Kiem placed after the hardware results.}
+\label{fig:timeline}
+\end{figure}
+
+\section{Rebuilding Kiem's workflow}
+\label{sec:jr_rebuild}
+
+The first piece of work was a MATLAB simulation environment,
+\texttt{Matlab\_Sim}, modelled stage for stage on Kiem's workflow
+(Section~\ref{sec:kiem_workflow}): synthetic or recorded ADC input, shift to
+32-bit full scale, Hann window, range FFT divided by $N$, first half kept,
+compression and decompression, Doppler FFT, NCI over all receive channels,
+peak detection and a comparator computing CR, FN\%, FP\%, noise floor and SNR.
+Where Kiem does not specify a step, a choice was made and recorded; two of those
+choices matter later.
+
+\paragraph{The FX16 scale.} \texttt{compress\_fx16.m} maps a full-scale ADC
+sinusoid, after windowing and the FFT, to the largest \texttt{int16} value,
+Equation~\eqref{eq:scale}. Kiem's hardware instead keeps the top 16 bits of the
+32-bit FFT word, in which a full-scale sinusoid is only about 8191. The two
+scalings differ by a factor of four --- two bits --- and
+Section~\ref{sec:kr_early} shows that this difference alone moves a white-noise
+compression ratio substantially.
+
+\paragraph{The noise-floor reference.} 0\,dBFS was taken as the NCI power of
+a full-scale sinusoid carried through the whole chain
+(\texttt{computeFullScaleRefPower.m}). Kiem does not say what his reference is.
+
+\section{Synthetic scenes, and a compression ratio of 1.1}
+\label{sec:jr_synth}
+
+Before any real data was available, the environment was exercised with
+synthetic scenes built to resemble Kiem's: 512 samples, 512 ramps, four
+receive channels, a 14-bit ADC, some two hundred point targets to give about
+his 170 detections, and additive white Gaussian noise set so that the measured
+noise floor and SNR matched his Table~3.5. The target was his DRHE CR of 3.25.
+Table~\ref{tab:jr_synth} shows what came out.
+
+\begin{table}[htbp]
+\centering
+\caption[Early synthetic-scene results]{DRHE on the early synthetic scenes
+(\texttt{main\_final.log}, \texttt{kiem\_final\_with\_noise.log},
+\texttt{kiem\_enob\_sweep.txt}). ``ENOB'' is an optional reduction of the FX16
+code to fewer effective bits. Every scene uses the Matlab\_Sim FX16 scaling.}
+\label{tab:jr_synth}
+\small
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Scene & ADC $\sigma$ (codes) & ref.\ det. & NF (dBFS) & SNR (dB) & FN\,/\,FP (\%) & DRHE CR\\
+\midrule
+Matched to Kiem's NF (\texttt{match-nf})       & 418.2 & 160 & $-71.03$ & 23.81 & 0 / 0 & 1.11\\
+Matched to Kiem's FN/FP (\texttt{match-fnfp})  & 418.2 & 160 & $-70.70$ & 23.51 & 0.62 / 0 & 1.10\\
+Dense targets, white floor (\texttt{clean})    & 591.1 & 179 & $-71.01$ & 23.23 & 1.68 / 0 & 1.12\\
+Mixed white + correlated noise                 & 497.0 & 167 & $-70.76$ & 23.54 & 0 / 0 & 1.09\\
+Noise lowered 14\,dB (\texttt{match-cr})       & 78.8  & 163 & $-85.37$ & 38.05 & 0 / 0 & 1.56\\
+Noise lowered 24\,dB (\texttt{aggressive})     & 24.9  & 163 & $-95.08$ & 47.76 & 0 / 0 & 2.08\\
+Strong zero-Doppler clutter (\texttt{clutter}) & 12.5  & 51  & $-101.99$ & 61.56 & 0 / 0 & 2.57\\
+\midrule
+Kiem, Table 3.5 (real data)                    & ---   & $\approx$170 & $-70.69$ & 22.33 & 0.59 / 1.18 & 3.25\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\noindent
+Every scene that matched Kiem's noise floor compressed to about 1.1. Lowering
+the noise raised the ratio, but even 24\,dB less noise reached only 2.08, and
+then the noise floor and SNR no longer resembled his. A further sweep
+(\texttt{noise\_type\_sweep.txt}) replaced white noise with slow-time-correlated
+noise: first-order autoregressive noise with correlation up to 0.999, coloured
+noise, $1/f$ noise and mixtures. None exceeded CR 1.8, and the correlated
+variants that raised CR did so while destroying detection (FN up to
+\SI{67}{\percent}), because strongly correlated noise piles up at low Doppler
+and is detected as targets.
+
+\paragraph{The interpretation at the time.} The executive summary explained the
+gap as a property of white noise: ``simulated AWGN data lacks correlation
+across consecutive chirps in the slow-time (Doppler) dimension. Because
+algorithms like DRHE rely on predicting sample values from previous ramps, the
+lack of correlation produced large residual values.'' Real data, the
+reasoning continued, compresses because its floor contains coherent clutter
+that DRHE can predict. That explanation motivated the move to real data.
+
+\begin{keybox}
+\textbf{What this turned out to be.} The explanation was wrong in its
+mechanism. On a white-noise scene the compression ratio is set almost entirely
+by how many FX16 least significant bits the noise occupies, and prediction
+contributes little either way: on Kiem's own simulated scene, coding the FX16
+values with \emph{no prediction at all} gives a ratio within about ten per cent
+of DRHE's at every noise level, and often a better one
+(Section~\ref{sec:kr_sweep}). The early scenes
+compressed to 1.1 because matching Kiem's stated noise floor with white noise
+and the Matlab\_Sim scaling puts about 130 LSB of noise into every FX16 value,
+roughly thirty times what Kiem's own CR implies. Chapter~\ref{ch:replication}
+rebuilds his simulation independently and reproduces the 1.1 from first
+principles, and Section~\ref{sec:decomposition} shows that the real data's
+higher ratio did not come from predictable clutter either.
+\end{keybox}
+
+\section{Looking for real data}
+\label{sec:jr_data}
+
+The first attempt at real data used a laboratory Ancortek FMCW module. MATLAB
+scripts were written to control it and read its captures
+(\texttt{readAncortekBin.m}, \texttt{getAncortekChannels.m}), and several
+single-target and background captures were recorded. They were not usable for
+this study: the interface scripts were unreliable, and the module's bandwidth
+gave too coarse a range resolution to produce the dense range profiles a
+compression study needs.
+
+The project therefore moved to the public ColoRadar dataset \cite{kramer2022},
+which contains raw ADC captures from exactly the cascade described in
+Section~\ref{sec:sensor}: four AWR2243 devices, 12 transmitters and 16
+receivers in time-division MIMO. A loader (\texttt{loadColoRadarFrame.m})
+reads a frame, applies the TDM flattening of Equation~\eqref{eq:rampindex} and
+removes the per-ramp DC term. Fifty consecutive frames of one indoor sequence
+were used for everything that follows. This choice also changed the problem in
+a way nobody noticed for months: a single-transmitter algorithm was about to be
+applied to a twelve-transmitter radar.
+
+\section{The quantisation question}
+\label{sec:jr_quant}
+
+Goal~1 was pursued with a study (\texttt{compare\_quantisation\_lfr.m}) on one
+ColoRadar frame. Four quantisers were compared, each followed by the same
+lossless DRHE coder:
+
+\begin{itemize}
+\item \textbf{FP16}: half-precision floating point, the fidelity reference;
+\item \textbf{FX16-uniform}: the pipeline's fixed full-scale scaling;
+\item \textbf{FX16-linear}: the same uniform quantiser, but scaled so the
+frame's own peak fills the \texttt{int16} range;
+\item \textbf{FX16-LFR}: the two-stage low-frequency-suppression companding
+curve of Deng and Huang \cite{deng2024} --- a linear stretch of small magnitudes
+and logarithmic compression of large ones --- with its parameters fitted to the
+frame's magnitude distribution.
+\end{itemize}
+
+\begin{table}[htbp]
+\centering
+\caption[Quantisation study]{The quantisation study, ColoRadar frame 0, all
+16 receive channels (re-run 24 September 2026, \texttt{\_verify/lfr\_rerun.log}).
+``relRMS'' is the RMS error of the range-FFT values relative to their RMS;
+``RD error'' is the RMS dB error of the range--Doppler map; ``int16 use'' is the
+largest code as a fraction of 32767.}
+\label{tab:jr_lfr}
+\small
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Quantiser & relRMS (\%) & mag.\ PSNR (dB) & RD error (dB) & int16 use (\%) & DRHE CR\\
+\midrule
+FP16 (reference)   & 0.0205 & 101.97 & 0.0049 & ---   & ---\\
+FX16-uniform       & 1.8636 & 64.44  & 0.4336 & 1.33  & \textbf{3.320}\\
+FX16-linear        & 0.0278 & 101.09 & 0.0054 & 89.20 & 1.038\\
+FX16-LFR           & 0.0048 & 114.38 & 0.0011 & 94.28 & 0.708\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:jr_lfr} is one of the most informative results of the whole
+project, although it was not read that way at the time. The uniform FX16 used by
+Kiem and by this pipeline uses \SI{1.33}{\percent} of the \texttt{int16}
+range: the largest code in the frame is 436. Its quantisation error is
+correspondingly large. Simply scaling the data to fill the container cuts the
+error by a factor of 67 and brings the fixed-point path to within a fraction of
+a decibel of FP16. Companding does better still.
+
+But the compression ratio moves the other way. With the container filled,
+lossless DRHE compresses to 1.04; with companding, which spreads the values
+evenly over the whole code range, it \emph{expands} the data. The quantisation
+error and the compression ratio are two sides of the same unused bits. The
+uniform code leaves about six of its sixteen bits permanently zero at the top
+and rounds away everything below its coarse step. Stretching the data to fill
+the container turns those six bits into fine detail at the bottom --- detail
+that is mostly receiver noise, which a lossless coder must keep, and which is
+exactly what the uniform code's entropy coder was never asked to pay for.
+
+\paragraph{What was decided.} Goal~1, as stated, could be met --- the study
+shows the quantisation error can be removed --- but only by giving up almost all
+of the compression the rest of the project was about. The pipeline therefore
+kept Kiem's fixed FX16 scaling, so that results stayed comparable with his, and
+the trade-off was recorded rather than resolved. Section~\ref{sec:decomposition}
+later measured it precisely: \num{1.64} of the no-prediction ratio of
+\num{3.489} comes from unused container bits.
+
+\paragraph{Floating point instead.} The other remedy, floating point, was
+tested in the same spirit: DRHE was run on FP16 values instead of FX16 codes
+(``DRHEfp16'', \texttt{compress\_drhe\_fp16.m}). It compresses to 1.04
+(Table~\ref{tab:phase1}), because a half-precision mantissa keeps fine noise
+detail at every magnitude and the differences never settle near zero. The
+conclusion was that the compressor's \emph{input} must be integer. The
+\emph{arithmetic inside} the predictor is a separate question: Kiem's own future
+work suggested floating point there (Section~\ref{sec:kiem_open}), and the
+hardware DRHE of this thesis uses it (Section~\ref{sec:drheimpl}).
+Chapter~\ref{ch:interpret} measures what that costs.
+
+\section{Choosing what to compare}
+\label{sec:jr_choose}
+
+Goal~2 was narrowed to schemes that could be implemented and scored in the same
+MATLAB chain. Each works on the range-FFT output.
+
+\begin{description}[leftmargin=!,labelwidth=26mm,style=nextline,font=\normalfont\bfseries]
+\item[FP16, FX16] The two reference formats, as in Kiem.
+\item[DRHE] Kiem's final scheme (Section~\ref{sec:kiem_final}):
+\texttt{compress\_drhe.m}. Section~\ref{sec:kc_audit} shows it is Kiem's
+Section~3.5.3 exactly.
+\item[DRHEfp16] The same predictor on FP16 values, to test the floating-point
+remedy of Goal~1.
+\item[BAQ] Block adaptive quantisation, implemented as a block-floating-point
+quantiser: blocks of 16 range bins share an 8-bit exponent chosen from the
+block maximum, and each real and imaginary part keeps a 4-bit mantissa. The CR
+is fixed by construction at $32/(8 + 8/16) = 3.76$. It stands in for the
+block-floating-point family (NXP CP4/CP8 and Kiem's CMPRA/CMPRB are of the same
+kind) and for BAQ proper, whose statistics-driven step size
+\cite{kwok1989} it approximates with a maximum-driven one.
+\item[RDVLE] Range-dependent variable-length encoding from Li's thesis
+\cite{li2014}: fewer bits for far range bins, following the $1/R^4$ fall of
+received power, here capped at three bits removed.
+\item[RDVLE+UDRE] RDVLE followed by Li's uniform dynamic-range re-encoding of
+blocks of 16 bins at six bits.
+\item[LPC-Huffman] A linear predictive coder, designed for this thesis and
+described next.
+\end{description}
+
+\noindent
+NXP's formats were not implemented separately, since their exact bit layouts
+are proprietary and the block-floating-point quantiser represents the family.
+AdaRadar \cite{park2026} was left out of scope once the thesis narrowed to
+lossless compression; it is a lossy, learned scheme whose decoder runs on the
+central processor.
+
+\section{Where this thesis's LPC came from}
+\label{sec:jr_lpc}
+
+The name was taken from Kiem's Section~2.7.4. The design was not. Kiem
+describes LPC-Huffman as he understood \cite{meucci2022}: a $p$-th order linear predictor
+along \emph{fast time}, predicting each raw ADC sample from the previous $p$
+samples of the same chirp, with least-squares coefficients and a Huffman code
+built from the data. He excluded it without running it
+(Section~\ref{sec:kiem_space}).
+
+Taken literally, that method would have been compared with DRHE across four
+differences at once: a different domain (raw ADC against range FFT), a
+different axis (fast time against slow time), a different coder (data-derived
+Huffman against a fixed dictionary) and a different predictor. Any difference in
+CR could have come from any of them. The LPC built here was therefore designed
+as a \emph{controlled} comparison, changing only the predictor:
+
+\begin{itemize}
+\item the same input as DRHE: FX16 range-FFT codes;
+\item the same axis: slow time, predicting ramp $m$ of a range bin from earlier
+ramps of that bin;
+\item the same entropy coder: S4 category, APPEND bits, and Kiem's fixed
+Huffman dictionary;
+\item a different predictor: a second-order autoregressive model
+$\hat{x}[m] = a_1 x[m-1] + a_2 x[m-2]$ applied separately to the real and
+imaginary parts, with Yule--Walker coefficients fitted per (range bin, receive
+channel, part) over the whole frame and sent as 16-bit side information.
+\end{itemize}
+
+\noindent
+The idea is simple. DRHE assumes a shape --- constant magnitude, constant phase
+increment --- and hard-wires filters for it. The LPC assumes only that each
+bin's slow-time sequence is roughly a second-order autoregressive process, and
+lets the data choose the coefficients. If DRHE's assumption is right, the fitted
+model should find something close to it; if it is wrong, the fitted model should
+find something better, or at least find that there is little to predict.
+Table~\ref{tab:lpc_vs_kiemlpc} sets the two methods called ``LPC'' side by side.
+
+\begin{table}[htbp]
+\centering
+\caption[Two methods called LPC]{Kiem's LPC-Huffman (his Section~2.7.4,
+after \cite{meucci2022}) and the LPC of this thesis. They share a name and the idea of
+least-squares linear prediction, and nothing else that affects the result.}
+\label{tab:lpc_vs_kiemlpc}
+\small
+\begin{tabular}{@{}p{33mm}p{50mm}p{50mm}@{}}
+\toprule
+& \textbf{LPC-Huffman in Kiem (after \cite{meucci2022})} & \textbf{LPC in this thesis}\\
+\midrule
+Input & raw ADC samples (assumed by Kiem) & FX16 range-FFT codes\\
+Prediction axis & fast time: previous $p$ samples of the same chirp & slow time: ramps $m-1, m-2$ (later $m-n_{\mathrm{Tx}}, m-2n_{\mathrm{Tx}}$) of the same range bin\\
+Order & $p$ (not stated) & 2\\
+Coefficients & least squares per signal & Yule--Walker per (bin, RX, part), 16-bit\\
+Entropy coder & Huffman on residual values, dictionary from the data & S4 + APPEND, Kiem's fixed S4 dictionary\\
+Streaming & yes, per chirp & no: needs the whole frame\\
+What it is a test of & compressing the ADC stream & DRHE's fixed predictor against a fitted one\\
+Evaluated by Kiem & no (CR 2.056 quoted from \cite{meucci2022}) & ---\\
+Evaluated here & Chapter~\ref{ch:replication} & Chapters~\ref{ch:results} and~\ref{ch:replication}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{The benchmark}
+\label{sec:jr_bench}
+
+All eight schemes were run over the same 50 consecutive ColoRadar frames with
+all 16 receive channels (\texttt{main\_simulation\_coloradar\_batch.m}). The
+reference is the double-precision path; FP16 is scored against it like every
+other scheme. Table~\ref{tab:phase1} gives the result. It was first produced during the
+Thesis~A term, published in the executive summary, and re-run for this report on
+24 September 2026 with identical results in every cell
+(\texttt{\_verify/phase1\_rerun.log}).
+
+\begin{table}[htbp]
+\centering
+\caption[The eight-scheme benchmark]{The eight-scheme benchmark: 50-frame
+average, 16 receive channels, \num{9934} reference detections. FP\% is a false
+discovery rate (Section~\ref{sec:detectionmetrics}). NF is the noise floor.}
+\label{tab:phase1}
+\small
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Algorithm & CR & FN\% & FP\% & NF (dBFS) & SNR (dB)\\
+\midrule
+FP16          & 1.00 & 0.00  & 0.00 & $-105.638$ & 35.504\\
+DRHEfp16      & 1.04 & 0.05  & 0.01 & $-105.637$ & 35.505\\
+FX16          & 1.00 & 3.77  & 1.11 & $-105.374$ & 35.359\\
+\textbf{DRHE} & \textbf{3.30} & 3.77 & 1.11 & $-105.374$ & 35.359\\
+BAQ           & 3.76 & 10.44 & 9.69 & $-105.080$ & 35.081\\
+RDVLE         & 1.12 & 24.01 & 4.62 & $-102.275$ & 33.165\\
+RDVLE\_UDRE   & 2.56 & 28.73 & 4.44 & $-101.782$ & 33.004\\
+\textbf{LPC}  & \textbf{3.37} & 3.77 & 1.11 & $-105.374$ & 35.359\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Four observations decided what happened next.
+
+\paragraph{The lossless coders share FX16's detection metrics exactly.}
+FX16, DRHE and LPC report identical FN\%, FP\%, noise floor and SNR. This is not
+a coincidence but a tautology: both coders reconstruct the FX16 codes
+bit-exactly, so the detector sees identical data. What those rows show is the
+cost of \emph{quantisation}: \SI{3.77}{\percent} of detections missed and
+\SI{1.11}{\percent} of reported detections spurious.
+
+\paragraph{The lossy schemes pay for their ratio in detections.}
+BAQ reaches a nominally better ratio --- \num{3.76} against \num{3.30} --- but
+misses \SI{10.44}{\percent} of detections instead of \SI{3.77}{\percent}, and
+\SI{9.69}{\percent} of what it reports is spurious against \SI{1.11}{\percent}.
+That is nearly three times the miss rate and nearly nine times the false
+discovery rate for a \SI{14}{\percent} better ratio. RDVLE and RDVLE+UDRE are
+worse on both counts. In a system that brakes a car, none of these trades is
+acceptable, which is the empirical form of the argument of
+Section~\ref{sec:lossless}.
+
+\paragraph{Floating-point storage does not compress.} DRHEfp16 reaches 1.04,
+confirming the result of Section~\ref{sec:jr_quant}.
+
+\paragraph{Two predictive coders reach the target.} DRHE at 3.30 and LPC at
+3.37 both exceed the 2.4 a Gigabit Ethernet link would need, losslessly.
+
+\section{The decision, and what was expected}
+\label{sec:jr_decision}
+
+DRHE and LPC were both taken forward to hardware. The reasoning recorded in the
+executive summary was that LPC compresses slightly better (3.37 against 3.30)
+but ``requires more complex arithmetic operations on an FPGA, such as
+division'', while DRHE ``requires only simple arithmetic logic''; implementing
+both would show where the trade really lay.
+
+\begin{keybox}
+\textbf{Five beliefs held at this point, and what became of them.}
+\begin{enumerate}[leftmargin=*]
+\item \emph{DRHE's 3.30 confirmed the implementation, because it matched
+Kiem's 3.25.} The match is a coincidence of two different mechanisms on two
+different datasets (Chapters~\ref{ch:replication} and~\ref{ch:kiemcompare}).
+\item \emph{Both predictors were exploiting Doppler redundancy.} Neither was:
+as implemented, each did worse than no prediction (Section~\ref{sec:decomposition}),
+because the radar is twelve-transmitter TDM (Section~\ref{sec:predaxisresults}).
+\item \emph{LPC compresses better because a fitted model beats a fixed one.}
+True for a different reason than expected: on the wrong axis, LPC's fitted
+coefficients shrink towards zero so it nearly switches itself off, while DRHE's
+fixed filters cannot (Section~\ref{sec:lpcshrink}).
+\item \emph{LPC is the expensive design because it divides.} Wrong: the
+division runs 1024 times per frame; LPC's cost is its frame buffer and its
+latency (Section~\ref{sec:phase3}).
+\item \emph{Real data compresses because its noise floor contains predictable
+clutter.} Wrong: \num{1.64} of the ratio is unused container bits and
+\num{2.13} spectral sparsity (Section~\ref{sec:decomposition}).
+\end{enumerate}
+\end{keybox}

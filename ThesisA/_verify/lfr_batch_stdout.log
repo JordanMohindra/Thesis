@@ -1,0 +1,38 @@
+--- loadColoRadarFrame ---
+  file       : D:\Jordan's Thesis\cascade\adc_samples\data\frame_0.bin
+  cube       : 256 samples x 192 ramps x 16 RX  (TX kept: [1 2 3 4 5 6 7 8 9 10 11 12])
+  peak |sample| = 869.543 (auto bitWidth=11, using=16)
+  BW=1.80 GHz  fc=77.0 GHz  Tc=78.5 us  PRI=942.0 us
+  Range_max=10.68 m   Nyquist velocity=+/-1.034 m/s
+
+==================================================================================
+  QUANTISATION-ERROR STUDY  (ColoRadar frame 0)
+  LFR params: t=268.2 (0.82% of L)  k=597.5  l=11.26  p=0.915  Rayleigh sigma=2.53e+05
+  DRHE lossless check (LFR path), max code error = 0
+----------------------------------------------------------------------------------
+  Method             relRMS %   magPSNR dB     RDerr dB  int16 use %    DRHE CR
+  ------             --------    ---------     --------   ----------    -------
+  FP16(ref)            0.0205       101.97       0.0049            -          -
+  FX16-uniform         1.8636        64.44       0.4336         1.33      3.320
+  FX16-linear          0.0278       101.09       0.0054        89.20      1.038
+  FX16-LFR             0.0048       114.38       0.0011        94.28      0.708
+==================================================================================
+  LFR vs uniform: magnitude PSNR +49.9 dB, relative-RMS error 1.864% -> 0.0048%
+      relRMS_pct: 1.8636
+         magPSNR: 64.4374
+        RDerr_dB: 0.4336
+    int16use_pct: 1.3276
+          drheCR: 3.3198
+
+      relRMS_pct: 0.0278
+         magPSNR: 101.0935
+        RDerr_dB: 0.0054
+    int16use_pct: 89.1964
+          drheCR: 1.0384
+
+      relRMS_pct: 0.0048
+         magPSNR: 114.3806
+        RDerr_dB: 0.0011
+    int16use_pct: 94.2839
+          drheCR: 0.7083
+
