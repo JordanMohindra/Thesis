@@ -1,0 +1,3 @@
+Matlab_Sim compress_drhe vs kr_drhe_encode (Kiem 3.5.3), Kiem Table 3.2 scene
+NF  -75.0 dBFS: residuals identical = 1, bits 18186374 vs 18186374 (diff 0), CR 1.8450 vs 1.8450
+NF  -87.9 dBFS: residuals identical = 1, bits 10370342 vs 10370342 (diff 0), CR 3.2356 vs 3.2356

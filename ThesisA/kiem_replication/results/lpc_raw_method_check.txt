@@ -1,0 +1,7 @@
+LPC-Huffman on raw ADC: autocorrelation vs covariance coefficients (64 chirps, RX1)
+NF -140.0 dBFS  ADC noise    0.2 codes  p= 8 | autocorrelation CR 1.50 (residual std  430.4) | covariance CR 4.78 (residual std    1.9)
+NF -140.0 dBFS  ADC noise    0.2 codes  p=10 | autocorrelation CR 1.83 (residual std  242.1) | covariance CR 6.51 (residual std    0.9)
+NF  -87.9 dBFS  ADC noise   85.1 codes  p= 8 | autocorrelation CR 1.45 (residual std  501.5) | covariance CR 1.48 (residual std  358.2)
+NF  -87.9 dBFS  ADC noise   85.1 codes  p=10 | autocorrelation CR 1.56 (residual std  322.1) | covariance CR 1.59 (residual std  201.0)
+NF  -75.0 dBFS  ADC noise  375.9 codes  p= 8 | autocorrelation CR 1.33 (residual std  897.9) | covariance CR 1.33 (residual std  875.5)
+NF  -75.0 dBFS  ADC noise  375.9 codes  p=10 | autocorrelation CR 1.34 (residual std  799.8) | covariance CR 1.34 (residual std  766.7)

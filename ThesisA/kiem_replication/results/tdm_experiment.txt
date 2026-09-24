@@ -1,0 +1,24 @@
+
+=== scene kiem, noise floor -75 dBFS ===
+radar / lag               DRHE  DRHE+RLE       LPC    NoPred
+ 1 TX, lag  1            1.850     2.285     2.070     2.036
+12 TX, lag  1            1.836     2.262     2.051     2.036
+12 TX, lag 12            1.859     2.283     2.056     2.036
+
+=== scene kiem, noise floor -95 dBFS ===
+radar / lag               DRHE  DRHE+RLE       LPC    NoPred
+ 1 TX, lag  1            3.726     4.237     3.760     3.603
+12 TX, lag  1            3.641     4.120     3.666     3.603
+12 TX, lag 12            3.694     4.208     3.665     3.603
+
+=== scene dense, noise floor -75 dBFS ===
+radar / lag               DRHE  DRHE+RLE       LPC    NoPred
+ 1 TX, lag  1            1.772     2.203     1.960     1.656
+12 TX, lag  1            1.647     2.066     1.798     1.657
+12 TX, lag 12            1.689     2.110     1.840     1.657
+
+=== scene dense, noise floor -95 dBFS ===
+radar / lag               DRHE  DRHE+RLE       LPC    NoPred
+ 1 TX, lag  1            3.398     3.516     3.596     1.952
+12 TX, lag  1            2.371     2.514     2.462     1.955
+12 TX, lag 12            2.560     2.673     2.712     1.955
