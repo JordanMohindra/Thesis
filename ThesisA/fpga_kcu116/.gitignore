@@ -1,0 +1,14 @@
+build/
+ip_repo/
+out/
+results/
+golden/
+*.log
+console_*.txt
+hls/export_status.txt
+hls/pkg_status.txt
+hls/_pkg_once.bat
+vivado/_t1*
+vivado/_build_both.bat
+vivado/.Xil/
+host/xsdb_dryrun.txt

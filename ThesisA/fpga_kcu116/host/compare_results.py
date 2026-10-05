@@ -1,0 +1,94 @@
+"""compare_results.py - check a board run against the C-simulation golden output.
+
+    python compare_results.py <drhe|lpc>
+
+Reads  ../results/<algo>/results.bin, comp_<f>.bin   (from run_board.tcl)
+       ../golden/golden_<algo>_tdm_compressed.bin    (from hls/export_ips.bat)
+Checks, per frame:
+  * with an on-chip decompressor: every sample reconstructed exactly
+    (max_diff == 0). Without one (DRHE build): the compressed bytes must match
+    the C simulation for EVERY frame - the C-sim bitstream is known to decode
+    losslessly, so an identical bitstream proves the hardware is lossless
+  * the compressed size equals the C-simulation size  (=> identical CR)
+  * for the dumped frames, the compressed bitstream is byte-identical
+Prints per-frame CR and cycle counts and the mean CR (same metric as HLS csim:
+input bits / (256-bit words * 256), averaged over frames).
+"""
+import os, sys, struct
+
+algo = sys.argv[1] if len(sys.argv) > 1 else "drhe"
+root = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+rdir = os.path.join(root, "results", algo)
+FRAME_BYTES = 128 * 192 * 4 * 4
+ERR = {0x01: "comp timeout", 0x02: "decomp timeout", 0x04: "dma_c error", 0x08: "dma_d error",
+       0x10: "recon length", 0x20: "decomp left words unread"}
+
+info = {}
+ip = os.path.join(rdir, "run_info.txt")
+if os.path.exists(ip):
+    for line in open(ip):
+        k, _, v = line.strip().partition(" ")
+        info[k] = v
+has_decomp = info.get("decomp", "1") == "1"
+raw = open(os.path.join(rdir, "results.bin"), "rb").read()
+recs = [struct.unpack_from("<8I", raw, 32 * i) for i in range(len(raw) // 32)]
+
+golden = []
+gpath = os.path.join(root, "golden", f"golden_{algo}_tdm_compressed.bin")
+if os.path.exists(gpath):
+    g = open(gpath, "rb").read()
+    nF = struct.unpack_from("<I", g, 0)[0]; off = 4
+    for _ in range(nF):
+        nw = struct.unpack_from("<I", g, off)[0]; off += 4
+        golden.append(g[off:off + 32 * nw]); off += 32 * nw
+else:
+    print(f"(no golden file at {gpath}; only on-board checks will be reported)")
+
+print(f"{'frame':>5} {'bytes':>9} {'CR':>8} {'golden CR':>10} {'comp cyc':>9} {'decomp cyc':>10} {'maxdiff':>7}  check")
+ok_all = True; crs = []; gcrs = []
+for (f, nbytes, cc, dc, maxd, nmis, st, _) in recs:
+    cr = FRAME_BYTES / nbytes if nbytes else 0.0
+    notes = []
+    if st:
+        notes.append(", ".join(v for k, v in ERR.items() if st & k))
+    if has_decomp and (maxd or nmis):
+        notes.append(f"{nmis} values differ")
+    gcr = ""
+    if f < len(golden):
+        gb = len(golden[f])
+        gcr = f"{FRAME_BYTES / gb:10.5f}"; gcrs.append(FRAME_BYTES / gb)
+        if nbytes != gb:
+            notes.append(f"size {nbytes} != golden {gb}")
+        dump = os.path.join(rdir, f"comp_{f}.bin")
+        if os.path.exists(dump):
+            d = open(dump, "rb").read()[:nbytes]
+            if d == golden[f][:nbytes] and nbytes == gb:
+                notes.append("bitstream identical")
+            else:
+                first = next(i for i in range(min(len(d), gb)) if d[i] != golden[f][i]) if len(d) else 0
+                notes.append(f"BITSTREAM DIFFERS at byte {first}")
+        elif not has_decomp:
+            notes.append("NOT DUMPED - cannot prove lossless")
+    bad = bool(st or (has_decomp and (maxd or nmis)) or any(("!=" in n) or ("DIFFERS" in n) or ("NOT DUMPED" in n) for n in notes))
+    ok_all &= not bad
+    crs.append(cr)
+    print(f"{f:5d} {nbytes:9d} {cr:8.5f} {gcr:>10} {cc:9d} {dc if has_decomp else 'n/a':>10} {maxd if has_decomp else 'n/a':>7}  "
+          + ("FAIL: " if bad else "ok  ") + ("; ".join(notes) if notes else ""))
+
+n = len(recs)
+print(f"\nframes: {n}")
+print(f"mean per-frame CR (board) : {sum(crs) / n:.5f}")
+if gcrs:
+    print(f"mean per-frame CR (csim)  : {sum(gcrs) / len(gcrs):.5f}   over {len(gcrs)} frames")
+cyc = [r[2] for r in recs if r[2]]
+if cyc:
+    print(f"compress cycles/frame     : min {min(cyc)}  mean {sum(cyc) / len(cyc):.0f}  max {max(cyc)}  (100 MHz)")
+    print(f"compressor throughput     : {FRAME_BYTES * 8 / (sum(cyc) / len(cyc) / 100e6) / 1e9:.2f} Gbit/s input")
+dcyc = [r[3] for r in recs if r[3]] if has_decomp else []
+if dcyc:
+    print(f"decompress cycles/frame   : min {min(dcyc)}  mean {sum(dcyc) / len(dcyc):.0f}  max {max(dcyc)}")
+if has_decomp:
+    print("\nRESULT:", "PASS - lossless on every frame and identical to C simulation" if ok_all else "FAIL - see the rows marked FAIL")
+else:
+    print("\nRESULT:", "PASS - every compressed frame is byte-identical to C simulation (=> lossless)" if ok_all else "FAIL - see the rows marked FAIL")
+sys.exit(0 if ok_all else 1)

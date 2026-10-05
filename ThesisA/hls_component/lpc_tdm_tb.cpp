@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstdint>
+#include <string>
 
 #include "lpc_tdm_compress.h"
 #include "lpc_tdm_decompress.h"
@@ -51,6 +52,14 @@ int main() {
 
     struct Sample { int re[MAX_NRX]; int im[MAX_NRX]; };
 
+    // Golden compressed streams for the KCU116 hardware run. Layout:
+    //   uint32 nFrames, then per frame: uint32 nWords, nWords x 32 bytes, each
+    //   256-bit word little-endian (byte b = bits 8b+7..8b), which is exactly
+    //   how the AXI DMA writes the compressor's output into DDR.
+    std::ofstream golden("golden_lpc_tdm_compressed.bin", std::ios::binary);
+    golden.write(reinterpret_cast<const char*>(&nFrames), sizeof(uint32_t));
+    int tlast_errors = 0;
+
     double global_total_input_bits = 0;
     double global_total_output_bits = 0;
     int    global_max_diff = 0;
@@ -88,15 +97,33 @@ int main() {
                 compress_in.write(in_pkt);
             }
         }
-
         lpc_tdm_compress(compress_in, compress_out, nSamples, nRamps, nRX, N_TX);
 
-        int num_compressed_packets = compress_out.size();
+        // Copy the compressed words out (golden file), check TLAST is on the
+        // final word only, and refill a stream for the decompressor.
+        hls::stream<axis_256_t> decomp_in("decomp_in");
+        std::vector<axis_256_t> cwords;
+        while (!compress_out.empty()) cwords.push_back(compress_out.read());
+        {
+            uint32_t nw = (uint32_t)cwords.size();
+            golden.write(reinterpret_cast<const char*>(&nw), sizeof(uint32_t));
+            for (size_t i = 0; i < cwords.size(); i++) {
+                bool want_last = (i + 1 == cwords.size());
+                if ((cwords[i].last == 1) != want_last) tlast_errors++;
+                for (int b = 0; b < 32; b++) {
+                    unsigned char byte = (unsigned char)(cwords[i].data.range(8 * b + 7, 8 * b));
+                    golden.write(reinterpret_cast<const char*>(&byte), 1);
+                }
+                decomp_in.write(cwords[i]);
+            }
+        }
+
+        int num_compressed_packets = (int)cwords.size();
         long total_input_bits = (long)nRamps * nSamples * nRX * 32;
         long total_output_bits = (long)num_compressed_packets * 256;
         double frame_cr = (double)total_input_bits / (double)total_output_bits;
 
-        lpc_tdm_decompress(compress_out, decompress_out, nSamples, nRamps, nRX, N_TX);
+        lpc_tdm_decompress(decomp_in, decompress_out, nSamples, nRamps, nRX, N_TX);
 
         int frame_max_diff = 0;
         double frame_sq_err = 0.0;
@@ -146,6 +173,12 @@ int main() {
         frames_processed++;
     }
     bin_file.close();
+    golden.close();
+    std::cout << "[INFO] Golden compressed streams written to golden_lpc_tdm_compressed.bin" << std::endl;
+    if (tlast_errors) {
+        std::cerr << "[ERROR] TLAST misplaced on " << tlast_errors << " compressed words" << std::endl;
+        return 1;
+    }
 
     double avg_cr = sum_per_frame_cr / frames_processed;
     double overall_cr = global_total_input_bits / global_total_output_bits;

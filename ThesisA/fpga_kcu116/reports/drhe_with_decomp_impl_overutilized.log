@@ -1,0 +1,514 @@
+
+*** Running vivado
+    with args -log system_wrapper.vdi -applog -m64 -product Vivado -messageDb vivado.pb -mode batch -source system_wrapper.tcl -notrace
+
+
+INFO: [Common 17-3922] A valid Vivado Design Suite BASIC license has been detected. Your current license is active and will expire on 14-sep-2027.
+#-----------------------------------------------------------
+# Vivado v2026.1 (64-bit)
+# SW Build 6511674 on Tue Jun 16 11:02:23 MDT 2026
+# IP Build 6504888 on Tue Jun 09 09:05:25 MDT 2026
+# SharedData Build 6501428 on Mon Jun 08 17:34:18 MDT 2026
+# Start of session at: Mon Oct  5 18:39:08 2026
+# Process ID         : 30508
+# Current directory  : D:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.runs/impl_1
+# Command line       : vivado.exe -log system_wrapper.vdi -applog -product Vivado -messageDb vivado.pb -mode batch -source system_wrapper.tcl -notrace
+# Log file           : D:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.runs/impl_1/system_wrapper.vdi
+# Journal file       : D:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.runs/impl_1\vivado.jou
+# Running On         : DESKTOP-6IQQE7O
+# Platform           : Windows 11
+# Operating System   : 26200
+# Processor Detail   : Intel(R) Core(TM) i5-10400F CPU @ 2.90GHz
+# CPU Frequency      : 2904 MHz
+# CPU Physical cores : 6
+# CPU Logical cores  : 12
+# Host memory        : 17101 MB
+# Swap memory        : 40299 MB
+# Total Virtual      : 57401 MB
+# Available Virtual  : 37604 MB
+#-----------------------------------------------------------
+
+****** Vivado v2026.1 (64-bit)
+  **** SW Build 6511674 on Tue Jun 16 11:02:23 MDT 2026
+  **** IP Build 6504888 on Tue Jun 09 09:05:25 MDT 2026
+  **** SharedData Build 6501428 on Mon Jun 08 17:34:18 MDT 2026
+  **** Start of session at: Mon Oct  5 18:39:08 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source system_wrapper.tcl -notrace
+create_project: Time (s): cpu = 00:00:12 ; elapsed = 00:00:10 . Memory (MB): peak = 582.473 ; gain = 269.773
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1700] Loaded user IP repository 'd:/Thesis/ThesisA/fpga_kcu116/ip_repo'.
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'D:/Xilinx/2026.1/Vivado/data/ip'.
+add_files: Time (s): cpu = 00:00:16 ; elapsed = 00:00:17 . Memory (MB): peak = 701.504 ; gain = 111.840
+Command: link_design -top system_wrapper -part xcku5p-ffvb676-2-e
+Design is defaulting to srcset: sources_1
+Design is defaulting to constrset: constrs_1
+INFO: [Device 21-403] Loading part xcku5p-ffvb676-2-e
+INFO: [Project 1-5699] Read binary netlist with skipMacroContent - 1
+INFO: [Project 1-454] Reading design checkpoint 'd:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_comp_0/system_comp_0.dcp' for cell 'system_i/comp'
+INFO: [Project 1-454] Reading design checkpoint 'd:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/system_ddr4_0_0.dcp' for cell 'system_i/ddr4_0'
+INFO: [Project 1-454] Reading design checkpoint 'd:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_decomp_0/system_decomp_0.dcp' for cell 'system_i/decomp'
+INFO: [Project 1-454] Reading design checkpoint 'd:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_dlmb_0/system_dlmb_0.dcp' for cell 'system_i/dlmb'
+INFO: [Project 1-454] Reading design checkpoint 'd:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_dlmb_cntlr_0/system_dlmb_cntlr_0.dcp' for cell 'system_i/dlmb_cntlr'
+INFO: [Project 1-454] Reading design checkpoint 'd:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_dma_c_0/system_dma_c_0.dcp' for cell 'system_i/dma_c'
+INFO: [Project 1-454] Reading design checkpoint 'd:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_dma_d_0/system_dma_d_0.dcp' for cell 'system_i/dma_d'
+INFO: [Project 1-454] Reading design checkpoint 'd:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_gpio_led_0/system_gpio_led_0.dcp' for cell 'system_i/gpio_led'
+INFO: [Project 1-454] Reading design checkpoint 'd:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ilmb_0/system_ilmb_0.dcp' for cell 'system_i/ilmb'
+INFO: [Project 1-454] Reading design checkpoint 'd:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ilmb_cntlr_0/system_ilmb_cntlr_0.dcp' for cell 'system_i/ilmb_cntlr'
+INFO: [Project 1-454] Reading design checkpoint 'd:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_lmb_bram_0/system_lmb_bram_0.dcp' for cell 'system_i/lmb_bram'
+INFO: [Project 1-454] Reading design checkpoint 'd:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_mdm_0_0/system_mdm_0_0.dcp' for cell 'system_i/mdm_0'
+INFO: [Project 1-454] Reading design checkpoint 'd:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.dcp' for cell 'system_i/microblaze_0'
+INFO: [Project 1-454] Reading design checkpoint 'd:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_rst_100_0/system_rst_100_0.dcp' for cell 'system_i/rst_100'
+INFO: [Project 1-454] Reading design checkpoint 'd:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_rst_ddr_0/system_rst_ddr_0.dcp' for cell 'system_i/rst_ddr'
+INFO: [Project 1-454] Reading design checkpoint 'd:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/system_sc_0_0.dcp' for cell 'system_i/sc_0'
+INFO: [Project 1-454] Reading design checkpoint 'd:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_timer_0_0/system_timer_0_0.dcp' for cell 'system_i/timer_0'
+INFO: [Project 1-454] Reading design checkpoint 'd:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_uart_0_0/system_uart_0_0.dcp' for cell 'system_i/uart_0'
+Netlist sorting complete. Time (s): cpu = 00:00:02 ; elapsed = 00:00:02 . Memory (MB): peak = 2162.312 ; gain = 13.715
+INFO: [Netlist 29-17] Analyzing 8424 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 3 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2026.1
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Chipscope 16-324] Core: system_i/ddr4_0 UUID: 0e012655-14fd-5f1f-8729-eff94e0b36e7 
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc] for cell 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0'
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-1' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:4]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-1' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:4]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-1' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:4]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-1' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:7]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-1' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:7]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-1' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:7]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-2' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:10]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-2' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:10]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-2' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:10]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-2' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:13]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-2' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:13]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-2' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:13]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-1' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:16]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-1' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:16]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-1' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:16]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-2' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:19]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-2' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:19]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-2' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:19]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-3' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:22]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-3' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:22]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-3' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:22]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-3' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:25]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-3' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:25]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-3' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:25]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-3' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:28]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-3' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:28]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-3' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:28]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-4' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:31]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-4' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:31]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-4' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:31]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-4' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:34]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-4' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:34]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-4' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:34]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-4' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:37]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-4' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:37]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-4' object list specifies likely unusable hierarchical instance 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc:37]
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_0/bd_031c_microblaze_I_0.xdc] for cell 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/microblaze_I/U0'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_1/bd_031c_rst_0_0_board.xdc] for cell 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/rst_0/U0'
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_1/bd_031c_rst_0_0_board.xdc] for cell 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/rst_0/U0'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_2/bd_031c_ilmb_0.xdc] for cell 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/ilmb/U0'
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_2/bd_031c_ilmb_0.xdc] for cell 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/ilmb/U0'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_3/bd_031c_dlmb_0.xdc] for cell 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/dlmb/U0'
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_3/bd_031c_dlmb_0.xdc] for cell 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/dlmb/U0'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_10/bd_031c_iomodule_0_0_board.xdc] for cell 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/iomodule_0/U0'
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/bd_0/ip/ip_10/bd_031c_iomodule_0_0_board.xdc] for cell 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst/iomodule_0/U0'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/ip_0/system_ddr4_0_0_microblaze_mcs_board.xdc] for cell 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst'
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/ip_0/system_ddr4_0_0_microblaze_mcs_board.xdc] for cell 'system_i/ddr4_0/inst/u_ddr4_mem_intfc/u_ddr_cal_riu/mcs0/inst'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/par/system_ddr4_0_0.xdc] for cell 'system_i/ddr4_0/inst'
+create_clock: Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 2866.012 ; gain = 31.184
+WARNING: [Vivado_Tcl 4-939] Waiver ID 'CLKC-55' object list should not be empty (perhaps an invalid wildcard was used or only unsupported objects). [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/par/system_ddr4_0_0.xdc:219]
+WARNING: [Vivado_Tcl 4-939] Waiver ID 'CLKC-56' object list should not be empty (perhaps an invalid wildcard was used or only unsupported objects). [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/par/system_ddr4_0_0.xdc:220]
+WARNING: [Vivado_Tcl 4-939] Waiver ID 'CLKC-40' object list should not be empty (perhaps an invalid wildcard was used or only unsupported objects). [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/par/system_ddr4_0_0.xdc:223]
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/par/system_ddr4_0_0.xdc] for cell 'system_i/ddr4_0/inst'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_rst_100_0/system_rst_100_0_board.xdc] for cell 'system_i/rst_100/U0'
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_rst_100_0/system_rst_100_0_board.xdc] for cell 'system_i/rst_100/U0'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_rst_ddr_0/system_rst_ddr_0_board.xdc] for cell 'system_i/rst_ddr/U0'
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_rst_ddr_0/system_rst_ddr_0_board.xdc] for cell 'system_i/rst_ddr/U0'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc] for cell 'system_i/microblaze_0/U0'
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-1' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:4]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-1' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:4]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-1' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:4]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-1' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:7]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-1' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:7]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-1' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:7]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-2' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:10]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-2' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:10]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-2' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:10]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-2' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:13]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-2' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:13]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPIP-2' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:13]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-1' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:16]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-1' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:16]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-1' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:16]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-2' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:19]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-2' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:19]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-2' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:19]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-3' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:22]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-3' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:22]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-3' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:22]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-3' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:25]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-3' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:25]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-3' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:25]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-3' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:28]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-3' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:28]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-3' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:28]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-4' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:31]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-4' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:31]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-4' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:31]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-4' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:34]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-4' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:34]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-4' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:34]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-4' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I2/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:37]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-4' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.No_MUL64.dsp_module_I3/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:37]
+WARNING: [Vivado_Tcl 4-2057] Waiver ID 'DPOP-4' object list specifies likely unusable hierarchical instance 'system_i/microblaze_0/U0/MicroBlaze_Core_I/Performance.Core/Data_Flow_I/MUL_Unit_I/Use_HW_MUL.Using_DSP48_Architectures.dsp_module_I1/Using_DSP48E1.DSP48E1_I1'. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc:37]
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/system_microblaze_0_0.xdc] for cell 'system_i/microblaze_0/U0'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_uart_0_0/system_uart_0_0_board.xdc] for cell 'system_i/uart_0/U0'
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_uart_0_0/system_uart_0_0_board.xdc] for cell 'system_i/uart_0/U0'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_gpio_led_0/system_gpio_led_0_board.xdc] for cell 'system_i/gpio_led/U0'
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_gpio_led_0/system_gpio_led_0_board.xdc] for cell 'system_i/gpio_led/U0'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_dma_c_0/system_dma_c_0.xdc] for cell 'system_i/dma_c/U0'
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_dma_c_0/system_dma_c_0.xdc] for cell 'system_i/dma_c/U0'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_dma_d_0/system_dma_d_0.xdc] for cell 'system_i/dma_d/U0'
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_dma_d_0/system_dma_d_0.xdc] for cell 'system_i/dma_d/U0'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/bd_0/ip/ip_1/bd_f91a_psr0_0_board.xdc] for cell 'system_i/sc_0/inst/clk_map/psr0/U0'
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/bd_0/ip/ip_1/bd_f91a_psr0_0_board.xdc] for cell 'system_i/sc_0/inst/clk_map/psr0/U0'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/bd_0/ip/ip_2/bd_f91a_psr_aclk_0_board.xdc] for cell 'system_i/sc_0/inst/clk_map/psr_aclk/U0'
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/bd_0/ip/ip_2/bd_f91a_psr_aclk_0_board.xdc] for cell 'system_i/sc_0/inst/clk_map/psr_aclk/U0'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/bd_0/ip/ip_3/bd_f91a_psr_aclk1_0_board.xdc] for cell 'system_i/sc_0/inst/clk_map/psr_aclk1/U0'
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/bd_0/ip/ip_3/bd_f91a_psr_aclk1_0_board.xdc] for cell 'system_i/sc_0/inst/clk_map/psr_aclk1/U0'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/smartconnect.xdc] for cell 'system_i/sc_0/inst'
+WARNING: [Vivado_Tcl 4-921] Waiver ID 'CDC-1' -to list should not be empty. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/smartconnect.xdc:3]
+WARNING: [Vivado_Tcl 4-920] Waiver ID 'CDC-1' -to list has >10000 objects! [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/smartconnect.xdc:4]
+WARNING: [Vivado_Tcl 4-918] Waiver ID 'CDC-1' -from list has >10000 objects! [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/smartconnect.xdc:5]
+WARNING: [Vivado_Tcl 4-920] Waiver ID 'CDC-2' -to list has >10000 objects! [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/smartconnect.xdc:6]
+WARNING: [Vivado_Tcl 4-918] Waiver ID 'CDC-2' -from list has >10000 objects! [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/smartconnect.xdc:7]
+WARNING: [Vivado_Tcl 4-920] Waiver ID 'CDC-4' -to list has >10000 objects! [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/smartconnect.xdc:8]
+WARNING: [Vivado_Tcl 4-918] Waiver ID 'CDC-4' -from list has >10000 objects! [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/smartconnect.xdc:9]
+WARNING: [Vivado_Tcl 4-920] Waiver ID 'CDC-10' -to list has >10000 objects! [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/smartconnect.xdc:10]
+WARNING: [Vivado_Tcl 4-918] Waiver ID 'CDC-10' -from list has >10000 objects! [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/smartconnect.xdc:11]
+WARNING: [Vivado_Tcl 4-920] Waiver ID 'CDC-11' -to list has >10000 objects! [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/smartconnect.xdc:12]
+WARNING: [Vivado_Tcl 4-918] Waiver ID 'CDC-11' -from list has >10000 objects! [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/smartconnect.xdc:13]
+WARNING: [Vivado_Tcl 4-920] Waiver ID 'CDC-13' -to list has >10000 objects! [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/smartconnect.xdc:14]
+WARNING: [Vivado_Tcl 4-918] Waiver ID 'CDC-13' -from list has >10000 objects! [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/smartconnect.xdc:15]
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_sc_0_0/smartconnect.xdc] for cell 'system_i/sc_0/inst'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/system_ddr4_0_0_board.xdc] for cell 'system_i/ddr4_0/inst'
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/system_ddr4_0_0_board.xdc] for cell 'system_i/ddr4_0/inst'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_mdm_0_0/system_mdm_0_0.xdc] for cell 'system_i/mdm_0/U0'
+INFO: [Timing 38-35] Done setting XDC timing constraints. [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_mdm_0_0/system_mdm_0_0.xdc:5]
+INFO: [Timing 38-2] Deriving generated clocks [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_mdm_0_0/system_mdm_0_0.xdc:5]
+get_clocks: Time (s): cpu = 00:00:47 ; elapsed = 00:00:31 . Memory (MB): peak = 3760.430 ; gain = 840.684
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_mdm_0_0/system_mdm_0_0.xdc] for cell 'system_i/mdm_0/U0'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_dma_c_0/system_dma_c_0_clocks.xdc] for cell 'system_i/dma_c/U0'
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_dma_c_0/system_dma_c_0_clocks.xdc] for cell 'system_i/dma_c/U0'
+Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_dma_d_0/system_dma_d_0_clocks.xdc] for cell 'system_i/dma_d/U0'
+Finished Parsing XDC File [d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_dma_d_0/system_dma_d_0_clocks.xdc] for cell 'system_i/dma_d/U0'
+INFO: [Project 1-1714] 288 XPM XDC files have been applied to the design.
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[0].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[10].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[11].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[12].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[13].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[14].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[15].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[16].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[17].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[18].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[19].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[1].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[20].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[21].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[22].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[23].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[24].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[25].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[26].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[27].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[28].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[29].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[2].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[30].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[31].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[3].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[4].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[5].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[6].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[7].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[8].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+INFO: [Opt 31-422] The CLOCK_DOMAINS attribute on the BRAM cell system_i/lmb_bram/U0/inst_blk_mem_gen/gnbram.gnative_mem_map_bmg.native_mem_map_blk_mem_gen/valid.cstr/ramloop[9].ram.r/prim_noinit.ram/DEVICE_8SERIES.WITH_BMM_INFO.TRUE_DP.SIMPLE_PRIM36.SERIES8_TDP_SP36_NO_ECC_ATTR.ram has been changed from INDEPENDENT to COMMON to match the clocking topology used for the BRAM.
+Generating merged BMM file for the design top 'system_wrapper'...
+INFO: [Memdata 28-144] Successfully populated the BRAM INIT strings from the following elf files: d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_ddr4_0_0/sw/calibration_0/Debug/calibration_ddr.elf d:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.gen/sources_1/bd/system/ip/system_microblaze_0_0/data/mb_bootloop_le.elf 
+INFO: [Project 1-1687] 4 scoped IP constraints or related sub-commands were skipped due to synthesis logic optimizations usually triggered by constant connectivity or unconnected output pins. To review the skipped constraints and messages, run the command 'set_param netlist.IPMsgFiltering false' before opening the design.
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.179 . Memory (MB): peak = 3760.430 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 1108 instances were transformed.
+  DSP48E1 => DSP48E2 (DSP_ALU, DSP_A_B_DATA, DSP_C_DATA, DSP_MULTIPLIER, DSP_M_DATA, DSP_OUTPUT, DSP_PREADD, DSP_PREADD_DATA): 126 instances
+  DSP48E2 => DSP48E2 (DSP_ALU, DSP_A_B_DATA, DSP_C_DATA, DSP_MULTIPLIER, DSP_M_DATA, DSP_OUTPUT, DSP_PREADD, DSP_PREADD_DATA): 73 instances
+  IBUF => IBUF (IBUFCTRL, INBUF): 2 instances
+  IBUFDS => IBUFDS (DIFFINBUF, IBUFCTRL): 1 instance 
+  IOBUFDS => IOBUFDS (DIFFINBUF, IBUFCTRL, INV, OBUFT(x2)): 4 instances
+  IOBUFE3 => IOBUFE3 (IBUFCTRL, INBUF, OBUFT_DCIEN): 36 instances
+  LUT6_2 => LUT6_2 (LUT5, LUT6): 111 instances
+  OBUFDS => OBUFDS_DUAL_BUF (INV, OBUF(x2)): 1 instance 
+  OBUFTDS => OBUFTDS_DUAL_BUF (INV, OBUFT(x2)): 4 instances
+  RAM16X1D => RAM32X1D (RAMD32(x2)): 10 instances
+  RAM32M => RAM32M (RAMD32(x6), RAMS32(x2)): 161 instances
+  RAM32M16 => RAM32M16 (RAMD32(x14), RAMS32(x2)): 536 instances
+  RAM32X1D => RAM32X1D (RAMD32(x2)): 43 instances
+
+67 Infos, 88 Warnings, 0 Critical Warnings and 0 Errors encountered.
+link_design completed successfully
+link_design: Time (s): cpu = 00:03:23 ; elapsed = 00:03:11 . Memory (MB): peak = 3760.430 ; gain = 3058.926
+Command: opt_design
+Attempting to get a license for feature 'Vivado_Implementation' and/or device 'xcku5p'
+INFO: [Common 17-349] Got license for feature 'Vivado_Implementation' and/or device 'xcku5p'
+Running DRC as a precondition to command opt_design
+
+Starting DRC Task
+INFO: [DRC 23-27] Running DRC with 2 threads
+INFO: [Project 1-461] DRC finished with 0 Errors
+INFO: [Project 1-462] Please refer to the DRC report (report_drc) for more information.
+
+Time (s): cpu = 00:00:03 ; elapsed = 00:00:02 . Memory (MB): peak = 3760.430 ; gain = 0.000
+
+Starting Cache Timing Information Task
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+Ending Cache Timing Information Task | Checksum: 1f079f749
+
+Time (s): cpu = 00:00:33 ; elapsed = 00:00:21 . Memory (MB): peak = 3760.430 ; gain = 0.000
+
+Starting Logic Optimization Task
+
+Phase 1 Initialization
+
+Phase 1.1 Core Generation And Design Setup
+
+Phase 1.1.1 Generate And Synthesize MIG Cores
+INFO: [IP_Flow 19-5647] Added synthesis output to IP cache for IP system_ddr4_0_0_phy, cache-ID = 08efeec765358693
+Done building netlist checker database: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.382 . Memory (MB): peak = 4236.875 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.199 . Memory (MB): peak = 4236.875 ; gain = 0.000
+get_clocks: Time (s): cpu = 00:00:39 ; elapsed = 00:00:23 . Memory (MB): peak = 4299.516 ; gain = 62.641
+read_xdc: Time (s): cpu = 00:01:04 ; elapsed = 00:00:49 . Memory (MB): peak = 4299.516 ; gain = 62.641
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.179 . Memory (MB): peak = 4301.359 ; gain = 0.000
+Phase 1.1.1 Generate And Synthesize MIG Cores | Checksum: 2731a54fd
+
+Time (s): cpu = 00:01:57 ; elapsed = 00:03:07 . Memory (MB): peak = 4301.359 ; gain = 95.254
+
+Phase 1.1.2 Generate And Synthesize Debug Cores
+INFO: [Chipscope 16-329] Generating Script for core instance : dbg_hub 
+INFO: [IP_Flow 19-3806] Processing IP xilinx.com:ip:xsdbm:3.0 for cell dbg_hub_CV.
+Done building netlist checker database: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.372 . Memory (MB): peak = 4338.207 ; gain = 0.000
+get_clocks: Time (s): cpu = 00:00:34 ; elapsed = 00:00:20 . Memory (MB): peak = 4361.668 ; gain = 23.461
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.338 . Memory (MB): peak = 4361.668 ; gain = 0.000
+Phase 1.1.2 Generate And Synthesize Debug Cores | Checksum: 2a9d1a7d0
+
+Time (s): cpu = 00:02:39 ; elapsed = 00:05:34 . Memory (MB): peak = 4361.668 ; gain = 155.562
+Phase 1.1 Core Generation And Design Setup | Checksum: 2a9d1a7d0
+
+Time (s): cpu = 00:02:39 ; elapsed = 00:05:34 . Memory (MB): peak = 4361.668 ; gain = 155.562
+
+Phase 1.2 Setup Constraints And Sort Netlist
+Phase 1.2 Setup Constraints And Sort Netlist | Checksum: 2a9d1a7d0
+
+Time (s): cpu = 00:02:39 ; elapsed = 00:05:34 . Memory (MB): peak = 4362.082 ; gain = 155.977
+Phase 1 Initialization | Checksum: 2a9d1a7d0
+
+Time (s): cpu = 00:02:39 ; elapsed = 00:05:34 . Memory (MB): peak = 4362.082 ; gain = 155.977
+
+Phase 2 Timer Update And Timing Data Collection
+
+Phase 2.1 Detect if minReqCache needed
+Phase 2.1 Detect if minReqCache needed | Checksum: 2a9d1a7d0
+
+Time (s): cpu = 00:02:40 ; elapsed = 00:05:35 . Memory (MB): peak = 4469.660 ; gain = 263.555
+
+Phase 2.2 Timer Update
+Phase 2.2 Timer Update | Checksum: 2a9d1a7d0
+
+Time (s): cpu = 00:02:56 ; elapsed = 00:05:44 . Memory (MB): peak = 4469.660 ; gain = 263.555
+
+Phase 2.3 Timing Data Collection
+Phase 2.3 Timing Data Collection | Checksum: 2a9d1a7d0
+
+Time (s): cpu = 00:02:57 ; elapsed = 00:05:45 . Memory (MB): peak = 4469.660 ; gain = 263.555
+Phase 2 Timer Update And Timing Data Collection | Checksum: 2a9d1a7d0
+
+Time (s): cpu = 00:02:57 ; elapsed = 00:05:45 . Memory (MB): peak = 4469.660 ; gain = 263.555
+
+Phase 3 Retarget
+INFO: [Opt 31-1851] Number of loadless carry chains removed were: 0
+INFO: [Opt 31-1834] Total Chains To Be Transformed Were: 0 AND Number of Transformed insts Created are: 0
+INFO: [Opt 31-1566] Pulled 131 inverters resulting in an inversion of 1426 pins
+INFO: [Opt 31-138] Pushed 249 inverter(s) to 5078 load pin(s).
+INFO: [Opt 31-49] Retargeted 0 cell(s).
+Phase 3 Retarget | Checksum: 27a4199a1
+
+Time (s): cpu = 00:03:07 ; elapsed = 00:05:55 . Memory (MB): peak = 4469.660 ; gain = 263.555
+Retarget | Checksum: 27a4199a1
+INFO: [Opt 31-389] Phase Retarget created 793 cells and removed 1784 cells
+INFO: [Opt 31-1021] In phase Retarget, 279 netlist objects are constrained preventing optimization. Please run opt_design with -debug_log to get more detail. 
+
+Phase 4 Constant propagation
+INFO: [Opt 31-138] Pushed 5 inverter(s) to 7 load pin(s).
+Phase 4 Constant propagation | Checksum: 273e1aaf3
+
+Time (s): cpu = 00:03:13 ; elapsed = 00:06:01 . Memory (MB): peak = 4469.660 ; gain = 263.555
+Constant propagation | Checksum: 273e1aaf3
+INFO: [Opt 31-389] Phase Constant propagation created 1249 cells and removed 5013 cells
+INFO: [Opt 31-1021] In phase Constant propagation, 277 netlist objects are constrained preventing optimization. Please run opt_design with -debug_log to get more detail. 
+
+Phase 5 Sweep
+INFO: [Constraints 18-11670] Building netlist checker database with flags, 0x8
+Done building netlist checker database: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.393 . Memory (MB): peak = 4469.660 ; gain = 0.000
+INFO: [Constraints 18-11670] Building netlist checker database with flags, 0x8
+Done building netlist checker database: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.356 . Memory (MB): peak = 4469.660 ; gain = 0.000
+Phase 5 Sweep | Checksum: 22651eb2b
+
+Time (s): cpu = 00:03:28 ; elapsed = 00:06:16 . Memory (MB): peak = 4469.660 ; gain = 263.555
+Sweep | Checksum: 22651eb2b
+INFO: [Opt 31-389] Phase Sweep created 8 cells and removed 3971 cells
+INFO: [Opt 31-1021] In phase Sweep, 2270 netlist objects are constrained preventing optimization. Please run opt_design with -debug_log to get more detail. 
+
+Phase 6 BUFG optimization
+INFO: [Opt 31-194] Inserted BUFG system_i/mdm_0/U0/Use_E2.BSCAN_I/Dbg_Update_0_BUFG_inst to drive 39 load(s) on clock net system_i/mdm_0/U0/Use_E2.BSCAN_I/Dbg_Update_0_BUFGCE
+INFO: [Opt 31-193] Inserted 1 BUFG(s) on clock nets
+INFO: [Opt 31-1077] Phase BUFG optimization inserted 0 global clock buffer(s) for CLOCK_LOW_FANOUT.
+Phase 6 BUFG optimization | Checksum: 21c6a158b
+
+Time (s): cpu = 00:03:40 ; elapsed = 00:06:22 . Memory (MB): peak = 4469.660 ; gain = 263.555
+BUFG optimization | Checksum: 21c6a158b
+INFO: [Opt 31-662] Phase BUFG optimization created 2 cells of which 2 are BUFGs and removed 0 cells.
+INFO: [Opt 31-1021] In phase BUFG optimization, 1 netlist objects are constrained preventing optimization. Please run opt_design with -debug_log to get more detail. 
+
+Phase 7 Shift Register Optimization
+INFO: [Opt 31-1064] SRL Remap converted 0 SRLs to 0 registers and converted 0 registers of register chains to 0 SRLs
+Phase 7 Shift Register Optimization | Checksum: 21c6a158b
+
+Time (s): cpu = 00:03:41 ; elapsed = 00:06:23 . Memory (MB): peak = 4469.660 ; gain = 263.555
+Shift Register Optimization | Checksum: 21c6a158b
+INFO: [Opt 31-389] Phase Shift Register Optimization created 0 cells and removed 0 cells
+
+Phase 8 Post Processing Netlist
+INFO: [Opt 31-1566] Pulled 2 inverters resulting in an inversion of 2 pins
+Phase 8 Post Processing Netlist | Checksum: 2e1e1472a
+
+Time (s): cpu = 00:03:42 ; elapsed = 00:06:24 . Memory (MB): peak = 4469.660 ; gain = 263.555
+Post Processing Netlist | Checksum: 2e1e1472a
+INFO: [Opt 31-389] Phase Post Processing Netlist created 0 cells and removed 3 cells
+INFO: [Opt 31-1021] In phase Post Processing Netlist, 373 netlist objects are constrained preventing optimization. Please run opt_design with -debug_log to get more detail. 
+
+Phase 9 Finalization
+
+Phase 9.1 Finalizing Design Cores and Updating Shapes
+Phase 9.1 Finalizing Design Cores and Updating Shapes | Checksum: 317ef40f8
+
+Time (s): cpu = 00:03:49 ; elapsed = 00:06:31 . Memory (MB): peak = 4469.660 ; gain = 263.555
+
+Phase 9.2 Verifying Netlist Connectivity
+
+Starting Connectivity Check Task
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.880 . Memory (MB): peak = 4469.660 ; gain = 0.000
+Phase 9.2 Verifying Netlist Connectivity | Checksum: 317ef40f8
+
+Time (s): cpu = 00:03:50 ; elapsed = 00:06:32 . Memory (MB): peak = 4469.660 ; gain = 263.555
+Phase 9 Finalization | Checksum: 317ef40f8
+
+Time (s): cpu = 00:03:50 ; elapsed = 00:06:32 . Memory (MB): peak = 4469.660 ; gain = 263.555
+Opt_design Change Summary
+=========================
+
+
+-------------------------------------------------------------------------------------------------------------------------
+|  Phase                        |  #Cells created  |  #Cells Removed  |  #Constrained objects preventing optimizations  |
+-------------------------------------------------------------------------------------------------------------------------
+|  Retarget                     |             793  |            1784  |                                            279  |
+|  Constant propagation         |            1249  |            5013  |                                            277  |
+|  Sweep                        |               8  |            3971  |                                           2270  |
+|  BUFG optimization            |               2  |               0  |                                              1  |
+|  Shift Register Optimization  |               0  |               0  |                                              0  |
+|  Post Processing Netlist      |               0  |               3  |                                            373  |
+-------------------------------------------------------------------------------------------------------------------------
+
+
+Ending Logic Optimization Task | Checksum: 317ef40f8
+
+Time (s): cpu = 00:03:50 ; elapsed = 00:06:32 . Memory (MB): peak = 4469.660 ; gain = 263.555
+
+Starting Power Optimization Task
+INFO: [Pwropt 34-132] Skipping clock gating for clocks with a period < 2.00 ns.
+INFO: [Power 33-23] Power model is not available for xiphy_riu_or
+INFO: [Power 33-23] Power model is not available for genVref.u_hpio_vref
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+Running Vector-less Activity Propagation...
+
+Finished Running Vector-less Activity Propagation
+INFO: [Pwropt 34-9] Applying IDT optimizations ...
+INFO: [Pwropt 34-10] Applying ODC optimizations ...
+
+
+Starting PowerOpt Patch Enables Task
+INFO: [Pwropt 34-162] WRITE_MODE attribute of 0 BRAM(s) out of a total of 154 has been updated to save power. Run report_power_opt to get a complete listing of the BRAMs updated.
+INFO: [Pwropt 34-201] Structural ODC has moved 4 WE to EN ports
+Number of BRAM Ports augmented: 67 newly gated: 4 Total Ports: 308
+Ending PowerOpt Patch Enables Task | Checksum: 2ec06298c
+
+Time (s): cpu = 00:00:02 ; elapsed = 00:00:02 . Memory (MB): peak = 5569.516 ; gain = 0.000
+Ending Power Optimization Task | Checksum: 2ec06298c
+
+Time (s): cpu = 00:02:58 ; elapsed = 00:01:23 . Memory (MB): peak = 5569.516 ; gain = 1099.855
+
+Starting Final Cleanup Task
+Ending Final Cleanup Task | Checksum: 2ec06298c
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.035 . Memory (MB): peak = 5569.516 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.217 . Memory (MB): peak = 5569.516 ; gain = 0.000
+INFO: [Common 17-83] Releasing license: Vivado_Implementation
+119 Infos, 175 Warnings, 0 Critical Warnings and 0 Errors encountered.
+opt_design completed successfully
+opt_design: Time (s): cpu = 00:07:29 ; elapsed = 00:08:23 . Memory (MB): peak = 5569.516 ; gain = 1809.086
+INFO: [Vivado 12-24828] Executing command : report_drc -file system_wrapper_drc_opted.rpt -pb system_wrapper_drc_opted.pb -rpx system_wrapper_drc_opted.rpx
+Command: report_drc -file system_wrapper_drc_opted.rpt -pb system_wrapper_drc_opted.pb -rpx system_wrapper_drc_opted.rpx
+INFO: [IP_Flow 19-1839] IP Catalog is up to date.
+INFO: [DRC 23-27] Running DRC with 2 threads
+INFO: [Vivado_Tcl 2-168] The results of DRC are in file D:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.runs/impl_1/system_wrapper_drc_opted.rpt.
+report_drc completed successfully
+report_drc: Time (s): cpu = 00:00:29 ; elapsed = 00:00:21 . Memory (MB): peak = 5569.516 ; gain = 0.000
+generate_parallel_reports: Time (s): cpu = 00:00:29 ; elapsed = 00:00:21 . Memory (MB): peak = 5569.516 ; gain = 0.000
+INFO: [Timing 38-480] Writing timing data to binary archive.
+Wrote PlaceDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 5569.516 ; gain = 0.000
+Wrote PulsedLatchDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 5569.516 ; gain = 0.000
+Writing XDEF routing.
+Writing XDEF routing logical nets.
+Write ShapeDB Complete: Time (s): cpu = 00:00:02 ; elapsed = 00:00:00.468 . Memory (MB): peak = 5569.516 ; gain = 0.000
+Writing XDEF routing special nets.
+Wrote RouteStorage: Time (s): cpu = 00:00:03 ; elapsed = 00:00:00.696 . Memory (MB): peak = 5569.516 ; gain = 0.000
+Wrote PlaceStorage: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.036 . Memory (MB): peak = 5569.516 ; gain = 0.000
+Wrote Netlist Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.004 . Memory (MB): peak = 5569.516 ; gain = 0.000
+Wrote Device Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.035 . Memory (MB): peak = 5569.516 ; gain = 0.000
+Write Physdb Complete: Time (s): cpu = 00:00:03 ; elapsed = 00:00:00.805 . Memory (MB): peak = 5569.516 ; gain = 0.000
+INFO: [Common 17-1381] The checkpoint 'D:/Thesis/ThesisA/fpga_kcu116/build/vivado_drhe/kcu116_drhe.runs/impl_1/system_wrapper_opt.dcp' has been generated.
+write_checkpoint: Time (s): cpu = 00:00:38 ; elapsed = 00:00:25 . Memory (MB): peak = 5569.516 ; gain = 0.000
+INFO: [Chipscope 16-240] Debug cores have already been implemented
+Command: place_design
+Attempting to get a license for feature 'Vivado_Implementation' and/or device 'xcku5p'
+INFO: [Common 17-349] Got license for feature 'Vivado_Implementation' and/or device 'xcku5p'
+INFO: [Common 17-83] Releasing license: Vivado_Implementation
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+Running DRC as a precondition to command place_design
+INFO: [DRC 23-27] Running DRC with 2 threads
+ERROR: [DRC UTLZ-1] Resource utilization: LUT as Logic over-utilized in Top Level Design (This design requires more LUT as Logic cells than are available in the target device. This design requires 235750 of such cell types but only 216960 compatible sites are available in the target device. Please analyze your synthesis results and constraints to ensure the design is mapped to Xilinx primitives as expected. If so, please consider targeting a larger device. Please set tcl parameter "drc.disableLUTOverUtilError" to 1 to change this error to warning.)
+INFO: [Vivado_Tcl 4-198] DRC finished with 1 Errors
+INFO: [Vivado_Tcl 4-199] Please refer to the DRC report (report_drc) for more information.
+ERROR: [Vivado_Tcl 4-23] Error(s) found during DRC. Placer not run.
+132 Infos, 175 Warnings, 0 Critical Warnings and 2 Errors encountered.
+place_design failed
+place_design: Time (s): cpu = 00:00:50 ; elapsed = 00:00:31 . Memory (MB): peak = 5569.516 ; gain = 0.000
+ERROR: [Common 17-39] 'place_design' failed due to earlier errors.
+
+INFO: [Common 17-206] Exiting Vivado at Mon Oct  5 18:52:32 2026...

@@ -61,6 +61,7 @@ void lpc_tdm_decompress(
 
     ap_uint<512> bit_buffer = 0;
     int bit_count = 0;
+    bool seen_last = false;   // set once the TLAST word has been read
 
     const int HIST = 2 * nTx;
 
@@ -68,10 +69,11 @@ void lpc_tdm_decompress(
     COEF_CH: for (int ch = 0; ch < LPC_MAX_NRX; ch++) {
         if (ch >= nRX) continue;
         COEF_BIN: for (int n = 0; n < nSamples; n++) {
-            if (bit_count < 64) {
+            if (bit_count < 64 && !seen_last) {
                 axis_256_t in_pkt = in_stream.read();
                 bit_buffer |= ((ap_uint<512>)in_pkt.data << bit_count);
                 bit_count += 256;
+                seen_last = (in_pkt.last == 1);
             }
             ap_uint<64> word = bit_buffer.range(63, 0);
             bit_buffer >>= 64;
@@ -100,10 +102,18 @@ void lpc_tdm_decompress(
 
             DEC_CH: for (int ch = 0; ch < LPC_MAX_NRX; ch++) {
                 if (ch < nRX) {
-                    if (bit_count < 128 && !in_stream.empty()) {
+                    // Blocking read, stopped by TLAST rather than by empty().
+                    // empty() is only a safe end-of-data test in C simulation, where
+                    // the whole compressed frame is already in the stream. On the
+                    // board the words arrive from a DMA with variable latency, and a
+                    // momentarily empty FIFO would be mistaken for the end of the
+                    // data and decode garbage. The compressor marks its final word
+                    // with TLAST, so stopping on it is exact in every environment.
+                    if (bit_count < 128 && !seen_last) {
                         axis_256_t in_pkt = in_stream.read();
                         bit_buffer |= ((ap_uint<512>)in_pkt.data << bit_count);
                         bit_count += 256;
+                        seen_last = (in_pkt.last == 1);
                     }
 
                     int dval[2];

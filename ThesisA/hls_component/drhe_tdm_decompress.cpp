@@ -50,6 +50,7 @@ void drhe_tdm_decompress(
 
     ap_uint<512> bit_buffer = 0;
     int bit_count = 0;
+    bool seen_last = false;   // set once the TLAST word has been read
 
     int tx = 0;
 
@@ -71,10 +72,18 @@ void drhe_tdm_decompress(
                         s_prev_prev_phase[ch][st] = 0.0f;
                     }
 
-                    if (bit_count < 128 && !in_stream.empty()) {
+                    // Blocking read, stopped by TLAST rather than by empty().
+                    // empty() is only a safe end-of-data test in C simulation, where
+                    // the whole compressed frame is already in the stream. On the
+                    // board the words arrive from a DMA with variable latency, and a
+                    // momentarily empty FIFO would be mistaken for the end of the
+                    // data and decode garbage. The compressor marks its final word
+                    // with TLAST, so stopping on it is exact in every environment.
+                    if (bit_count < 128 && !seen_last) {
                         axis_256_t in_pkt = in_stream.read();
                         bit_buffer |= ((ap_uint<512>)in_pkt.data << bit_count);
                         bit_count += 256;
+                        seen_last = (in_pkt.last == 1);
                     }
 
                     ap_uint<4> s4_re = 0;
