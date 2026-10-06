@@ -16,8 +16,13 @@ ws = os.path.join(root, "build", f"vitis_{algo}")
 src = os.path.join(here, "src")
 if not os.path.exists(xsa):
     sys.exit(f"missing {xsa} - run vivado/build.bat {algo} first")
+def _force_writable(func, path, *_):
+    # Vitis copies some headers read-only; clear the flag and retry the delete
+    os.chmod(path, 0o666)
+    func(path)
+
 if os.path.exists(ws):
-    shutil.rmtree(ws)
+    shutil.rmtree(ws, onexc=_force_writable)
 os.makedirs(ws)
 
 client = vitis.create_client()

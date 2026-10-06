@@ -5,10 +5,10 @@
 Reads  ../results/<algo>/results.bin, comp_<f>.bin   (from run_board.tcl)
        ../golden/golden_<algo>_tdm_compressed.bin    (from hls/export_ips.bat)
 Checks, per frame:
-  * with an on-chip decompressor: every sample reconstructed exactly
-    (max_diff == 0). Without one (DRHE build): the compressed bytes must match
-    the C simulation for EVERY frame - the C-sim bitstream is known to decode
-    losslessly, so an identical bitstream proves the hardware is lossless
+  * the frame decompressed ON THE PC (pc_decompress.bat -> pc_decompress.txt)
+    equals the original exactly (maxdiff 0). This is the end-to-end test:
+    FPGA compresses, PC decompresses.
+  * (older builds with an on-chip decompressor: its max_diff must be 0)
   * the compressed size equals the C-simulation size  (=> identical CR)
   * for the dumped frames, the compressed bitstream is byte-identical
 Prints per-frame CR and cycle counts and the mean CR (same metric as HLS csim:
@@ -30,6 +30,14 @@ if os.path.exists(ip):
         k, _, v = line.strip().partition(" ")
         info[k] = v
 has_decomp = info.get("decomp", "1") == "1"
+pcd = {}
+pp = os.path.join(rdir, "pc_decompress.txt")
+if os.path.exists(pp):
+    for line in open(pp):
+        f_, nb_, md_, nm_ = (int(x) for x in line.split())
+        pcd[f_] = (md_, nm_)
+else:
+    print("(no pc_decompress.txt - run pc_decompress.bat %s to decompress on the PC)" % algo)
 raw = open(os.path.join(rdir, "results.bin"), "rb").read()
 recs = [struct.unpack_from("<8I", raw, 32 * i) for i in range(len(raw) // 32)]
 
@@ -45,6 +53,7 @@ else:
     print(f"(no golden file at {gpath}; only on-board checks will be reported)")
 
 print(f"{'frame':>5} {'bytes':>9} {'CR':>8} {'golden CR':>10} {'comp cyc':>9} {'decomp cyc':>10} {'maxdiff':>7}  check")
+print("      (maxdiff = after decompression on the PC)" if not has_decomp else "")
 ok_all = True; crs = []; gcrs = []
 for (f, nbytes, cc, dc, maxd, nmis, st, _) in recs:
     cr = FRAME_BYTES / nbytes if nbytes else 0.0
@@ -68,11 +77,17 @@ for (f, nbytes, cc, dc, maxd, nmis, st, _) in recs:
                 first = next(i for i in range(min(len(d), gb)) if d[i] != golden[f][i]) if len(d) else 0
                 notes.append(f"BITSTREAM DIFFERS at byte {first}")
         elif not has_decomp:
-            notes.append("NOT DUMPED - cannot prove lossless")
-    bad = bool(st or (has_decomp and (maxd or nmis)) or any(("!=" in n) or ("DIFFERS" in n) or ("NOT DUMPED" in n) for n in notes))
+            notes.append("NOT DUMPED")
+    if not has_decomp:
+        if f in pcd:
+            notes.append("PC decompress: " + ("exact" if pcd[f][0] == 0 else f"DIFF maxdiff {pcd[f][0]}"))
+        else:
+            notes.append("NOT DECOMPRESSED ON PC")
+    bad = bool(st or (has_decomp and (maxd or nmis)) or
+               any(k in n for n in notes for k in ("!=", "DIFFERS", "NOT DUMPED", "DIFF maxdiff", "NOT DECOMPRESSED")))
     ok_all &= not bad
     crs.append(cr)
-    print(f"{f:5d} {nbytes:9d} {cr:8.5f} {gcr:>10} {cc:9d} {dc if has_decomp else 'n/a':>10} {maxd if has_decomp else 'n/a':>7}  "
+    print(f"{f:5d} {nbytes:9d} {cr:8.5f} {gcr:>10} {cc:9d} {dc if has_decomp else 'n/a':>10} {maxd if has_decomp else (pcd[f][0] if f in pcd else '-'):>7}  "
           + ("FAIL: " if bad else "ok  ") + ("; ".join(notes) if notes else ""))
 
 n = len(recs)
@@ -90,5 +105,5 @@ if dcyc:
 if has_decomp:
     print("\nRESULT:", "PASS - lossless on every frame and identical to C simulation" if ok_all else "FAIL - see the rows marked FAIL")
 else:
-    print("\nRESULT:", "PASS - every compressed frame is byte-identical to C simulation (=> lossless)" if ok_all else "FAIL - see the rows marked FAIL")
+    print("\nRESULT:", "PASS - FPGA compressed, PC decompressed: every frame exact, bitstreams identical to C simulation" if ok_all else "FAIL - see the rows marked FAIL")
 sys.exit(0 if ok_all else 1)

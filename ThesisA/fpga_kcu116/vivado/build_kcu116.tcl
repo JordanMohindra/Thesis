@@ -4,7 +4,7 @@
 #  Usage (from this folder, path must not contain spaces):
 #     vivado -mode batch -source build_kcu116.tcl -tclargs <drhe|lpc> [ddr_iface] [jobs]
 #
-#     <drhe|lpc>   which compressor/decompressor pair to put on the board
+#     <drhe|lpc>   which compressor to put on the board
 #     ddr_iface    KCU116 board-file DDR4 interface. ddr4_sdram_075 (default)
 #                  is the -075E memory part fitted to early boards and is safe
 #                  on the later -062E part too (slower timings). Use
@@ -22,7 +22,7 @@
 #        |       \------- UART Lite (115200, CP2105 UART1), AXI Timer, LED GPIO
 #        |       \------- dma_c / dma_d control, comp / decomp control
 #   dma_c: DDR --MM2S 128b--> <algo>_tdm_compress   --256b--> S2MM --> DDR
-#   dma_d: DDR --MM2S 256b--> <algo>_tdm_decompress --128b--> S2MM --> DDR
+#   (optional, off by default: dma_d + <algo>_tdm_decompress)
 #
 #  The address map is fixed here and mirrored in ../sw/src/board_map.h.
 # =============================================================================
@@ -31,13 +31,13 @@ set algo    [expr {[llength $argv] > 0 ? [lindex $argv 0] : "drhe"}]
 set ddr_if  [expr {[llength $argv] > 1 ? [lindex $argv 1] : "ddr4_sdram_075"}]
 # parallel synthesis jobs: each needs ~3.5 GB of RAM, so keep this low on a 16 GB PC
 set jobs    [expr {[llength $argv] > 2 ? [lindex $argv 2] : 3}]
-# include the decompressor on chip? "auto" = LPC yes, DRHE no. The DRHE
-# decompressor synthesises to ~182k LUTs on its own, so compressor +
-# decompressor (235k LUTs) do not fit the XCKU5P (217k). For DRHE the board
-# therefore compresses only, and losslessness is proven on the host by a
-# byte-for-byte match with the C-simulation bitstream (host/compare_results.py).
-set decomp  [expr {[llength $argv] > 3 ? [lindex $argv 3] : "auto"}]
-if {$decomp eq "auto"} { set decomp [expr {$algo eq "lpc" ? 1 : 0}] }
+# The FPGA only compresses; decompression runs on the PC (host/pc_decompress.bat),
+# as it would in a vehicle where the sensor compresses and the central computer
+# decompresses. "1" still adds the decompressor on chip for experiments, but for
+# DRHE that does not fit: its decompressor alone synthesises to ~182k LUTs and
+# compressor + decompressor need 235,750 LUTs against the XCKU5P's 216,960.
+set decomp  [expr {[llength $argv] > 3 ? [lindex $argv 3] : 0}]
+if {$decomp eq "auto"} { set decomp 0 }
 if {$algo ni {drhe lpc}} { error "first argument must be drhe or lpc, got '$algo'" }
 
 set here     [file dirname [file normalize [info script]]]

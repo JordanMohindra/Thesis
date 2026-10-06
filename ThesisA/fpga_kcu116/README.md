@@ -1,27 +1,40 @@
 # KCU116 hardware test of the DRHE and LPC compressors
 
-This folder takes the HLS cores in `../hls_component` onto the AMD KCU116 board
-(XCKU5P-2FFVB676E). The board streams every frame through the compressor and
-times it. The LPC build also decompresses each frame on chip and checks it is
-bit-exact. A PC script then checks the compressed bytes against the C simulation.
+The FPGA compresses and the PC decompresses, as in a vehicle where the sensor
+compresses and the central computer decompresses. This folder takes the HLS
+compressors in `../hls_component` onto the AMD KCU116 board
+(XCKU5P-2FFVB676E):
 
-All of it has been built once on this PC (in `D:\Thesis\ThesisA\fpga_kcu116`):
+1. The board streams every frame through the compressor and times it.
+2. The PC reads the compressed frames back.
+3. The PC decompresses them with `host/pc_decompress.bat`.
+4. `host/compare_results.py` checks that every frame comes back bit-exact and
+   that the compressed bytes match the C simulation.
+
+Built on this PC (in `D:\Thesis\ThesisA\fpga_kcu116`):
 
 | Output (in `out/`)  | What it is | Timing | Resources (of XCKU5P) |
 |---|---|---|---|
-| `kcu116_drhe.bit`, `.xsa`, `radar_app_drhe.elf` | DRHE lag-12 compressor (compress only) | WNS +0.395 ns, all met | 60,386 LUT (28 %), 104.5 BRAM, 138 DSP |
-| `kcu116_lpc.bit`, `.xsa`, `radar_app_lpc.elf`   | LPC lags 12,24 compressor **and** decompressor | WNS +0.320 ns, all met | 86,621 LUT (40 %), 179.5 BRAM, 172 DSP |
+| `kcu116_drhe.bit`, `.xsa`, `radar_app_drhe.elf` | DRHE lag-12 compressor | WNS +0.395 ns, all met | 60,386 LUT (28 %), 104.5 BRAM, 138 DSP |
+| `kcu116_lpc.bit`, `.xsa`, `radar_app_lpc.elf`   | LPC lags 12,24 compressor | WNS +0.116 ns, all met | 60,071 LUT (28 %), 172.5 BRAM, 164 DSP |
 
-**Why the DRHE build has no decompressor.** Synthesised on its own, the DRHE
-decompressor takes about 182,000 LUTs. With the compressor and the rest of the
-system, the design needs 235,750 LUTs, and the XCKU5P only has 216,960. Most of
-that logic is the decoder's eight chained 512-bit variable shifts in each
-pipeline iteration. So the DRHE board compresses only. Losslessness is then
-proved on the PC: every compressed frame must be byte-identical to the C
-simulation, whose bitstream is known to decode exactly
-(`verify_indep/golden_check.py` decodes it independently). This is also the
-realistic deployment, because the decompressor belongs on the central computer,
-not at the sensor.
+Both bitstreams hold only the compressor (`.info` says `decomp 0`). The
+resource figures cover the whole system: MicroBlaze, DDR4 controller, DMA
+and compressor.
+
+**PC decompressor.** `pc_decompress.bat` runs the same `*_tdm_decompress.cpp`
+that was verified lossless in C simulation. It is compiled for the PC through
+Vitis C simulation, so the floating-point maths uses the bit-accurate HLS
+models. For DRHE this is essential: its predictor uses float
+sqrt/atan2/sin/cos, and the decoder must repeat the encoder's arithmetic bit
+for bit. An independent double-precision Python decoder
+(`verify_indep/independent_decode.py`) is exact for LPC but drifts by 1–6 LSB
+on 8 of the 50 DRHE frames.
+
+**Why not decompress on the FPGA?** It can be done for experiments
+(`vivado\build.bat <algo> ... 1`), but for DRHE it does not fit. The DRHE
+decompressor alone synthesises to about 182,000 LUTs, and compressor plus
+decompressor need 235,750 against the 216,960 the XCKU5P has.
 
 ```
 hls/      export_ips.bat     C-sim (writes golden output) + package the 4 cores as IP
@@ -29,7 +42,9 @@ vivado/   build.bat          block design -> bitstream + .xsa   (build_kcu116.tc
 sw/       build_sw.bat       MicroBlaze program (src/main.c, src/board_map.h)
 host/     make_frames.py     strips the header off coloradar_multiframe.bin
           run_board.bat      xsdb: program board, load frames, run, dump results
-          compare_results.py checks the board run against the C simulation
+          pc_decompress.bat  decompresses the board's output on the PC (HLS C++ via C-sim)
+          compare_results.py checks the board run: PC-decompressed == original,
+                             compressed bytes == C simulation
 out/      bitstreams, .xsa, .elf, frames_N.bin        (generated)
 golden/   C-simulation compressed streams             (generated)
 results/  board outputs                               (generated)
@@ -46,7 +61,6 @@ Vitis refuses paths that contain spaces, so work from a copy such as
                                       +-- UART Lite 115200 (CP2105 UART1), timer, LEDs
                                       +-- control registers of the DMAs and cores
  dma_c : DDR -> <algo>_tdm_compress   -> DDR     (128-bit in, 256-bit out)
- dma_d : DDR -> lpc_tdm_decompress    -> DDR     (LPC build only)
  Everything runs at 100 MHz.
 ```
 
@@ -67,25 +81,26 @@ DDR layout:
 2. Open a serial terminal (PuTTY or Tera Term) at 115200 8N1 on the CP2105
    COM port that is wired to the FPGA. That is UART1, the "Standard" port of
    the two the CP2105 creates. If you see nothing, try the other one.
-3. Quick test with 5 frames: `host\run_board.bat drhe 5`
-4. `"C:\Program Files\Python311\python.exe" host\compare_results.py drhe`
-5. Full run: `host\run_board.bat drhe 50`, then compare again.
-6. Repeat steps 3–5 with `lpc`.
+3. In a command prompt, `cd /d D:\Thesis\ThesisA\fpga_kcu116\host` and run a
+   quick 5-frame test:
+   ```
+   run_board.bat drhe 5          (FPGA compresses; results copied to the PC)
+   pc_decompress.bat drhe        (PC decompresses, ~2 min)
+   "C:\Program Files\Python311\python.exe" compare_results.py drhe
+   ```
+4. Full run: the same three commands with `50` frames.
+5. Repeat steps 3–4 with `lpc`.
 
-Loading frames over JTAG is slow (minutes for 50 frames). The UART shows one
-line per frame, for example the first DRHE frame:
+Loading frames over JTAG is slow (minutes for 50 frames). Expected results:
 
-```
-frame   comp bytes      CR   comp cyc  decomp cyc  maxdiff  status
-    0       103712  3.7914      ~61000         n/a      n/a   OK
-```
-
-Expected results:
-
-| Bitstream | Mean per-frame CR | Other |
+| Bitstream | Mean per-frame CR | Check |
 |---|---|---|
-| DRHE | 3.75082 | 50/50 frames byte-identical to C-sim |
-| LPC | 3.69681 | MaxDiff 0 on every frame, bitstreams identical |
+| DRHE | 3.75082 | every frame exact after PC decompression, bitstreams identical to C-sim |
+| LPC | 3.69681 | the same |
+
+The decompression step was tested on this PC by using the C-simulation
+streams as stand-ins for the board's output: 50/50 frames exact for both
+algorithms.
 
 ## Rebuilding from scratch
 
@@ -93,7 +108,7 @@ Expected results:
    `golden\`, and packages the 4 cores into `ip_repo\`.
 2. `vivado\build.bat drhe`, then `vivado\build.bat lpc` (1–1.5 h each on this
    16 GB PC).
-   * Arguments are `[ddr4_sdram_075|062] [jobs] [decomp=auto|0|1]`.
+   * Arguments are `[ddr4_sdram_075|062] [jobs] [decomp=0|1]`.
    * Keep jobs at 2–3. With 8 jobs the PC ran out of memory and the build
      stalled.
 3. `sw\build_sw.bat drhe` and `sw\build_sw.bat lpc`.
@@ -111,6 +126,4 @@ Expected results:
   install the cable drivers (Vivado installer, cable drivers option).
 * **"No valid frame count in the mailbox":** the program was started without
   `run_board.tcl`.
-* **Status `0x00000020` on an LPC frame:** the decompressor stopped before reading all of the
-  compressed data.
 * **Vivado exits with -1073741819 right at the start:** this is a one-off crash. Run it again.

@@ -12,3 +12,4 @@ vivado/_t1*
 vivado/_build_both.bat
 vivado/.Xil/
 host/xsdb_dryrun.txt
+__pycache__/

@@ -9,9 +9,9 @@
  *
  *  The same program serves the DRHE and the LPC bitstreams: both designs use
  *  the same address map and the same core interface (ap_ctrl_hs + 4 args).
- *  The DRHE bitstream has no on-chip decompressor (it does not fit next to the
- *  compressor on the XCKU5P); the host says so in MBOX[FLAGS] and steps 2-3
- *  are skipped - the host then checks the compressed bytes instead.
+ *  Normally the bitstream has no on-chip decompressor: the FPGA compresses and
+ *  the PC decompresses (host/pc_decompress.bat). The host says which in
+ *  MBOX[FLAGS]; without a decompressor, steps 2-3 are skipped here.
  *
  *  Host protocol (see ../../host/run_board.tcl):
  *    host loads frames at IN_BASE, writes MBOX[NFRAMES], then lets this run.
@@ -154,7 +154,7 @@ int main(void)
     }
 
     const int has_decomp = (mbox[MBOX_FLAGS] & FLAG_HAS_DECOMP) != 0;
-    puts_(has_decomp ? " on-chip decompressor: yes\n" : " on-chip decompressor: no (compress only; host checks the bitstream)\n");
+    puts_(has_decomp ? " on-chip decompressor: yes\n" : " compress only - the PC decompresses (host/pc_decompress.bat)\n");
     int ok = core_check(COMP_BASE, "compressor  ");
     if (has_decomp) ok &= core_check(DECOMP_BASE, "decompressor");
     if (!ok) { mbox[MBOX_STATUS] = STATUS_DONE; led(0xF0); for (;;) { } }
@@ -263,7 +263,7 @@ int main(void)
         put_fixed4((uint32_t)((sum_in * 10000u + sum_out / 2u) / sum_out));
         puts_("\n");
     }
-    if (!has_decomp) puts_(n_bad ? "RESULT: FAIL\n" : "RESULT: compressed every frame - run compare_results.py to check the bytes\n");
+    if (!has_decomp) puts_(n_bad ? "RESULT: FAIL\n" : "RESULT: compressed every frame - now run pc_decompress.bat and compare_results.py\n");
     else puts_(n_bad ? "RESULT: FAIL\n" : "RESULT: PASS - every frame bit-exact\n");
 
     mbox[MBOX_STATUS] = STATUS_DONE;
