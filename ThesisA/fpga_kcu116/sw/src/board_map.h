@@ -45,7 +45,8 @@ typedef struct {
     uint32_t max_diff;        /* max |reconstructed - original| over int16s */
     uint32_t mismatches;      /* number of int16 values that differ         */
     uint32_t status;          /* 0 = ok, otherwise ERR_* bits                */
-    uint32_t reserved;
+    uint32_t latency_cycles;  /* last input word read (MM2S IOC) -> last output
+                                 word written (S2MM IOC); Kiem's end-to-end latency */
 } result_t;
 
 #define ERR_COMP_TIMEOUT    0x01u

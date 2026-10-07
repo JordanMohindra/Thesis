@@ -11,7 +11,8 @@ Checks, per frame:
   * (older builds with an on-chip decompressor: its max_diff must be 0)
   * the compressed size equals the C-simulation size  (=> identical CR)
   * for the dumped frames, the compressed bitstream is byte-identical
-Prints per-frame CR and cycle counts and the mean CR (same metric as HLS csim:
+Prints per-frame CR, cycle counts, end-to-end latency (last input word read
+-> last output word written, Kiem's definition; firmware since Oct 7) and the mean CR (same metric as HLS csim:
 input bits / (256-bit words * 256), averaged over frames).
 """
 import os, sys, struct
@@ -52,10 +53,14 @@ if os.path.exists(gpath):
 else:
     print(f"(no golden file at {gpath}; only on-board checks will be reported)")
 
-print(f"{'frame':>5} {'bytes':>9} {'CR':>8} {'golden CR':>10} {'comp cyc':>9} {'decomp cyc':>10} {'maxdiff':>7}  check")
+print(f"{'frame':>5} {'bytes':>9} {'CR':>8} {'golden CR':>10} {'comp cyc':>9} {'latency':>8} {'decomp cyc':>10} {'maxdiff':>7}  check")
 print("      (maxdiff = after decompression on the PC)" if not has_decomp else "")
 ok_all = True; crs = []; gcrs = []
-for (f, nbytes, cc, dc, maxd, nmis, st, _) in recs:
+OLD_MARK = 0x5EC0DE00      # older firmware wrote this instead of the latency
+def lat_of(r):
+    return None if r[7] == OLD_MARK else r[7]
+for (f, nbytes, cc, dc, maxd, nmis, st, lat) in recs:
+    lat = None if lat == OLD_MARK else lat
     cr = FRAME_BYTES / nbytes if nbytes else 0.0
     notes = []
     if st:
@@ -87,7 +92,7 @@ for (f, nbytes, cc, dc, maxd, nmis, st, _) in recs:
                any(k in n for n in notes for k in ("!=", "DIFFERS", "NOT DUMPED", "DIFF maxdiff", "NOT DECOMPRESSED")))
     ok_all &= not bad
     crs.append(cr)
-    print(f"{f:5d} {nbytes:9d} {cr:8.5f} {gcr:>10} {cc:9d} {dc if has_decomp else 'n/a':>10} {maxd if has_decomp else (pcd[f][0] if f in pcd else '-'):>7}  "
+    print(f"{f:5d} {nbytes:9d} {cr:8.5f} {gcr:>10} {cc:9d} {lat if lat is not None else '-':>8} {dc if has_decomp else 'n/a':>10} {maxd if has_decomp else (pcd[f][0] if f in pcd else '-'):>7}  "
           + ("FAIL: " if bad else "ok  ") + ("; ".join(notes) if notes else ""))
 
 n = len(recs)
@@ -98,7 +103,13 @@ if gcrs:
 cyc = [r[2] for r in recs if r[2]]
 if cyc:
     print(f"compress cycles/frame     : min {min(cyc)}  mean {sum(cyc) / len(cyc):.0f}  max {max(cyc)}  (100 MHz)")
-    print(f"compressor throughput     : {FRAME_BYTES * 8 / (sum(cyc) / len(cyc) / 100e6) / 1e9:.2f} Gbit/s input")
+    bps = FRAME_BYTES * 8 / (sum(cyc) / len(cyc) / 100e6)
+    print(f"compressor throughput     : {bps / 1e9:.2f} Gbit/s input  (= {bps / 2**30:.2f} Gibit/s, the unit Kiem's 11.92 uses)")
+    print(f"time per frame            : {sum(cyc) / len(cyc) / 100:.1f} us  -> {100e6 / (sum(cyc) / len(cyc)):.0f} frames/s")
+lats = [lat_of(r) for r in recs if lat_of(r) is not None]
+if lats:
+    print(f"end-to-end latency        : min {min(lats)}  mean {sum(lats) / len(lats):.0f}  max {max(lats)} cycles"
+          f"  = {sum(lats) / len(lats) / 100:.2f} us mean  (last input read -> last output written)")
 dcyc = [r[3] for r in recs if r[3]] if has_decomp else []
 if dcyc:
     print(f"decompress cycles/frame   : min {min(dcyc)}  mean {sum(dcyc) / len(dcyc):.0f}  max {max(dcyc)}")

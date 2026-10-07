@@ -95,6 +95,26 @@ static int wait_ioc(uint32_t base, uint32_t sr_off, uint32_t t0, uint32_t limit,
     }
 }
 
+/* wait for IOC on both channels of one DMA, timestamping each as it appears.
+ * t_mm2s = last input word read from DDR, t_s2mm = last output word written
+ * (TLAST). t_s2mm - t_mm2s is the end-to-end latency as Kiem measured it
+ * (TX interrupt -> RX interrupt). Returns 0 ok, 1 timeout, 2 DMA error. */
+static int wait_both(uint32_t base, uint32_t t0, uint32_t limit,
+                     uint32_t *t_mm2s, uint32_t *t_s2mm)
+{
+    int got_m = 0, got_s = 0;
+    for (;;) {
+        uint32_t t  = now();
+        uint32_t sm = REG(base, DMA_MM2S_SR);
+        uint32_t ss = REG(base, DMA_S2MM_SR);
+        if (!got_m && (sm & DMA_SR_IOC)) { *t_mm2s = t; got_m = 1; }
+        if (!got_s && (ss & DMA_SR_IOC)) { *t_s2mm = t; got_s = 1; }
+        if (got_m && got_s) return 0;
+        if ((sm | ss) & DMA_SR_ERR_MASK) return 2;
+        if (t - t0 > limit) return 1;
+    }
+}
+
 /* --------------------------------------------------------- HLS core -- */
 static void core_set_args(uint32_t base)
 {
@@ -161,7 +181,7 @@ int main(void)
     dma_init(DMA_C_BASE);
     if (has_decomp) dma_init(DMA_D_BASE);
 
-    puts_("\nframe   comp bytes      CR   comp cyc  decomp cyc  maxdiff  status\n");
+    puts_("\nframe   comp bytes      CR   comp cyc  latency  decomp cyc  maxdiff  status\n");
 
     uint64_t sum_in = 0, sum_out = 0;
     uint32_t worst_diff = 0, n_bad = 0, sum_cr_x10000 = 0;
@@ -170,7 +190,7 @@ int main(void)
         uint32_t in_addr  = IN_BASE + f * FRAME_BYTES;
         uint32_t c_addr   = COMP_OUT_BASE + f * COMP_SLOT;
         uint32_t r_addr   = RECON_BASE + f * FRAME_BYTES;
-        uint32_t st = 0, t0, t1 = 0, t2 = 0, t3 = 0;
+        uint32_t st = 0, t0, t1 = 0, t2 = 0, t3 = 0, t_in_done = 0;
         uint32_t comp_bytes = 0, recon_bytes = 0;
         int e;
 
@@ -187,9 +207,9 @@ int main(void)
         REG(DMA_C_BASE, DMA_MM2S_SA)     = in_addr;         /* send frame   */
         REG(DMA_C_BASE, DMA_MM2S_SA_MSB) = 0;
         REG(DMA_C_BASE, DMA_MM2S_LEN)    = FRAME_BYTES;
-        e = wait_ioc(DMA_C_BASE, DMA_S2MM_SR, t0, TIMEOUT_CYC, &t1);
+        t_in_done = t0;
+        e = wait_both(DMA_C_BASE, t0, TIMEOUT_CYC, &t_in_done, &t1);
         if (e) st |= (e == 1) ? ERR_COMP_TIMEOUT : ERR_DMA_C;
-        if (wait_ioc(DMA_C_BASE, DMA_MM2S_SR, t0, TIMEOUT_CYC, 0)) st |= ERR_DMA_C;
         if (wait_idle(COMP_BASE, TIMEOUT_CYC)) st |= ERR_COMP_TIMEOUT;
         comp_bytes = REG(DMA_C_BASE, DMA_S2MM_LEN);
         if (st) dma_init(DMA_C_BASE);
@@ -239,11 +259,11 @@ int main(void)
         res[f].max_diff      = maxd;
         res[f].mismatches    = nmis;
         res[f].status        = st;
-        res[f].reserved      = 0x5EC0DE00u;
+        res[f].latency_cycles = t1 - t_in_done;   /* latency: last input read -> last output written */
 
         uint32_t cr = comp_bytes ? (uint32_t)(((uint64_t)FRAME_BYTES * 10000u + comp_bytes / 2u) / comp_bytes) : 0;
         putu_w(f, 5); putu_w(comp_bytes, 13); puts_("  "); put_fixed4(cr);
-        putu_w(t1 - t0, 11);
+        putu_w(t1 - t0, 11); putu_w(t1 - t_in_done, 9);
         if (has_decomp) { putu_w(t3 - t2, 12); putu_w(maxd, 9); }
         else            { puts_("         n/a      n/a"); }
         puts_("   "); if (st) puthex(st); else puts_((has_decomp && maxd) ? "DIFF" : "OK");
