@@ -3,10 +3,10 @@
 static inline bool lpc_tdm_decode_huffman_symbol(ap_uint<512>& buffer, int bit_count,
                                                  ap_uint<4>& out_s4, int& out_code_len) {
     for (int i = 0; i < 16; i++) {
-        int len = HUFFMAN_TABLE[i].len;
+        int len = LPC_TDM_HUFFMAN_TABLE[i].len;
         if (bit_count >= len) {
             ap_uint<14> candidate = buffer.range(len - 1, 0);
-            if (candidate == HUFFMAN_TABLE[i].code) {
+            if (candidate == LPC_TDM_HUFFMAN_TABLE[i].code) {
                 out_s4 = i;
                 out_code_len = len;
                 return true;

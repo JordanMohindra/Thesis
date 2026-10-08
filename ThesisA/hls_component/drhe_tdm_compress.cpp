@@ -106,11 +106,11 @@ void drhe_tdm_compress(
 
                     ap_uint<4> s4_re = get_s4_region(diff_re);
                     ap_uint<15> append_re = get_append_bits(diff_re, s4_re);
-                    DictEntry_t huff_re = HUFFMAN_TABLE[s4_re];
+                    DictEntry_t huff_re = DRHE_TDM_HUFFMAN_TABLE[s4_re];
 
                     ap_uint<4> s4_im = get_s4_region(diff_im);
                     ap_uint<15> append_im = get_append_bits(diff_im, s4_im);
-                    DictEntry_t huff_im = HUFFMAN_TABLE[s4_im];
+                    DictEntry_t huff_im = DRHE_TDM_HUFFMAN_TABLE[s4_im];
 
                     ap_uint<32> code_re = ((ap_uint<32>)append_re << huff_re.len) | (ap_uint<32>)huff_re.code;
                     int len_re = huff_re.len + s4_re;

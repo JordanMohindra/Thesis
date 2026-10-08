@@ -210,11 +210,11 @@ void lpc_tdm_compress(
 
                     ap_uint<4>  s4_re = get_s4_region((int)dre);
                     ap_uint<15> ap_re = get_append_bits((int)dre, s4_re);
-                    DictEntry_t h_re = HUFFMAN_TABLE[s4_re];
+                    DictEntry_t h_re = LPC_TDM_HUFFMAN_TABLE[s4_re];
 
                     ap_uint<4>  s4_im = get_s4_region((int)dim);
                     ap_uint<15> ap_im = get_append_bits((int)dim, s4_im);
-                    DictEntry_t h_im = HUFFMAN_TABLE[s4_im];
+                    DictEntry_t h_im = LPC_TDM_HUFFMAN_TABLE[s4_im];
 
                     ap_uint<32> code_re = ((ap_uint<32>)ap_re << h_re.len) | (ap_uint<32>)h_re.code;
                     ap_uint<32> code_im = ((ap_uint<32>)ap_im << h_im.len) | (ap_uint<32>)h_im.code;

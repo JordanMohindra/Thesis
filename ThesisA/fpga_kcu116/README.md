@@ -15,8 +15,8 @@ Built on this PC (in `D:\Thesis\ThesisA\fpga_kcu116`):
 
 | Output (in `out/`)  | What it is | Timing | Resources (of XCKU5P) |
 |---|---|---|---|
-| `kcu116_drhe.bit`, `.xsa`, `radar_app_drhe.elf` | DRHE lag-12 compressor | WNS +0.395 ns, all met | 60,386 LUT (28 %), 104.5 BRAM, 138 DSP |
-| `kcu116_lpc.bit`, `.xsa`, `radar_app_lpc.elf`   | LPC lags 12,24 compressor | WNS +0.116 ns, all met | 60,071 LUT (28 %), 172.5 BRAM, 164 DSP |
+| `kcu116_drhe.bit`, `.xsa`, `radar_app_drhe.elf` | DRHE lag-12 compressor, re-derived dictionary | WNS +0.243 ns, all met | 61,011 LUT (28 %), 104.5 BRAM, 138 DSP |
+| `kcu116_lpc.bit`, `.xsa`, `radar_app_lpc.elf`   | LPC lags 12,24 compressor, re-derived dictionary | WNS +0.174 ns, all met | 59,203 LUT (27 %), 162.5 BRAM, 164 DSP |
 
 Both bitstreams hold only the compressor (`.info` says `decomp 0`). The
 resource figures cover the whole system: MicroBlaze, DDR4 controller, DMA
@@ -95,8 +95,17 @@ Loading frames over JTAG is slow (minutes for 50 frames). Expected results:
 
 | Bitstream | Mean per-frame CR | Check |
 |---|---|---|
-| DRHE | 3.75082 | every frame exact after PC decompression, bitstreams identical to C-sim |
-| LPC | 3.69681 | the same |
+| DRHE | 4.21704 | every frame exact after PC decompression, bitstreams identical to C-sim |
+| LPC | 4.40345 | the same |
+
+Both cores use the **re-derived Huffman dictionaries** from the thesis report
+(code lengths in `verify_indep/retrain_complete.json`: `drhe12` for DRHE,
+`lpc1224` for LPC; trained on frames 0-4, so quote frames 5-49 as the held-out
+result: 4.2066 and 4.3710). With Kiem's original Appendix A table the same
+designs gave 3.75082 and 3.69681; those board runs (7 Oct 2026) are the
+Kiem-dictionary baseline. The tables are `DRHE_TDM_HUFFMAN_TABLE` in
+`hls_component/drhe_tdm_common.h` and `LPC_TDM_HUFFMAN_TABLE` in
+`lpc_tdm_common.h`; compressor and decompressor read the same table.
 
 The decompression step was tested on this PC by using the C-simulation
 streams as stand-ins for the board's output: 50/50 frames exact for both

@@ -1,0 +1,126 @@
+KCU116 FPGA HARDWARE RESULTS: DRHE vs LPC, KIEM'S ORIGINAL HUFFMAN TABLE (baseline, 7 Oct 2026)
+(The bitstreams now use the re-derived tables: C-sim DRHE 4.21704, LPC 4.40345; board run pending.)
+=========================================================================
+Board: AMD KCU116 (Kintex UltraScale+ XCKU5P), 100 MHz
+Data:  50 ColoRadar frames, 393,216 bytes each (128 range bins x 192 ramps x 4 RX, int16 I/Q)
+Setup: FPGA compresses, PC decompresses and checks every frame
+Tip:   paste into a monospace font (e.g. Consolas) to keep the columns lined up
+
+
+1. HEADLINE
+-----------
+  * Both compressors PASS on all 50 frames
+  * Compressed bytes identical to the C simulation on every frame (50/50)
+  * Lossless: largest error after decompression = 0
+  * DRHE compresses better than LPC on every one of the 50 frames
+  * LPC is 5.3x slower and has 230x the latency (it must store the whole frame first)
+
+
+2. RESULTS SUMMARY
+------------------
+                                    DRHE (lag 12)        LPC (lags 12, 24)
+  --------------------------------  -------------------  -------------------
+  Result                            PASS, 50/50          PASS, 50/50
+  Mean compression ratio (CR)       3.7508               3.6968
+  CR range over 50 frames           3.517 - 3.815        3.461 - 3.761
+  Matches C simulation              Byte-identical       Byte-identical
+  Max error after decompression     0                    0
+  Clock cycles per frame            61,472               325,366
+  Time per frame                    614.7 us             3,253.7 us
+  Frames per second                 1,627                307
+  Input throughput                  5.12 Gbit/s          0.97 Gbit/s
+  End-to-end latency                13.1 us              3,006 us
+
+
+3. FPGA RESOURCES
+-----------------
+                        DRHE compressor   LPC compressor   Whole DRHE system   Whole LPC system
+  --------------------  ----------------  ---------------  ------------------  ----------------
+  LUTs                  34,807            34,495           60,386 (28%)        60,071 (28%)
+  Flip-flops            23,509            20,181           59,407              56,079
+  Block RAM (36 Kb)     40                108              104.5               172.5
+  DSP slices            132               158              138                 164
+  Timing slack @100MHz  -                 -                +0.395 ns           +0.116 ns
+
+  Chip total: 216,960 LUTs, 480 BRAM, 1,824 DSP
+  LPC needs 2.7x the compressor BRAM because it stores the whole frame
+
+
+4. COMPARISON WITH KIEM (2025)
+------------------------------
+  Different board, radar and data: compare methods, not chips
+
+                               Kiem                  This work: DRHE      This work: LPC
+  ---------------------------  --------------------  -------------------  -------------------
+  Board                        Zynq US+ ZU3CG        Kintex US+ XCKU5P    Kintex US+ XCKU5P
+  Radar data                   Infineon CTRX, 1 TX   ColoRadar, 12 TX     ColoRadar, 12 TX
+  Lossless CR on hardware      3.17                  3.751                3.697
+  Hardware = simulation        No (3.17 vs 3.25)     Yes, byte-identical  Yes, byte-identical
+  Throughput (Gibit/s)         11.92 (calculated)    4.77 (measured)      0.90 (measured)
+  End-to-end latency           79.4 us (incl. FFT)   13.1 us              3,006 us
+  Compressor LUTs              45,892                34,807               34,495
+  Compressor DSPs              44                    132                  158
+  Bit-accurate decompressor    Future work           Yes (on the PC)      Yes (on the PC)
+  Meets 15 ms requirement      Yes                   Yes                  Yes
+
+
+5. PER-FRAME RESULTS
+--------------------
+  frame    DRHE bytes   DRHE CR     LPC bytes    LPC CR   better
+  -----   -----------   -------   -----------   -------   ------
+      0       103,712    3.7914       104,544    3.7612     DRHE
+      1       103,840    3.7867       104,640    3.7578     DRHE
+      2       104,128    3.7763       104,832    3.7509     DRHE
+      3       104,512    3.7624       105,184    3.7384     DRHE
+      4       104,864    3.7498       105,472    3.7282     DRHE
+      5       104,480    3.7636       105,152    3.7395     DRHE
+      6       103,936    3.7833       104,736    3.7544     DRHE
+      7       103,744    3.7903       104,544    3.7612     DRHE
+      8       103,680    3.7926       104,544    3.7612     DRHE
+      9       103,840    3.7867       104,672    3.7566     DRHE
+     10       104,064    3.7786       104,800    3.7521     DRHE
+     11       104,512    3.7624       105,152    3.7395     DRHE
+     12       105,152    3.7395       105,632    3.7225     DRHE
+     13       105,056    3.7429       105,632    3.7225     DRHE
+     14       104,352    3.7682       105,056    3.7429     DRHE
+     15       103,712    3.7914       104,704    3.7555     DRHE
+     16       103,680    3.7926       104,896    3.7486     DRHE
+     17       104,320    3.7693       106,528    3.6912     DRHE
+     18       105,728    3.7191       108,096    3.6377     DRHE
+     19       105,760    3.7180       108,160    3.6355     DRHE
+     20       105,344    3.7327       107,936    3.6430     DRHE
+     21       105,344    3.7327       107,840    3.6463     DRHE
+     22       104,640    3.7578       107,232    3.6670     DRHE
+     23       104,096    3.7774       106,048    3.7079     DRHE
+     24       103,136    3.8126       105,344    3.7327     DRHE
+     25       103,808    3.7879       105,760    3.7180     DRHE
+     26       103,520    3.7985       105,312    3.7338     DRHE
+     27       103,200    3.8102       105,088    3.7418     DRHE
+     28       103,520    3.7985       105,408    3.7304     DRHE
+     29       103,232    3.8091       105,216    3.7372     DRHE
+     30       103,072    3.8150       105,184    3.7384     DRHE
+     31       103,520    3.7985       105,568    3.7248     DRHE
+     32       103,360    3.8043       105,280    3.7350     DRHE
+     33       103,392    3.8032       105,600    3.7236     DRHE
+     34       104,960    3.7463       107,200    3.6681     DRHE
+     35       104,192    3.7740       106,464    3.6934     DRHE
+     36       104,320    3.7693       106,432    3.6945     DRHE
+     37       105,664    3.7214       107,616    3.6539     DRHE
+     38       106,752    3.6835       108,192    3.6344     DRHE
+     39       104,448    3.7647       106,080    3.7068     DRHE
+     40       105,280    3.7350       106,976    3.6757     DRHE
+     41       105,792    3.7169       107,552    3.6561     DRHE
+     42       105,376    3.7316       106,848    3.6801     DRHE
+     43       106,784    3.6823       108,064    3.6387     DRHE
+     44       106,848    3.6801       108,224    3.6334     DRHE
+     45       106,752    3.6835       108,192    3.6344     DRHE
+     46       106,816    3.6812       108,448    3.6258     DRHE
+     47       107,808    3.6474       109,408    3.5940     DRHE
+     48       109,120    3.6035       110,688    3.5525     DRHE
+     49       111,808    3.5169       113,600    3.4614     DRHE
+  -----   -----------   -------   -----------   -------   ------
+  mean                    3.7508                  3.6968
+  total     5,242,976               5,319,776
+
+  Total input: 19,660,800 bytes (50 frames)
+  Overall CR (total in / total out): DRHE 3.7499, LPC 3.6958

@@ -35,4 +35,28 @@ inline int tdm_state_index(int tx, int s) { return tx * TDM_MAX_N + s; }
 
 const int TDM_STATE_SIZE = TDM_MAX_NTX * TDM_MAX_N;
 
+// Re-derived Huffman dictionary for DRHE lag nTx (thesis report, dictionary section):
+// code lengths from verify_indep/retrain_complete.json "drhe12" (trained on ColoRadar
+// frames 0-4, +1 pseudo-count so every S4 keeps a codeword). Canonical codes,
+// bit-reversed for the LSB-first bit buffer. Replaces Kiem's Appendix A table here.
+const DictEntry_t DRHE_TDM_HUFFMAN_TABLE[16] = {
+    {0x0003, 3}, // S4 = 0 : 011 (reversed from 110)
+    {0x0001, 2}, // S4 = 1 : 01 (reversed from 10)
+    {0x0000, 1}, // S4 = 2 : 0 (reversed from 0)
+    {0x0007, 4}, // S4 = 3 : 0111 (reversed from 1110)
+    {0x000F, 5}, // S4 = 4 : 01111 (reversed from 11110)
+    {0x001F, 6}, // S4 = 5 : 011111 (reversed from 111110)
+    {0x003F, 7}, // S4 = 6 : 0111111 (reversed from 1111110)
+    {0x007F, 8}, // S4 = 7 : 01111111 (reversed from 11111110)
+    {0x00FF, 9}, // S4 = 8 : 011111111 (reversed from 111111110)
+    {0x01FF, 10}, // S4 = 9 : 0111111111 (reversed from 1111111110)
+    {0x03FF, 11}, // S4 = 10: 01111111111 (reversed from 11111111110)
+    {0x1FFF, 14}, // S4 = 11: 01111111111111 (reversed from 11111111111110)
+    {0x3FFF, 14}, // S4 = 12: 11111111111111 (reversed from 11111111111111)
+    {0x07FF, 13}, // S4 = 13: 0011111111111 (reversed from 1111111111100)
+    {0x17FF, 13}, // S4 = 14: 1011111111111 (reversed from 1111111111101)
+    {0x0FFF, 13}  // S4 = 15: 0111111111111 (reversed from 1111111111110)
+};
+
+
 #endif // DRHE_TDM_COMMON_H

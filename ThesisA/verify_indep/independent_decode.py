@@ -32,19 +32,25 @@ import numpy as np
 
 N_SAMPLES, N_RAMPS, N_RX, N_TX = 128, 192, 4, 12
 
-# Kiem's fixed dictionary, stored LSB-first (code, length) for S4 = 0..15
-CODES = [(0x0005, 4), (0x0001, 3), (0x0002, 2), (0x0000, 2), (0x0003, 2), (0x000D, 5),
-         (0x001D, 6), (0x003D, 7), (0x007D, 8), (0x00FD, 9), (0x01FD, 10), (0x03FD, 11),
-         (0x3FFD, 14), (0x1FFD, 14), (0x0FFD, 13), (0x07FD, 12)]
-# lookup by the low 14 bits of the stream: the code set is prefix-free, so the
+# Kiem's fixed dictionary (Appendix A), stored LSB-first (code, length) for S4 = 0..15
+KIEM_CODES = [(0x0005, 4), (0x0001, 3), (0x0002, 2), (0x0000, 2), (0x0003, 2), (0x000D, 5),
+              (0x001D, 6), (0x003D, 7), (0x007D, 8), (0x00FD, 9), (0x01FD, 10), (0x03FD, 11),
+              (0x3FFD, 14), (0x1FFD, 14), (0x0FFD, 13), (0x07FD, 12)]
+# The TDM cores use the re-derived dictionaries (thesis report; code lengths in
+# retrain_complete.json "drhe12" and "lpc1224"), canonical codes stored LSB-first.
+CODES = {"drhe": [(0x0003,3),(0x0001,2),(0x0000,1),(0x0007,4),(0x000F,5),(0x001F,6),(0x003F,7),(0x007F,8),(0x00FF,9),(0x01FF,10),(0x03FF,11),(0x1FFF,14),(0x3FFF,14),(0x07FF,13),(0x17FF,13),(0x0FFF,13)],
+         "lpc": [(0x0003,3),(0x0000,1),(0x0001,2),(0x0007,4),(0x000F,5),(0x001F,6),(0x003F,7),(0x007F,8),(0x00FF,9),(0x01FF,10),(0x07FF,13),(0x17FF,13),(0x0FFF,13),(0x1FFF,13),(0x03FF,12),(0x0BFF,12)]}
+# lookup by the low 14 bits of the stream: each code set is prefix-free, so the
 # first code (in any order) whose bits match is the only match
-_LUT_S4 = np.full(1 << 14, -1, dtype=np.int8)
-_LUT_LEN = np.zeros(1 << 14, dtype=np.int8)
-for _s, (_c, _l) in enumerate(CODES):
-    for _hi in range(1 << (14 - _l)):
-        _LUT_S4[(_hi << _l) | _c] = _s
-        _LUT_LEN[(_hi << _l) | _c] = _l
-assert (_LUT_S4 >= 0).all()
+def _make_lut(codes):
+    s4 = np.full(1 << 14, -1, dtype=np.int8); ln = np.zeros(1 << 14, dtype=np.int8)
+    for s, (c, l) in enumerate(codes):
+        for hi in range(1 << (14 - l)):
+            s4[(hi << l) | c] = s; ln[(hi << l) | c] = l
+    assert (s4 >= 0).all()
+    return s4, ln
+_LUTS = {a: _make_lut(c) for a, c in CODES.items()}
+_LUTS["kiem"] = _make_lut(KIEM_CODES)
 
 
 def mround(x):
@@ -57,7 +63,8 @@ def wrap16(v):
 
 
 class BitReader:
-    def __init__(self, data):
+    def __init__(self, data, algo="drhe"):
+        self.lut_s4, self.lut_len = _LUTS[algo]
         self.v = int.from_bytes(bytes(data), "little")
         self.p = 0
         self.nbits = 8 * len(data)
@@ -69,7 +76,7 @@ class BitReader:
 
     def residual(self):
         w = (self.v >> self.p) & 0x3FFF
-        s = int(_LUT_S4[w]); self.p += int(_LUT_LEN[w])
+        s = int(self.lut_s4[w]); self.p += int(self.lut_len[w])
         if s == 0:
             return 0
         a = self.take(s)
@@ -131,7 +138,7 @@ def _lpc(dr, di, co):
 
 
 def decompress(algo, data):
-    br = BitReader(data)
+    br = BitReader(data, algo)
     co = _lpc_coefs(br) if algo == "lpc" else None
     dr, di = _residuals(br)
     if br.p > br.nbits:

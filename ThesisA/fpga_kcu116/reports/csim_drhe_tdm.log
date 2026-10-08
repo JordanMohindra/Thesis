@@ -1,7 +1,7 @@
 
 ****** vitis-run v2026.1 (64-bit)
   **** SW Build 6511674 on 2026-06-16-13:14:00
-  **** Start of session at: Mon Oct  5 11:21:00 2026
+  **** Start of session at: Thu Oct  8 14:34:08 2026
     ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
     ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
 
@@ -112,56 +112,56 @@ D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: 
  Target FPGA: AMD Kintex UltraScale+ (xcku5p-ffvb676-2-e) 
 ==========================================================
 [INFO] Loaded header: 50 frames x 192 ramps x 128 samples x 4 RX channels;  nTx = 12
-  Frame 0: CR=3.79142x  MaxDiff=0  Bits=3145728->829696  [LOSSLESS]
-  Frame 1: CR=3.78675x  MaxDiff=0  Bits=3145728->830720  [LOSSLESS]
-  Frame 2: CR=3.77628x  MaxDiff=0  Bits=3145728->833024  [LOSSLESS]
-  Frame 3: CR=3.7624x  MaxDiff=0  Bits=3145728->836096  [LOSSLESS]
-  Frame 4: CR=3.74977x  MaxDiff=0  Bits=3145728->838912  [LOSSLESS]
-  Frame 5: CR=3.76355x  MaxDiff=0  Bits=3145728->835840  [LOSSLESS]
-  Frame 6: CR=3.78325x  MaxDiff=0  Bits=3145728->831488  [LOSSLESS]
-  Frame 7: CR=3.79025x  MaxDiff=0  Bits=3145728->829952  [LOSSLESS]
-  Frame 8: CR=3.79259x  MaxDiff=0  Bits=3145728->829440  [LOSSLESS]
-  Frame 9: CR=3.78675x  MaxDiff=0  Bits=3145728->830720  [LOSSLESS]
-  Frame 10: CR=3.7786x  MaxDiff=0  Bits=3145728->832512  [LOSSLESS]
-  Frame 11: CR=3.7624x  MaxDiff=0  Bits=3145728->836096  [LOSSLESS]
-  Frame 12: CR=3.7395x  MaxDiff=0  Bits=3145728->841216  [LOSSLESS]
-  Frame 13: CR=3.74292x  MaxDiff=0  Bits=3145728->840448  [LOSSLESS]
-  Frame 14: CR=3.76817x  MaxDiff=0  Bits=3145728->834816  [LOSSLESS]
-  Frame 15: CR=3.79142x  MaxDiff=0  Bits=3145728->829696  [LOSSLESS]
-  Frame 16: CR=3.79259x  MaxDiff=0  Bits=3145728->829440  [LOSSLESS]
-  Frame 17: CR=3.76933x  MaxDiff=0  Bits=3145728->834560  [LOSSLESS]
-  Frame 18: CR=3.71913x  MaxDiff=0  Bits=3145728->845824  [LOSSLESS]
-  Frame 19: CR=3.718x  MaxDiff=0  Bits=3145728->846080  [LOSSLESS]
-  Frame 20: CR=3.73269x  MaxDiff=0  Bits=3145728->842752  [LOSSLESS]
-  Frame 21: CR=3.73269x  MaxDiff=0  Bits=3145728->842752  [LOSSLESS]
-  Frame 22: CR=3.7578x  MaxDiff=0  Bits=3145728->837120  [LOSSLESS]
-  Frame 23: CR=3.77744x  MaxDiff=0  Bits=3145728->832768  [LOSSLESS]
-  Frame 24: CR=3.8126x  MaxDiff=0  Bits=3145728->825088  [LOSSLESS]
-  Frame 25: CR=3.78792x  MaxDiff=0  Bits=3145728->830464  [LOSSLESS]
-  Frame 26: CR=3.79845x  MaxDiff=0  Bits=3145728->828160  [LOSSLESS]
-  Frame 27: CR=3.81023x  MaxDiff=0  Bits=3145728->825600  [LOSSLESS]
-  Frame 28: CR=3.79845x  MaxDiff=0  Bits=3145728->828160  [LOSSLESS]
-  Frame 29: CR=3.80905x  MaxDiff=0  Bits=3145728->825856  [LOSSLESS]
-  Frame 30: CR=3.81496x  MaxDiff=0  Bits=3145728->824576  [LOSSLESS]
-  Frame 31: CR=3.79845x  MaxDiff=0  Bits=3145728->828160  [LOSSLESS]
-  Frame 32: CR=3.80433x  MaxDiff=0  Bits=3145728->826880  [LOSSLESS]
-  Frame 33: CR=3.80316x  MaxDiff=0  Bits=3145728->827136  [LOSSLESS]
-  Frame 34: CR=3.74634x  MaxDiff=0  Bits=3145728->839680  [LOSSLESS]
-  Frame 35: CR=3.77396x  MaxDiff=0  Bits=3145728->833536  [LOSSLESS]
-  Frame 36: CR=3.76933x  MaxDiff=0  Bits=3145728->834560  [LOSSLESS]
-  Frame 37: CR=3.72138x  MaxDiff=0  Bits=3145728->845312  [LOSSLESS]
-  Frame 38: CR=3.68345x  MaxDiff=0  Bits=3145728->854016  [LOSSLESS]
-  Frame 39: CR=3.76471x  MaxDiff=0  Bits=3145728->835584  [LOSSLESS]
-  Frame 40: CR=3.73495x  MaxDiff=0  Bits=3145728->842240  [LOSSLESS]
-  Frame 41: CR=3.71688x  MaxDiff=0  Bits=3145728->846336  [LOSSLESS]
-  Frame 42: CR=3.73155x  MaxDiff=0  Bits=3145728->843008  [LOSSLESS]
-  Frame 43: CR=3.68235x  MaxDiff=0  Bits=3145728->854272  [LOSSLESS]
-  Frame 44: CR=3.68014x  MaxDiff=0  Bits=3145728->854784  [LOSSLESS]
-  Frame 45: CR=3.68345x  MaxDiff=0  Bits=3145728->854016  [LOSSLESS]
-  Frame 46: CR=3.68125x  MaxDiff=0  Bits=3145728->854528  [LOSSLESS]
-  Frame 47: CR=3.64737x  MaxDiff=0  Bits=3145728->862464  [LOSSLESS]
-  Frame 48: CR=3.60352x  MaxDiff=0  Bits=3145728->872960  [LOSSLESS]
-  Frame 49: CR=3.51689x  MaxDiff=0  Bits=3145728->894464  [LOSSLESS]
+  Frame 0: CR=4.39642x  MaxDiff=0  Bits=3145728->715520  [LOSSLESS]
+  Frame 1: CR=4.36984x  MaxDiff=0  Bits=3145728->719872  [LOSSLESS]
+  Frame 2: CR=4.32219x  MaxDiff=0  Bits=3145728->727808  [LOSSLESS]
+  Frame 3: CR=4.2578x  MaxDiff=0  Bits=3145728->738816  [LOSSLESS]
+  Frame 4: CR=4.20966x  MaxDiff=0  Bits=3145728->747264  [LOSSLESS]
+  Frame 5: CR=4.26963x  MaxDiff=0  Bits=3145728->736768  [LOSSLESS]
+  Frame 6: CR=4.35436x  MaxDiff=0  Bits=3145728->722432  [LOSSLESS]
+  Frame 7: CR=4.39014x  MaxDiff=0  Bits=3145728->716544  [LOSSLESS]
+  Frame 8: CR=4.39485x  MaxDiff=0  Bits=3145728->715776  [LOSSLESS]
+  Frame 9: CR=4.36674x  MaxDiff=0  Bits=3145728->720384  [LOSSLESS]
+  Frame 10: CR=4.32981x  MaxDiff=0  Bits=3145728->726528  [LOSSLESS]
+  Frame 11: CR=4.25927x  MaxDiff=0  Bits=3145728->738560  [LOSSLESS]
+  Frame 12: CR=4.17108x  MaxDiff=0  Bits=3145728->754176  [LOSSLESS]
+  Frame 13: CR=4.18671x  MaxDiff=0  Bits=3145728->751360  [LOSSLESS]
+  Frame 14: CR=4.295x  MaxDiff=0  Bits=3145728->732416  [LOSSLESS]
+  Frame 15: CR=4.39957x  MaxDiff=0  Bits=3145728->715008  [LOSSLESS]
+  Frame 16: CR=4.4043x  MaxDiff=0  Bits=3145728->714240  [LOSSLESS]
+  Frame 17: CR=4.32676x  MaxDiff=0  Bits=3145728->727040  [LOSSLESS]
+  Frame 18: CR=4.11934x  MaxDiff=0  Bits=3145728->763648  [LOSSLESS]
+  Frame 19: CR=4.096x  MaxDiff=0  Bits=3145728->768000  [LOSSLESS]
+  Frame 20: CR=4.1626x  MaxDiff=0  Bits=3145728->755712  [LOSSLESS]
+  Frame 21: CR=4.16542x  MaxDiff=0  Bits=3145728->755200  [LOSSLESS]
+  Frame 22: CR=4.25485x  MaxDiff=0  Bits=3145728->739328  [LOSSLESS]
+  Frame 23: CR=4.32676x  MaxDiff=0  Bits=3145728->727040  [LOSSLESS]
+  Frame 24: CR=4.45379x  MaxDiff=0  Bits=3145728->706304  [LOSSLESS]
+  Frame 25: CR=4.3482x  MaxDiff=0  Bits=3145728->723456  [LOSSLESS]
+  Frame 26: CR=4.36519x  MaxDiff=0  Bits=3145728->720640  [LOSSLESS]
+  Frame 27: CR=4.40746x  MaxDiff=0  Bits=3145728->713728  [LOSSLESS]
+  Frame 28: CR=4.33745x  MaxDiff=0  Bits=3145728->725248  [LOSSLESS]
+  Frame 29: CR=4.38857x  MaxDiff=0  Bits=3145728->716800  [LOSSLESS]
+  Frame 30: CR=4.40115x  MaxDiff=0  Bits=3145728->714752  [LOSSLESS]
+  Frame 31: CR=4.33286x  MaxDiff=0  Bits=3145728->726016  [LOSSLESS]
+  Frame 32: CR=4.36364x  MaxDiff=0  Bits=3145728->720896  [LOSSLESS]
+  Frame 33: CR=4.36364x  MaxDiff=0  Bits=3145728->720896  [LOSSLESS]
+  Frame 34: CR=4.15838x  MaxDiff=0  Bits=3145728->756480  [LOSSLESS]
+  Frame 35: CR=4.22995x  MaxDiff=0  Bits=3145728->743680  [LOSSLESS]
+  Frame 36: CR=4.26223x  MaxDiff=0  Bits=3145728->738048  [LOSSLESS]
+  Frame 37: CR=4.05545x  MaxDiff=0  Bits=3145728->775680  [LOSSLESS]
+  Frame 38: CR=3.95621x  MaxDiff=0  Bits=3145728->795136  [LOSSLESS]
+  Frame 39: CR=4.24603x  MaxDiff=0  Bits=3145728->740864  [LOSSLESS]
+  Frame 40: CR=4.14855x  MaxDiff=0  Bits=3145728->758272  [LOSSLESS]
+  Frame 41: CR=4.15697x  MaxDiff=0  Bits=3145728->756736  [LOSSLESS]
+  Frame 42: CR=4.14715x  MaxDiff=0  Bits=3145728->758528  [LOSSLESS]
+  Frame 43: CR=3.98832x  MaxDiff=0  Bits=3145728->788736  [LOSSLESS]
+  Frame 44: CR=3.95494x  MaxDiff=0  Bits=3145728->795392  [LOSSLESS]
+  Frame 45: CR=3.92839x  MaxDiff=0  Bits=3145728->800768  [LOSSLESS]
+  Frame 46: CR=3.90591x  MaxDiff=0  Bits=3145728->805376  [LOSSLESS]
+  Frame 47: CR=3.82208x  MaxDiff=0  Bits=3145728->823040  [LOSSLESS]
+  Frame 48: CR=3.75206x  MaxDiff=0  Bits=3145728->838400  [LOSSLESS]
+  Frame 49: CR=3.54837x  MaxDiff=0  Bits=3145728->886528  [LOSSLESS]
 [INFO] Golden compressed streams written to golden_drhe_tdm_compressed.bin
 
 ==========================================================
@@ -170,12 +170,12 @@ D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: 
  Max LSB Difference    : 0
  Mean Squared Error    : 0
  Signal-to-Noise Ratio : INFINITE (Lossless)
- Average CR (per-frame): 3.75082x
- Overall CR (aggregate): 3.74993x
+ Average CR (per-frame): 4.21704x
+ Overall CR (aggregate): 4.20779x
 ==========================================================
 [SUCCESS] All 50 frames: LOSSLESS reconstruction!
 INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 24576
 INFO: [SIM 211-1] CSim done with 0 errors.
 INFO: [SIM 211-3] *************** CSIM finish ***************
-INFO: [HLS 200-112] Total CPU user time: 1 seconds. Total CPU system time: 3 seconds. Total elapsed time: 101.89 seconds; peak allocated memory: 136.996 MB.
-INFO: [vitis-run 60-791] Total elapsed time: 0h 2m 6s
+INFO: [HLS 200-112] Total CPU user time: 1 seconds. Total CPU system time: 3 seconds. Total elapsed time: 90.372 seconds; peak allocated memory: 137.578 MB.
+INFO: [vitis-run 60-791] Total elapsed time: 0h 1m 46s
