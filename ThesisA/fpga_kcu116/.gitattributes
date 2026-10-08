@@ -1,0 +1,5 @@
+*.pdf binary
+*.bin binary
+*.bit binary
+*.elf binary
+*.xsa binary
