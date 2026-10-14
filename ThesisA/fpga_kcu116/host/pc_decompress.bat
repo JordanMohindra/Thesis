@@ -1,8 +1,8 @@
 @echo off
 REM ==========================================================================
-REM  pc_decompress.bat <drhe|lpc>  -  decompress the board's output on the PC
+REM  pc_decompress.bat <drhe|lpc|drhe_full|lpc_full>  -  decompress the board's output on the PC
 REM
-REM  Uses results\<algo>\comp_<f>.bin from run_board.bat, runs the verified
+REM  Uses results\<tag>\comp_<f>.bin from run_board.bat, runs the verified
 REM  decompressor C++ through Vitis C simulation, writes recon_<f>.bin and
 REM  pc_decompress.txt next to them, and compares every frame with the
 REM  original in out\frames_<n>.bin. Then run compare_results.py.
@@ -10,20 +10,22 @@ REM  Path must not contain spaces (Vitis restriction).
 REM ==========================================================================
 setlocal
 if "%XILINX_ROOT%"=="" set XILINX_ROOT=D:\Xilinx\2026.1
-set ALGO=%1
-if "%ALGO%"=="" set ALGO=drhe
+set TAG=%1
+if "%TAG%"=="" set TAG=drhe
 pushd "%~dp0.."
 set ROOT=%CD%
 popd
 pushd "%ROOT%\..\hls_component"
 set SRC=%CD%
 popd
-set RDIR=%ROOT%\results\%ALGO%
-if not exist "%RDIR%\run_info.txt" (echo ERROR: no board results in %RDIR% - run run_board.bat %ALGO% first & exit /b 1)
+set RDIR=%ROOT%\results\%TAG%
+if not exist "%RDIR%\run_info.txt" (echo ERROR: no board results in %RDIR% - run run_board.bat %TAG% first & exit /b 1)
 for /f "tokens=1,2" %%a in (%RDIR%\run_info.txt) do if "%%a"=="nframes" set NFR=%%b
+for /f "tokens=1,2" %%a in (%RDIR%\run_info.txt) do if "%%a"=="algo" set ALGO=%%b
+if "%ALGO%"=="" set ALGO=%TAG:_full=%
 set FRAMES=%ROOT%\out\frames_%NFR%.bin
 
-set WORK=%ROOT%\build\pc_decompress_%ALGO%
+set WORK=%ROOT%\build\pc_decompress_%TAG%
 if not exist "%WORK%" mkdir "%WORK%"
 set PCD_JOB=%WORK%\job.txt
 (echo %ALGO%& echo %FRAMES%& echo %NFR%& echo %RDIR%) > "%PCD_JOB%"

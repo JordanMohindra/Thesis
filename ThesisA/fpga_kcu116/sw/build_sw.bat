@@ -1,5 +1,5 @@
 @echo off
-REM build_sw.bat <drhe|lpc>  - builds the MicroBlaze program into ..\out\radar_app_<algo>.elf
+REM build_sw.bat <drhe|lpc|drhe_full|lpc_full>  - builds the MicroBlaze program into ..\out\radar_app_<tag>.elf
 setlocal
 if "%XILINX_ROOT%"=="" set XILINX_ROOT=D:\Xilinx\2026.1
 set ALGO=%1

@@ -11,14 +11,21 @@ compressors in `../hls_component` onto the AMD KCU116 board
 4. `host/compare_results.py` checks that every frame comes back bit-exact and
    that the compressed bytes match the C simulation.
 
+Each algorithm also has a `_full` bitstream that puts the decompressor on the
+chip as well. The board then compresses, decompresses and compares every frame
+itself, with no PC decompression step.
+
 Built on this PC (in `D:\Thesis\ThesisA\fpga_kcu116`):
 
 | Output (in `out/`)  | What it is | Timing | Resources (of XCKU5P) |
 |---|---|---|---|
 | `kcu116_drhe.bit`, `.xsa`, `radar_app_drhe.elf` | DRHE lag-12 compressor, re-derived dictionary | WNS +0.243 ns, all met | 61,011 LUT (28 %), 104.5 BRAM, 138 DSP |
 | `kcu116_lpc.bit`, `.xsa`, `radar_app_lpc.elf`   | LPC lags 12,24 compressor, re-derived dictionary | WNS +0.174 ns, all met | 59,203 LUT (27 %), 162.5 BRAM, 164 DSP |
+| `kcu116_drhe_full.bit`, `.xsa`, `radar_app_drhe_full.elf` | DRHE compressor **+ decompressor** on chip | WNS +0.341 ns, all met | 81,573 LUT (38 %), 144 BRAM, 184 DSP |
+| `kcu116_lpc_full.bit`, `.xsa`, `radar_app_lpc_full.elf`   | LPC compressor **+ decompressor** on chip | WNS +0.331 ns, all met | 85,707 LUT (40 %), 169.5 BRAM, 172 DSP |
 
-Both bitstreams hold only the compressor (`.info` says `decomp 0`). The
+The `drhe` and `lpc` bitstreams hold only the compressor (`.info` says
+`decomp 0`); the `_full` ones add a second DMA and the decompressor (`decomp 1`). The
 resource figures cover the whole system: MicroBlaze, DDR4 controller, DMA
 and compressor.
 
@@ -31,10 +38,18 @@ for bit. An independent double-precision Python decoder
 (`verify_indep/independent_decode.py`) is exact for LPC but drifts by 1–6 LSB
 on 8 of the 50 DRHE frames.
 
-**Why not decompress on the FPGA?** It can be done for experiments
-(`vivado\build.bat <algo> ... 1`), but for DRHE it does not fit. The DRHE
-decompressor alone synthesises to about 182,000 LUTs, and compressor plus
-decompressor need 235,750 against the 216,960 the XCKU5P has.
+**On-chip decompression.** The first DRHE decompressor did not fit: it decoded
+all 8 values of a sample (4 RX x re/im) in one clock, which chained eight
+Huffman decodes and eight 512-bit variable shifts and needed four copies of
+the float predictor. It synthesised to about 182,000 LUTs, and compressor plus
+decompressor needed 235,750 against the 216,960 the XCKU5P has. The redesign
+(14 Oct 2026) splits it into two stages running side by side: `unpack` reads
+one value per clock from a 29-bit window, and `rebuild` runs one copy of the
+predictor, one RX channel at a time. HLS estimates 42,846 LUTs, and the whole
+DRHE system with compressor and decompressor uses 81,573 (38 %). The output
+is unchanged: C simulation is lossless on all 50 frames with CR 4.21704. A
+frame takes about 197,000 clocks (about 2 ms) to decompress. The same
+`drhe_tdm_decompress.cpp` is used by `pc_decompress.bat`.
 
 ```
 hls/      export_ips.bat     C-sim (writes golden output) + package the 4 cores as IP
@@ -61,6 +76,7 @@ Vitis refuses paths that contain spaces, so work from a copy such as
                                       +-- UART Lite 115200 (CP2105 UART1), timer, LEDs
                                       +-- control registers of the DMAs and cores
  dma_c : DDR -> <algo>_tdm_compress   -> DDR     (128-bit in, 256-bit out)
+ dma_d : DDR -> <algo>_tdm_decompress -> DDR     (256-bit in, 128-bit out; _full only)
  Everything runs at 100 MHz.
 ```
 
@@ -90,6 +106,16 @@ DDR layout:
    ```
 4. Full run: the same three commands with `50` frames.
 5. Repeat steps 3–4 with `lpc`.
+6. On-chip decompression: the board checks every frame itself, so there is no
+   `pc_decompress` step:
+   ```
+   run_board.bat drhe_full 50    (FPGA compresses, decompresses and compares)
+   "C:\Program Files\Python311\python.exe" compare_results.py drhe_full
+   ```
+   and the same with `lpc_full`. Every row should show maxdiff 0 and a
+   `decomp cyc` figure; the first 5 compressed frames are also compared byte
+   for byte with the C simulation. Results go to `results\drhe_full` and
+   `results\lpc_full`, separate from the compress-only runs.
 
 Loading frames over JTAG is slow (minutes for 50 frames). Expected results:
 
@@ -118,9 +144,11 @@ algorithms.
 2. `vivado\build.bat drhe`, then `vivado\build.bat lpc` (1–1.5 h each on this
    16 GB PC).
    * Arguments are `[ddr4_sdram_075|062] [jobs] [decomp=0|1]`.
+   * With decompressor: `vivado\build.bat drhe ddr4_sdram_075 2 1` (outputs
+     `kcu116_drhe_full.*`), likewise for `lpc`.
    * Keep jobs at 2–3. With 8 jobs the PC ran out of memory and the build
      stalled.
-3. `sw\build_sw.bat drhe` and `sw\build_sw.bat lpc`.
+3. `sw\build_sw.bat drhe` and `sw\build_sw.bat lpc` (and `drhe_full`, `lpc_full`).
 4. `python host\make_frames.py ..\hls_component\coloradar_multiframe.bin 50`
    (and again with `5`).
 

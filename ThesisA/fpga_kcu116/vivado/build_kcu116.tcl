@@ -31,27 +31,32 @@ set algo    [expr {[llength $argv] > 0 ? [lindex $argv 0] : "drhe"}]
 set ddr_if  [expr {[llength $argv] > 1 ? [lindex $argv 1] : "ddr4_sdram_075"}]
 # parallel synthesis jobs: each needs ~3.5 GB of RAM, so keep this low on a 16 GB PC
 set jobs    [expr {[llength $argv] > 2 ? [lindex $argv 2] : 3}]
-# The FPGA only compresses; decompression runs on the PC (host/pc_decompress.bat),
-# as it would in a vehicle where the sensor compresses and the central computer
-# decompresses. "1" still adds the decompressor on chip for experiments, but for
-# DRHE that does not fit: its decompressor alone synthesises to ~182k LUTs and
-# compressor + decompressor need 235,750 LUTs against the XCKU5P's 216,960.
+# 0 (default): the FPGA only compresses; decompression runs on the PC
+#   (host/pc_decompress.bat), as in a vehicle where the sensor compresses and the
+#   central computer decompresses. Outputs out/kcu116_<algo>.*
+# 1: also puts the decompressor on chip (dma_d + <algo>_tdm_decompress), and the
+#   board checks every frame itself. Outputs out/kcu116_<algo>_full.*
+#   Both algorithms fit since the DRHE decompressor was redesigned (Oct 14) from
+#   ~182k LUTs (8 values decoded per clock) to ~43k (1 value per clock).
 set decomp  [expr {[llength $argv] > 3 ? [lindex $argv 3] : 0}]
 if {$decomp eq "auto"} { set decomp 0 }
 if {$algo ni {drhe lpc}} { error "first argument must be drhe or lpc, got '$algo'" }
+# outputs are named by tag: <algo> (compress only) or <algo>_full (with on-chip decompressor)
+set tag $algo
+if {$decomp} { set tag ${algo}_full }
 
 set here     [file dirname [file normalize [info script]]]
 set root     [file normalize $here/..]
 set ip_repo  [file normalize $root/ip_repo]
 set out_dir  [file normalize $root/out]
-set proj_dir [file normalize $root/build/vivado_$algo]
+set proj_dir [file normalize $root/build/vivado_$tag]
 file mkdir $out_dir
 if {[string first " " $proj_dir] >= 0} { error "Project path contains a space: $proj_dir. Copy fpga_kcu116 to a path without spaces (e.g. D:/Thesis/ThesisA/fpga_kcu116)." }
 
-puts "=== KCU116 build: algo=$algo ddr=$ddr_if jobs=$jobs decompressor=$decomp ==="
+puts "=== KCU116 build: algo=$algo tag=$tag ddr=$ddr_if jobs=$jobs decompressor=$decomp ==="
 
 # ---------------------------------------------------------------- project ----
-create_project kcu116_$algo $proj_dir -part xcku5p-ffvb676-2-e -force
+create_project kcu116_$tag $proj_dir -part xcku5p-ffvb676-2-e -force
 set bp [lindex [lsort [get_board_parts -quiet xilinx.com:kcu116:*]] end]
 if {$bp eq ""} { error "KCU116 board files not found. In Vivado: Tools > Xilinx Board Store > install KCU116." }
 set_property board_part $bp [current_project]
@@ -269,16 +274,16 @@ wait_on_run impl_1
 if {[get_property PROGRESS [get_runs impl_1]] ne "100%"} { error "Implementation failed - see $proj_dir" }
 
 open_run impl_1
-report_timing_summary -file $out_dir/kcu116_${algo}_timing.rpt
-report_utilization    -file $out_dir/kcu116_${algo}_util.rpt
+report_timing_summary -file $out_dir/kcu116_${tag}_timing.rpt
+report_utilization    -file $out_dir/kcu116_${tag}_util.rpt
 set wns [get_property SLACK [get_timing_paths -max_paths 1 -nworst 1 -setup]]
 puts "=== WNS = $wns ns ==="
 if {$wns < 0} { puts "WARNING: timing not met (WNS $wns ns) - the board may not behave correctly." }
 
-set bit [lindex [glob -nocomplain $proj_dir/kcu116_$algo.runs/impl_1/*.bit] 0]
-file copy -force $bit $out_dir/kcu116_${algo}.bit
-write_hw_platform -fixed -include_bit -force $out_dir/kcu116_${algo}.xsa
-set fp [open $out_dir/kcu116_${algo}.info w]
-puts $fp "algo $algo\ndecomp $decomp\nddr $ddr_if\nwns $wns"
+set bit [lindex [glob -nocomplain $proj_dir/kcu116_$tag.runs/impl_1/*.bit] 0]
+file copy -force $bit $out_dir/kcu116_${tag}.bit
+write_hw_platform -fixed -include_bit -force $out_dir/kcu116_${tag}.xsa
+set fp [open $out_dir/kcu116_${tag}.info w]
+puts $fp "algo $algo\ntag $tag\ndecomp $decomp\nddr $ddr_if\nwns $wns"
 close $fp
-puts "=== DONE: $out_dir/kcu116_${algo}.bit and .xsa (WNS $wns ns) ==="
+puts "=== DONE: $out_dir/kcu116_${tag}.bit and .xsa (WNS $wns ns) ==="

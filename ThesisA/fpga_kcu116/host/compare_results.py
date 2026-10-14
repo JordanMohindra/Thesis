@@ -1,8 +1,8 @@
 """compare_results.py - check a board run against the C-simulation golden output.
 
-    python compare_results.py <drhe|lpc>
+    python compare_results.py <drhe|lpc|drhe_full|lpc_full>
 
-Reads  ../results/<algo>/results.bin, comp_<f>.bin   (from run_board.tcl)
+Reads  ../results/<tag>/results.bin, comp_<f>.bin   (from run_board.tcl)
        ../golden/golden_<algo>_tdm_compressed.bin    (from hls/export_ips.bat)
 Checks, per frame:
   * the frame decompressed ON THE PC (pc_decompress.bat -> pc_decompress.txt)
@@ -17,9 +17,9 @@ input bits / (256-bit words * 256), averaged over frames).
 """
 import os, sys, struct
 
-algo = sys.argv[1] if len(sys.argv) > 1 else "drhe"
+tag = sys.argv[1] if len(sys.argv) > 1 else "drhe"
 root = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-rdir = os.path.join(root, "results", algo)
+rdir = os.path.join(root, "results", tag)
 FRAME_BYTES = 128 * 192 * 4 * 4
 ERR = {0x01: "comp timeout", 0x02: "decomp timeout", 0x04: "dma_c error", 0x08: "dma_d error",
        0x10: "recon length", 0x20: "decomp left words unread"}
@@ -30,6 +30,7 @@ if os.path.exists(ip):
     for line in open(ip):
         k, _, v = line.strip().partition(" ")
         info[k] = v
+algo = info.get("algo", tag.split("_")[0])      # base algorithm: golden file and decoder
 has_decomp = info.get("decomp", "1") == "1"
 pcd = {}
 pp = os.path.join(rdir, "pc_decompress.txt")
@@ -38,7 +39,7 @@ if os.path.exists(pp):
         f_, nb_, md_, nm_ = (int(x) for x in line.split())
         pcd[f_] = (md_, nm_)
 else:
-    print("(no pc_decompress.txt - run pc_decompress.bat %s to decompress on the PC)" % algo)
+    print("(no pc_decompress.txt - run pc_decompress.bat %s to decompress on the PC)" % tag)
 raw = open(os.path.join(rdir, "results.bin"), "rb").read()
 recs = [struct.unpack_from("<8I", raw, 32 * i) for i in range(len(raw) // 32)]
 

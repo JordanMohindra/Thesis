@@ -1,40 +1,44 @@
 # =============================================================================
 #  run_board.tcl  -  xsdb script: program the KCU116, load frames, run, dump
 #
-#  xsdb run_board.tcl <drhe|lpc> [nframes=50] [ndump]
+#  xsdb run_board.tcl <drhe|lpc|drhe_full|lpc_full> [nframes=50] [ndump]
+#     drhe, lpc           : compressor only (decompress on the PC afterwards)
+#     drhe_full, lpc_full : compressor + on-chip decompressor
 #     ndump defaults to 5 when the bitstream has an on-chip decompressor and to
 #     nframes when it does not (then every compressed frame is checked on the PC).
 #
 #  Needs (relative to this folder):
-#     ../out/kcu116_<algo>.bit, ../out/radar_app_<algo>.elf   (built earlier)
+#     ../out/kcu116_<tag>.bit, ../out/radar_app_<tag>.elf   (built earlier)
 #     ../out/frames_<nframes>.bin   (make_frames.py: frames without header)
-#  Writes ../results/<algo>/results.bin and comp_<f>.bin for the first ndump
+#  Writes ../results/<tag>/results.bin and comp_<f>.bin for the first ndump
 #  frames, then run compare_results.py.
 #
 #  The UART console (CP2105 UART1, 115200 8N1) shows the same results live.
 # =============================================================================
-set algo    [expr {[llength $argv] > 0 ? [lindex $argv 0] : "drhe"}]
+set tag     [expr {[llength $argv] > 0 ? [lindex $argv 0] : "drhe"}]
 set nframes [expr {[llength $argv] > 1 ? [lindex $argv 1] : 50}]
 
 set here [file dirname [file normalize [info script]]]
 set root [file normalize $here/..]
-set bit    $root/out/kcu116_$algo.bit
-set elf    $root/out/radar_app_$algo.elf
+set bit    $root/out/kcu116_$tag.bit
+set elf    $root/out/radar_app_$tag.elf
 set frames $root/out/frames_$nframes.bin
-set outdir $root/results/$algo
+set outdir $root/results/$tag
 foreach f [list $bit $elf $frames] {
     if {![file exists $f]} { error "missing $f" }
 }
 # does this bitstream have the decompressor? (written by vivado/build_kcu116.tcl)
-set decomp 1
-set info $root/out/kcu116_$algo.info
+set decomp [string match *_full $tag]
+set algo [lindex [split $tag _] 0]
+set info $root/out/kcu116_$tag.info
 if {[file exists $info]} {
     set fh [open $info]; set txt [read $fh]; close $fh
     regexp {decomp (\d)} $txt -> decomp
+    regexp {algo (\w+)} $txt -> algo
 }
 set ndump [expr {[llength $argv] > 2 ? [lindex $argv 2] : ($decomp ? 5 : $nframes)}]
 if {$ndump > $nframes} { set ndump $nframes }
-puts "algo $algo, $nframes frames, on-chip decompressor: $decomp, dumping $ndump compressed frames"
+puts "bitstream $tag ($algo), $nframes frames, on-chip decompressor: $decomp, dumping $ndump compressed frames"
 file mkdir $outdir
 
 # addresses - must match sw/src/board_map.h
@@ -94,6 +98,6 @@ for {set f 0} {$f < $ndump} {incr f} {
     puts "   frame $f: $nbytes compressed bytes -> comp_$f.bin"
 }
 set fp [open $outdir/run_info.txt w]
-puts $fp "algo $algo\nnframes $nframes\nndump $ndump\ndecomp $decomp\nbit $bit\nelf $elf\ndate [clock format [clock seconds]]"
+puts $fp "algo $algo\ntag $tag\nnframes $nframes\nndump $ndump\ndecomp $decomp\nbit $bit\nelf $elf\ndate [clock format [clock seconds]]"
 close $fp
-puts "== done. Now run:  python compare_results.py $algo"
+puts "== done. Now run:  python compare_results.py $tag"

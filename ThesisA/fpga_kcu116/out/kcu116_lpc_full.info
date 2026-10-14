@@ -1,0 +1,5 @@
+algo lpc
+tag lpc_full
+decomp 1
+ddr ddr4_sdram_075
+wns 0.331

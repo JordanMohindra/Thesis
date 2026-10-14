@@ -1,0 +1,181 @@
+
+****** vitis-run v2026.1 (64-bit)
+  **** SW Build 6511674 on 2026-06-16-13:14:00
+  **** Start of session at: Wed Oct 14 20:37:05 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+  **** HLS Build v2026.1 6493734
+INFO: [HLS 200-2005] Using work_dir D:/Thesis/ThesisA/hls_component/csim_drhe_serial 
+INFO: [HLS 200-2176] Writing Vitis IDE component file D:/Thesis/ThesisA/hls_component/csim_drhe_serial/vitis-comp.json
+INFO: [HLS 200-10] Creating and opening component 'D:/Thesis/ThesisA/hls_component/csim_drhe_serial'.
+INFO: [HLS 200-2174] Applying component config ini file test_tdm.cfg
+INFO: [HLS 200-1465] Applying config ini 'syn.file=drhe_tdm_compress.cpp' from test_tdm.cfg(5)
+INFO: [HLS 200-10] Adding design file 'D:/Thesis/ThesisA/hls_component/drhe_tdm_compress.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.file=drhe_tdm_decompress.cpp' from test_tdm.cfg(6)
+INFO: [HLS 200-10] Adding design file 'D:/Thesis/ThesisA/hls_component/drhe_tdm_decompress.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.file=drhe_tdm.cpp' from test_tdm.cfg(7)
+INFO: [HLS 200-10] Adding design file 'D:/Thesis/ThesisA/hls_component/drhe_tdm.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'tb.file=drhe_tdm_tb.cpp' from test_tdm.cfg(9)
+INFO: [HLS 200-10] Adding test bench file 'D:/Thesis/ThesisA/hls_component/drhe_tdm_tb.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'tb.file=coloradar_multiframe.bin' from test_tdm.cfg(10)
+INFO: [HLS 200-10] Adding test bench file 'D:/Thesis/ThesisA/hls_component/coloradar_multiframe.bin' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.top=drhe_tdm_compress' from test_tdm.cfg(8)
+INFO: [HLS 200-1465] Applying config ini 'part=xcku5p-ffvb676-2-e' from test_tdm.cfg(1)
+INFO: [HLS 200-1611] Setting target device to 'xcku5p-ffvb676-2-e'
+INFO: [HLS 200-1465] Applying config ini 'clock=100MHz' from test_tdm.cfg(4)
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1465] Applying config ini 'package.output.format=ip_catalog' from test_tdm.cfg(12)
+INFO: [HLS 200-2176] Writing Vitis IDE component file D:/Thesis/ThesisA/hls_component/csim_drhe_serial/vitis-comp.json
+INFO: [SIM 211-2] *************** CSIM start ***************
+INFO: [HLS 200-2191] C-Simulation will use clang-16 as the compiler
+INFO: [HLS 200-2036] Building debug C Simulation binaries
+   Compiling ../../../../drhe_tdm_tb.cpp in debug mode
+   Compiling ../../../../drhe_tdm.cpp in debug mode
+   Compiling ../../../../drhe_tdm_decompress.cpp in debug mode
+   Compiling ../../../../drhe_tdm_compress.cpp in debug mode
+   Generating csim.exe
+In file included from ../../../../drhe_tdm_tb.cpp:9:
+In file included from ../../../../drhe_tdm_compress.h:4:
+In file included from ../../../../drhe_tdm_common.h:28:
+In file included from ../../../../drhe_common.h:4:
+In file included from D:/Xilinx/2026.1/Vitis/include\ap_fixed.h:9:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_common.h:668:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_private.h:68:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_half.h:26:
+In file included from D:/Xilinx/2026.1/Vitis/include/etc/hls_half_fpo.h:19:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_fpo.h:140:
+In file included from D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:150:
+D:/Xilinx/2026.1/Vitis/include\gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../drhe_tdm.cpp:1:
+In file included from ../../../../drhe_tdm_common.h:28:
+In file included from ../../../../drhe_common.h:4:
+In file included from D:/Xilinx/2026.1/Vitis/include\ap_fixed.h:9:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_common.h:668:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_private.h:68:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_half.h:26:
+In file included from D:/Xilinx/2026.1/Vitis/include/etc/hls_half_fpo.h:19:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_fpo.h:140:
+In file included from D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:150:
+D:/Xilinx/2026.1/Vitis/include\gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../drhe_tdm_decompress.cpp:1:
+In file included from ../../../../drhe_tdm_decompress.h:4:
+In file included from ../../../../drhe_tdm_common.h:28:
+In file included from ../../../../drhe_common.h:4:
+In file included from D:/Xilinx/2026.1/Vitis/include\ap_fixed.h:9:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_common.h:668:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_private.h:68:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_half.h:26:
+In file included from D:/Xilinx/2026.1/Vitis/include/etc/hls_half_fpo.h:19:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_fpo.h:140:
+In file included from D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:150:
+D:/Xilinx/2026.1/Vitis/include\gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../drhe_tdm_compress.cpp:1:
+In file included from ../../../../drhe_tdm_compress.h:4:
+In file included from ../../../../drhe_tdm_common.h:28:
+In file included from ../../../../drhe_common.h:4:
+In file included from D:/Xilinx/2026.1/Vitis/include\ap_fixed.h:9:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_common.h:668:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_private.h:68:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_half.h:26:
+In file included from D:/Xilinx/2026.1/Vitis/include/etc/hls_half_fpo.h:19:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_fpo.h:140:
+In file included from D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:150:
+D:/Xilinx/2026.1/Vitis/include\gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+==========================================================
+ DRHE-TDM Compression & Decompression Testbench            
+ Prediction lag = nTx (per-transmitter predictor state)    
+ Target FPGA: AMD Kintex UltraScale+ (xcku5p-ffvb676-2-e) 
+==========================================================
+[INFO] Loaded header: 50 frames x 192 ramps x 128 samples x 4 RX channels;  nTx = 12
+  Frame 0: CR=4.39642x  MaxDiff=0  Bits=3145728->715520  [LOSSLESS]
+  Frame 1: CR=4.36984x  MaxDiff=0  Bits=3145728->719872  [LOSSLESS]
+  Frame 2: CR=4.32219x  MaxDiff=0  Bits=3145728->727808  [LOSSLESS]
+  Frame 3: CR=4.2578x  MaxDiff=0  Bits=3145728->738816  [LOSSLESS]
+  Frame 4: CR=4.20966x  MaxDiff=0  Bits=3145728->747264  [LOSSLESS]
+  Frame 5: CR=4.26963x  MaxDiff=0  Bits=3145728->736768  [LOSSLESS]
+  Frame 6: CR=4.35436x  MaxDiff=0  Bits=3145728->722432  [LOSSLESS]
+  Frame 7: CR=4.39014x  MaxDiff=0  Bits=3145728->716544  [LOSSLESS]
+  Frame 8: CR=4.39485x  MaxDiff=0  Bits=3145728->715776  [LOSSLESS]
+  Frame 9: CR=4.36674x  MaxDiff=0  Bits=3145728->720384  [LOSSLESS]
+  Frame 10: CR=4.32981x  MaxDiff=0  Bits=3145728->726528  [LOSSLESS]
+  Frame 11: CR=4.25927x  MaxDiff=0  Bits=3145728->738560  [LOSSLESS]
+  Frame 12: CR=4.17108x  MaxDiff=0  Bits=3145728->754176  [LOSSLESS]
+  Frame 13: CR=4.18671x  MaxDiff=0  Bits=3145728->751360  [LOSSLESS]
+  Frame 14: CR=4.295x  MaxDiff=0  Bits=3145728->732416  [LOSSLESS]
+  Frame 15: CR=4.39957x  MaxDiff=0  Bits=3145728->715008  [LOSSLESS]
+  Frame 16: CR=4.4043x  MaxDiff=0  Bits=3145728->714240  [LOSSLESS]
+  Frame 17: CR=4.32676x  MaxDiff=0  Bits=3145728->727040  [LOSSLESS]
+  Frame 18: CR=4.11934x  MaxDiff=0  Bits=3145728->763648  [LOSSLESS]
+  Frame 19: CR=4.096x  MaxDiff=0  Bits=3145728->768000  [LOSSLESS]
+  Frame 20: CR=4.1626x  MaxDiff=0  Bits=3145728->755712  [LOSSLESS]
+  Frame 21: CR=4.16542x  MaxDiff=0  Bits=3145728->755200  [LOSSLESS]
+  Frame 22: CR=4.25485x  MaxDiff=0  Bits=3145728->739328  [LOSSLESS]
+  Frame 23: CR=4.32676x  MaxDiff=0  Bits=3145728->727040  [LOSSLESS]
+  Frame 24: CR=4.45379x  MaxDiff=0  Bits=3145728->706304  [LOSSLESS]
+  Frame 25: CR=4.3482x  MaxDiff=0  Bits=3145728->723456  [LOSSLESS]
+  Frame 26: CR=4.36519x  MaxDiff=0  Bits=3145728->720640  [LOSSLESS]
+  Frame 27: CR=4.40746x  MaxDiff=0  Bits=3145728->713728  [LOSSLESS]
+  Frame 28: CR=4.33745x  MaxDiff=0  Bits=3145728->725248  [LOSSLESS]
+  Frame 29: CR=4.38857x  MaxDiff=0  Bits=3145728->716800  [LOSSLESS]
+  Frame 30: CR=4.40115x  MaxDiff=0  Bits=3145728->714752  [LOSSLESS]
+  Frame 31: CR=4.33286x  MaxDiff=0  Bits=3145728->726016  [LOSSLESS]
+  Frame 32: CR=4.36364x  MaxDiff=0  Bits=3145728->720896  [LOSSLESS]
+  Frame 33: CR=4.36364x  MaxDiff=0  Bits=3145728->720896  [LOSSLESS]
+  Frame 34: CR=4.15838x  MaxDiff=0  Bits=3145728->756480  [LOSSLESS]
+  Frame 35: CR=4.22995x  MaxDiff=0  Bits=3145728->743680  [LOSSLESS]
+  Frame 36: CR=4.26223x  MaxDiff=0  Bits=3145728->738048  [LOSSLESS]
+  Frame 37: CR=4.05545x  MaxDiff=0  Bits=3145728->775680  [LOSSLESS]
+  Frame 38: CR=3.95621x  MaxDiff=0  Bits=3145728->795136  [LOSSLESS]
+  Frame 39: CR=4.24603x  MaxDiff=0  Bits=3145728->740864  [LOSSLESS]
+  Frame 40: CR=4.14855x  MaxDiff=0  Bits=3145728->758272  [LOSSLESS]
+  Frame 41: CR=4.15697x  MaxDiff=0  Bits=3145728->756736  [LOSSLESS]
+  Frame 42: CR=4.14715x  MaxDiff=0  Bits=3145728->758528  [LOSSLESS]
+  Frame 43: CR=3.98832x  MaxDiff=0  Bits=3145728->788736  [LOSSLESS]
+  Frame 44: CR=3.95494x  MaxDiff=0  Bits=3145728->795392  [LOSSLESS]
+  Frame 45: CR=3.92839x  MaxDiff=0  Bits=3145728->800768  [LOSSLESS]
+  Frame 46: CR=3.90591x  MaxDiff=0  Bits=3145728->805376  [LOSSLESS]
+  Frame 47: CR=3.82208x  MaxDiff=0  Bits=3145728->823040  [LOSSLESS]
+  Frame 48: CR=3.75206x  MaxDiff=0  Bits=3145728->838400  [LOSSLESS]
+  Frame 49: CR=3.54837x  MaxDiff=0  Bits=3145728->886528  [LOSSLESS]
+[INFO] Golden compressed streams written to golden_drhe_tdm_compressed.bin
+
+==========================================================
+ GLOBAL VERIFICATION RESULTS (50 frames)
+==========================================================
+ Max LSB Difference    : 0
+ Mean Squared Error    : 0
+ Signal-to-Noise Ratio : INFINITE (Lossless)
+ Average CR (per-frame): 4.21704x
+ Overall CR (aggregate): 4.20779x
+==========================================================
+[SUCCESS] All 50 frames: LOSSLESS reconstruction!
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 98304
+INFO: [SIM 211-1] CSim done with 0 errors.
+INFO: [SIM 211-3] *************** CSIM finish ***************
+INFO: [HLS 200-112] Total CPU user time: 2 seconds. Total CPU system time: 3 seconds. Total elapsed time: 197.609 seconds; peak allocated memory: 137.086 MB.
+INFO: [vitis-run 60-791] Total elapsed time: 0h 4m 2s
