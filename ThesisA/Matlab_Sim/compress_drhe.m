@@ -6,8 +6,21 @@ function compressedData = compress_drhe(fx16Data, config)
 %   3. Encode differences using S4 region + Huffman coding
 %
 %   The algorithm exploits Doppler-dimension redundancy: for each range bin,
-%   consecutive ramps are predicted using IIR filters, and only the small
-%   differences are encoded.
+%   each ramp is predicted from earlier ramps of the SAME transmitter, and
+%   only the small differences are encoded.
+%
+%   Prediction lag (config.predLag):
+%     In a TDM-MIMO radar the transmitters fire in turn, so the ramp axis is
+%     ramp = chirpLoop * nTx + tx. The previous ramp of the same transmitter
+%     is nTx ramps back, so the predictor keeps one state per transmitter and
+%     predicts ramp m from ramp m - nTx. Default lag:
+%       config.predLag   if set
+%       config.nTx       if set (ColoRadar loader: 12)
+%       1                otherwise (single-TX radar, e.g. Kiem's data)
+%
+%   Huffman dictionary (config.huffLengthsDRHE):
+%     16 code lengths for S4 = 0..15. Default: Kiem's Appendix A table
+%     (huffman_tables('kiem')). See huffman_tables.m for the re-derived one.
 %
 %   DRHE operates on int16 (FX16) data with two's complement wraparound.
 %   After decompression, the int16 values are restored losslessly.
@@ -17,11 +30,11 @@ function compressedData = compress_drhe(fx16Data, config)
 %   Input:
 %     fx16Data - struct from compress_fx16 with .real_part (int16),
 %                .imag_part (int16), .scaleFactor
-%     config   - struct with .numRamps, .numRxChannels
+%     config   - struct (optional fields .predLag, .nTx, .huffLengthsDRHE)
 %
 %   Output:
 %     compressedData - struct with .diffReal, .diffImag, .totalBits,
-%                      .inputBits, .CR, .scaleFactor, .config
+%                      .inputBits, .CR, .scaleFactor, .lag, .huffLengths
 
     alpha = 0.6;
     beta  = 0.4;
@@ -31,28 +44,35 @@ function compressedData = compress_drhe(fx16Data, config)
 
     [nRangeBins, nRamps, nRx] = size(realData);
 
-    huffLengths = drhe_huffman_lengths();
+    lag = prediction_lag(config);
+    if isfield(config, 'huffLengthsDRHE') && ~isempty(config.huffLengthsDRHE)
+        huffLengths = config.huffLengthsDRHE(:).';
+    else
+        huffLengths = huffman_tables('kiem');
+    end
 
     diffReal = zeros(nRangeBins, nRamps, nRx);
     diffImag = zeros(nRangeBins, nRamps, nRx);
     totalBits = 0;
 
     for rx = 1:nRx
-        prev_mag_pred    = zeros(nRangeBins, 1);
-        prev_mag         = zeros(nRangeBins, 1);
-        prev_phase_pred  = zeros(nRangeBins, 1);
-        prev_phase       = zeros(nRangeBins, 1);
-        prev_prev_phase  = zeros(nRangeBins, 1);
+        % one predictor state per transmitter (column t = 1..lag)
+        prev_mag_pred    = zeros(nRangeBins, lag);
+        prev_mag         = zeros(nRangeBins, lag);
+        prev_phase_pred  = zeros(nRangeBins, lag);
+        prev_phase       = zeros(nRangeBins, lag);
+        prev_prev_phase  = zeros(nRangeBins, lag);
 
         for m = 1:nRamps
+            t  = mod(m - 1, lag) + 1;
             re = realData(:, m, rx);
             im = imagData(:, m, rx);
 
             curr_mag   = sqrt(re.^2 + im.^2);
             curr_phase = atan2(im, re);
 
-            mag_pred   = alpha * prev_mag_pred + (1 - alpha) * prev_mag;
-            phase_pred = beta * prev_phase_pred + (2 - beta) * prev_phase - prev_prev_phase;
+            mag_pred   = alpha * prev_mag_pred(:, t) + (1 - alpha) * prev_mag(:, t);
+            phase_pred = beta * prev_phase_pred(:, t) + (2 - beta) * prev_phase(:, t) - prev_prev_phase(:, t);
 
             phase_pred(phase_pred > pi)  = phase_pred(phase_pred > pi)  - 2*pi;
             phase_pred(phase_pred < -pi) = phase_pred(phase_pred < -pi) + 2*pi;
@@ -69,11 +89,11 @@ function compressedData = compress_drhe(fx16Data, config)
             totalBits = totalBits + sum(drhe_encode_bits(d_re, huffLengths)) ...
                                   + sum(drhe_encode_bits(d_im, huffLengths));
 
-            prev_prev_phase = prev_phase;
-            prev_phase      = curr_phase;
-            prev_phase_pred = phase_pred;
-            prev_mag        = curr_mag;
-            prev_mag_pred   = mag_pred;
+            prev_prev_phase(:, t) = prev_phase(:, t);
+            prev_phase(:, t)      = curr_phase;
+            prev_phase_pred(:, t) = phase_pred;
+            prev_mag(:, t)        = curr_mag;
+            prev_mag_pred(:, t)   = mag_pred;
         end
     end
 
@@ -87,7 +107,20 @@ function compressedData = compress_drhe(fx16Data, config)
     compressedData.scaleFactor = fx16Data.scaleFactor;
     compressedData.alpha       = alpha;
     compressedData.beta        = beta;
+    compressedData.lag         = lag;
+    compressedData.huffLengths = huffLengths;
     compressedData.format      = 'drhe';
+end
+
+
+function lag = prediction_lag(config)
+    if isfield(config, 'predLag') && ~isempty(config.predLag)
+        lag = config.predLag;
+    elseif isfield(config, 'nTx') && ~isempty(config.nTx)
+        lag = config.nTx;
+    else
+        lag = 1;
+    end
 end
 
 
@@ -101,25 +134,6 @@ function bits = drhe_encode_bits(values, huffLengths)
 % DRHE_ENCODE_BITS Compute the number of bits needed to encode each value.
 %   Each value maps to S4 (region) + APPEND (S4 bits) + Huffman code.
 %   Total bits per value = huffman_code_length(S4) + S4
-
-    absVal = abs(values);
-    s4 = zeros(size(values));
-
-    s4(absVal == 0) = 0;
-    nonzero = absVal > 0;
-    s4(nonzero) = floor(log2(absVal(nonzero))) + 1;
-    s4 = min(s4, 15);
-
-    bits = zeros(size(values));
-    for i = 0:15
-        mask = (s4 == i);
-        bits(mask) = huffLengths(i + 1) + i;
-    end
-end
-
-
-function lengths = drhe_huffman_lengths()
-% DRHE_HUFFMAN_LENGTHS Fixed Huffman dictionary lengths from Appendix A.
-%   Index 1-16 corresponds to S4 values 0-15.
-    lengths = [4, 3, 2, 2, 2, 5, 6, 7, 8, 9, 10, 11, 14, 14, 13, 12];
+    s4 = s4_region(values);
+    bits = reshape(huffLengths(s4 + 1), size(s4)) + s4;
 end

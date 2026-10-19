@@ -6,12 +6,13 @@ function outputData = decompress_drhe(compressedData)
 %   3. Output is int16 complex data, which is then scaled back to double
 %
 %   Uses two's complement wraparound arithmetic to match hardware behavior.
-%   The model prediction is identical to compression: initialized to zero,
-%   updated with decoded values ramp by ramp.
+%   The model prediction is identical to compression: one predictor state
+%   per transmitter (lag = compressedData.lag, see compress_drhe), each
+%   initialised to zero and updated with decoded values.
 %
 %   Input:
 %     compressedData - struct from compress_drhe with .diffReal, .diffImag,
-%                      .scaleFactor, .alpha, .beta
+%                      .scaleFactor, .alpha, .beta, .lag
 %
 %   Output:
 %     outputData - complex double [numRangeBins x numRamps x numRxChannels]
@@ -19,6 +20,7 @@ function outputData = decompress_drhe(compressedData)
     alpha = compressedData.alpha;
     beta  = compressedData.beta;
     scaleFactor = compressedData.scaleFactor;
+    if isfield(compressedData, 'lag'), lag = compressedData.lag; else, lag = 1; end
 
     diffReal = double(compressedData.diffReal);
     diffImag = double(compressedData.diffImag);
@@ -29,15 +31,16 @@ function outputData = decompress_drhe(compressedData)
     reconImag = zeros(nRangeBins, nRamps, nRx);
 
     for rx = 1:nRx
-        prev_mag_pred    = zeros(nRangeBins, 1);
-        prev_mag         = zeros(nRangeBins, 1);
-        prev_phase_pred  = zeros(nRangeBins, 1);
-        prev_phase       = zeros(nRangeBins, 1);
-        prev_prev_phase  = zeros(nRangeBins, 1);
+        prev_mag_pred    = zeros(nRangeBins, lag);
+        prev_mag         = zeros(nRangeBins, lag);
+        prev_phase_pred  = zeros(nRangeBins, lag);
+        prev_phase       = zeros(nRangeBins, lag);
+        prev_prev_phase  = zeros(nRangeBins, lag);
 
         for m = 1:nRamps
-            mag_pred   = alpha * prev_mag_pred + (1 - alpha) * prev_mag;
-            phase_pred = beta * prev_phase_pred + (2 - beta) * prev_phase - prev_prev_phase;
+            t = mod(m - 1, lag) + 1;
+            mag_pred   = alpha * prev_mag_pred(:, t) + (1 - alpha) * prev_mag(:, t);
+            phase_pred = beta * prev_phase_pred(:, t) + (2 - beta) * prev_phase(:, t) - prev_prev_phase(:, t);
 
             phase_pred(phase_pred > pi)  = phase_pred(phase_pred > pi)  - 2*pi;
             phase_pred(phase_pred < -pi) = phase_pred(phase_pred < -pi) + 2*pi;
@@ -54,11 +57,11 @@ function outputData = decompress_drhe(compressedData)
             curr_mag   = sqrt(re.^2 + im.^2);
             curr_phase = atan2(im, re);
 
-            prev_prev_phase = prev_phase;
-            prev_phase      = curr_phase;
-            prev_phase_pred = phase_pred;
-            prev_mag        = curr_mag;
-            prev_mag_pred   = mag_pred;
+            prev_prev_phase(:, t) = prev_phase(:, t);
+            prev_phase(:, t)      = curr_phase;
+            prev_phase_pred(:, t) = phase_pred;
+            prev_mag(:, t)        = curr_mag;
+            prev_mag_pred(:, t)   = mag_pred;
         end
     end
 
