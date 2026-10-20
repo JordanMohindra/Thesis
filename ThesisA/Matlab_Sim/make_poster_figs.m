@@ -219,8 +219,8 @@ enc = {hw.drhe, hw.lpc};
 for a = 1:2
     y = yTop - 2 * (a - 1); e = enc{a}; tE = e.enc_cycles;
     barh_seg(y, 0, ms(tE), C(a,:), hgt);
-    if ms(e.enc_latency) <= 0.05                      % too short to draw: give it in the label
-        text(ms(tE) + 0.05, y, sprintf('%.2f ms, latency %s', ms(tE), fmt_time(e.enc_latency, P.clockHz)), 'FontSize', 7);
+    if ms(e.enc_latency) <= 0.05                      % too short to draw: no bracket
+        text(ms(tE) + 0.05, y, sprintf('%.2f ms', ms(tE)), 'FontSize', 7);
     else                                              % draw the latency as a bracket
         text(ms(tE) + 0.05, y, sprintf('%.2f ms', ms(tE)), 'FontSize', 7);
         lat0 = ms(tE - e.enc_latency);
