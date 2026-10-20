@@ -107,17 +107,19 @@ cr.drheNew  = crOf(stage2.histDRHE, dictD, 0);
 cr.lpcNew   = crOf(stage2.histLPC,  dictL, stage2.lpcOverhead);
 heldOut = ~ismember(stage2.frame, P.trainFrames);
 
-% Where the compression comes from (Kiem's dictionary):
-%   Huffman coder alone on the raw values  -> cr.none
-%   + prediction (code the residual instead) -> cr.<algo>Kiem
+% Where the compression comes from, step by step:
+%   Huffman coder alone on the raw values (Kiem's dictionary) -> cr.none
+%   + prediction (code the residual instead)                   -> cr.<algo>Kiem
+%   + the re-derived dictionary (the one in the FPGA cores)     -> cr.<algo>New
+% The three steps add up to the total.
 S2 = table({'DRHE'; 'LPC'}, ...
     [mean(cr.none); mean(cr.none)], ...
     [mean(cr.drheKiem) - mean(cr.none); mean(cr.lpcKiem) - mean(cr.none)], ...
-    [mean(cr.drheKiem); mean(cr.lpcKiem)], ...
+    [mean(cr.drheNew) - mean(cr.drheKiem); mean(cr.lpcNew) - mean(cr.lpcKiem)], ...
     [mean(cr.drheNew); mean(cr.lpcNew)], ...
     [mean(cr.drheNew(heldOut)); mean(cr.lpcNew(heldOut))], ...
-    'VariableNames', {'Algorithm', 'CR_HuffmanOnly', 'CR_AddedByPrediction', 'CR_Total', ...
-                      'CR_RederivedDict', 'CR_Rederived_HeldOut'});
+    'VariableNames', {'Algorithm', 'CR_HuffmanOnly', 'CR_AddedByPrediction', 'CR_AddedByDictionary', ...
+                      'CR_Total', 'CR_Total_HeldOut'});
 disp(S2);
 writetable(S2, fullfile(P.outDir, 'poster_stage2.csv'));
 
@@ -144,7 +146,7 @@ lbl = containers.Map({'FP16', 'DRHEfp16', 'FX16', 'DRHE', 'BAQ', 'RDVLE', 'RDVLE
 grp = containers.Map({'FP16', 'DRHEfp16', 'FX16', 'DRHE', 'BAQ', 'RDVLE', 'RDVLE_UDRE', 'LPC_Huffman'}, {1, 1, 1, 2, 3, 3, 3, 2});
 fx16FN = T1.FN_pct(strcmp(T1.Algorithm, 'FX16'));
 f = newfig(W, 2.5);
-xr = [0.8, max(T1.CR) + 0.6]; yr = [-2, max(T1.FN_pct) * 1.4];          % headroom for the legend
+xr = [0.8, max(T1.CR) + 0.6]; yr = [-2, max(T1.FN_pct) * 1.15];
 selX = min(T1.CR(strcmp(T1.Algorithm, 'DRHE') | strcmp(T1.Algorithm, 'LPC_Huffman'))) - 0.4;
 rectangle('Position', [selX, yr(1), xr(2) - selX, fx16FN + 1.7 - yr(1)], 'FaceColor', [0.89 0.94 0.85], 'EdgeColor', 'none'); hold on
 text(xr(2) - 0.05, 0, 'selected', 'HorizontalAlignment', 'right', 'Color', [0.18 0.49 0.20]);
@@ -161,73 +163,71 @@ end
 xlim(xr); ylim(yr); grid on; box on
 xlabel('Compression ratio  \rightarrow  better'); ylabel('Missed detections, FN (%)')
 title(sprintf('Stage 1: all algorithms (%d frames)', P.stage1Frames))
-legend(h, {'reference', 'lossless', 'lossy'}, 'Location', 'northeast')
+
 save_fig(f, P.outDir, 'fig_stage1.png');
 
 % ---- Stage 2: where the compression comes from (waterfall) ----
 % For each algorithm: the Huffman coder alone, the extra from predicting,
-% and the total. The two contributions add up to the total.
+% the extra from the re-derived dictionary, and the total they add up to.
 f = newfig(W, 2.35);
-xs = [1 2 3; 5 6 7];                                     % DRHE group, LPC group
+xs = [1 2 3 4; 6 7 8 9];                                 % DRHE group, LPC group
+dark = [0.30 0.30 0.30]; green = [0.47 0.67 0.19];
 for a = 1:2
-    base = S2.CR_HuffmanOnly(a); add = S2.CR_AddedByPrediction(a); tot = S2.CR_Total(a);
+    base = S2.CR_HuffmanOnly(a); p = S2.CR_AddedByPrediction(a); d = S2.CR_AddedByDictionary(a); tot = S2.CR_Total(a);
     bar(xs(a, 1), base, 0.7, 'FaceColor', C(1,:)); hold on
-    bm = bar(xs(a, 2), [base add], 0.7, 'stacked');                % middle bar floats on the first
+    bm = bar(xs(a, 2), [base p], 0.7, 'stacked');         % floating bars
     bm(1).FaceColor = 'none'; bm(1).EdgeColor = 'none'; bm(2).FaceColor = C(2,:);
-    bar(xs(a, 3), tot, 0.7, 'FaceColor', [0.30 0.30 0.30]);
+    bm = bar(xs(a, 3), [base + p, d], 0.7, 'stacked');
+    bm(1).FaceColor = 'none'; bm(1).EdgeColor = 'none'; bm(2).FaceColor = green;
+    bar(xs(a, 4), tot, 0.7, 'FaceColor', dark);
     plot([xs(a, 1) + 0.35, xs(a, 2) - 0.35], [base base], 'k:', 'LineWidth', 0.8);
-    plot([xs(a, 2) + 0.35, xs(a, 3) - 0.35], [tot tot], 'k:', 'LineWidth', 0.8);
-    text(xs(a, 1), base + 0.08, sprintf('%.2f', base), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7.5);
-    text(xs(a, 2), base + add + 0.08, sprintf('+%.2f', add), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7.5);
-    text(xs(a, 3), tot + 0.08, sprintf('%.2f', tot), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7.5, 'FontWeight', 'bold');
+    plot([xs(a, 2) + 0.35, xs(a, 3) - 0.35], [base + p, base + p], 'k:', 'LineWidth', 0.8);
+    plot([xs(a, 3) + 0.35, xs(a, 4) - 0.35], [tot tot], 'k:', 'LineWidth', 0.8);
+    text(xs(a, 1), base + 0.08, sprintf('%.2f', base), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7);
+    text(xs(a, 2), base + p + 0.08, sprintf('+%.2f', p), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7);
+    text(xs(a, 3), tot + 0.08, sprintf('+%.2f', d), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7);
+    text(xs(a, 4), tot + 0.08, sprintf('%.2f', tot), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7.5, 'FontWeight', 'bold');
 end
-xlim([0.3 7.7]); ylim([0, ceil(max(S2.CR_Total)) + 1]); grid on; box on
-set(gca, 'XTick', [2 6], 'XTickLabel', {'DRHE', 'LPC'});
-lg1 = patch(NaN, NaN, C(1,:)); lg2 = patch(NaN, NaN, C(2,:)); lg3 = patch(NaN, NaN, [0.30 0.30 0.30]);
-legend([lg1 lg2 lg3], {'Huffman coder', '+ prediction', 'Total'}, 'Location', 'north', 'NumColumns', 3, 'FontSize', 7)
-
+xlim([0.3 9.7]); ylim([0, ceil(max(S2.CR_Total)) + 2]); grid on; box on
+set(gca, 'XTick', [2.5 7.5], 'XTickLabel', {'DRHE', 'LPC'});
+lg = gobjects(1, 4); cl = {C(1,:), C(2,:), green, dark};
+for i = 1:4, lg(i) = patch(NaN, NaN, cl{i}); end
+legend(lg, {'Huffman coder', '+ prediction', '+ new dictionary', 'Total'}, 'Location', 'north', 'NumColumns', 2, 'FontSize', 7)
 ylabel('Compression ratio'); title('Stage 2: where the CR comes from')
 save_fig(f, P.outDir, 'fig_cr_bars.png');
 
 % ---- Per-frame CR, re-derived dictionary ----
 f = newfig(W, 1.85);
-fr = stage2.frame; yl = [floor(min([cr.drheNew; cr.lpcNew]) * 10) / 10 - 0.2, ceil(max([cr.drheNew; cr.lpcNew]) * 10) / 10 + 0.5];
-tf = P.trainFrames;          % shade the frames the dictionary was trained on
-patch([min(tf) - 0.5, max(tf) + 0.5, max(tf) + 0.5, min(tf) - 0.5], yl([1 1 2 2]), [0.85 0.85 0.85], 'EdgeColor', 'none', 'FaceAlpha', 0.6); hold on
-text(mean(tf), yl(1) + 0.08, 'train', 'HorizontalAlignment', 'center', 'FontSize', 7, 'Color', [0.25 0.25 0.25]);
+fr = stage2.frame;
 p1 = plot(fr, cr.drheNew, '-o', 'MarkerSize', 2.5, 'LineWidth', 1.2, 'Color', C(1,:), 'MarkerFaceColor', C(1,:)); hold on
 p2 = plot(fr, cr.lpcNew,  '-s', 'MarkerSize', 2.5, 'LineWidth', 1.2, 'Color', C(2,:), 'MarkerFaceColor', C(2,:));
-xlim([min(fr) - 0.5, max(fr) + 0.5]); ylim(yl); grid on; box on
+xlim([min(fr) - 0.5, max(fr) + 0.5]); ylim([0, ceil(max([cr.drheNew; cr.lpcNew])) + 1]); grid on; box on
 xlabel('Frame'); ylabel('Compression ratio'); title('Per-frame CR, re-derived dictionary')
-legend([p1 p2], {'DRHE', 'LPC'}, 'Location', 'north', 'NumColumns', 2)
+legend([p1 p2], {'DRHE', 'LPC'}, 'Location', 'south', 'NumColumns', 2)
 save_fig(f, P.outDir, 'fig_cr_frames.png');
 
 % ---- Encode / decode time per frame (linear time axis) ----
-% One row per operation. The encoder rows are split into phases:
-%   DRHE streams: input and output overlap, so it is one bar.
-%   LPC must store the whole frame, solve the predictor for every
-%   (bin, RX) pair, then emit: store and emit are one 128-bit word per
-%   clock (nSamples x nRamps words), solve is the rest.
-% The latency bracket is the measured last-input -> last-output time.
+% One row per operation; the bar is the time to process one whole frame.
+% The latency bracket is the measured time from the last input word read
+% to the last output word written. DRHE outputs as it goes, so its
+% latency is tiny; LPC can only start emitting once it has the whole frame.
 ms = @(cyc) cyc / P.clockHz * 1e3;
-words = 128 * 192;                                        % 128-bit words per frame
 rows = {'DRHE encode', 'DRHE decode', 'LPC encode', 'LPC decode'};
 f = newfig(W, 2.3); hold on
 yTop = 4; hgt = 0.6;
-% DRHE encode
-y = yTop;     barh_seg(y, 0, ms(hw.drhe.enc_cycles), C(1,:), hgt);
-text(ms(hw.drhe.enc_cycles) + 0.05, y, sprintf('%.2f ms, latency %s', ms(hw.drhe.enc_cycles), fmt_time(hw.drhe.enc_latency, P.clockHz)), 'FontSize', 7);
-% LPC encode
-y = yTop - 2; tE = hw.lpc.enc_cycles;
-barh_seg(y, 0, ms(words), [0.99 0.80 0.65], hgt);
-barh_seg(y, ms(words), ms(tE - words), C(2,:), hgt);
-barh_seg(y, ms(tE - words), ms(tE), [0.99 0.80 0.65], hgt);
-text(ms(words) / 2, y, 'store', 'HorizontalAlignment', 'center', 'FontSize', 6, 'Rotation', 90);
-text(ms(words + (tE - 2 * words) / 2), y, 'solve predictor', 'HorizontalAlignment', 'center', 'FontSize', 7, 'Color', 'w');
-text(ms(tE - words / 2), y, 'emit', 'HorizontalAlignment', 'center', 'FontSize', 6, 'Rotation', 90);
-lat0 = ms(tE - hw.lpc.enc_latency);
-plot([lat0 ms(tE)], [y + 0.5 y + 0.5], 'k-', 'LineWidth', 0.8); plot([lat0 lat0], [y + 0.4 y + 0.6], 'k-'); plot(ms([tE tE]), [y + 0.4 y + 0.6], 'k-');
-text((lat0 + ms(tE)) / 2, y + 0.72, ['latency ' fmt_time(hw.lpc.enc_latency, P.clockHz)], 'HorizontalAlignment', 'center', 'FontSize', 7);
+enc = {hw.drhe, hw.lpc};
+for a = 1:2
+    y = yTop - 2 * (a - 1); e = enc{a}; tE = e.enc_cycles;
+    barh_seg(y, 0, ms(tE), C(a,:), hgt);
+    if ms(e.enc_latency) <= 0.05                      % too short to draw: give it in the label
+        text(ms(tE) + 0.05, y, sprintf('%.2f ms, latency %s', ms(tE), fmt_time(e.enc_latency, P.clockHz)), 'FontSize', 7);
+    else                                              % draw the latency as a bracket
+        text(ms(tE) + 0.05, y, sprintf('%.2f ms', ms(tE)), 'FontSize', 7);
+        lat0 = ms(tE - e.enc_latency);
+        plot([lat0 ms(tE)], [y + 0.5 y + 0.5], 'k-', 'LineWidth', 0.8); plot([lat0 lat0], [y + 0.4 y + 0.6], 'k-'); plot(ms([tE tE]), [y + 0.4 y + 0.6], 'k-');
+        text((lat0 + ms(tE)) / 2, y + 0.72, ['latency ' fmt_time(e.enc_latency, P.clockHz)], 'HorizontalAlignment', 'center', 'FontSize', 7);
+    end
+end
 % decoders (on-chip, from the *_full bitstreams)
 for a = {'drhe', 'lpc'}
     y = yTop - 1 - 2 * strcmp(a{1}, 'lpc'); d = hw.(a{1});
@@ -241,7 +241,7 @@ for a = {'drhe', 'lpc'}
     end
 end
 set(gca, 'YTick', yTop - (3:-1:0), 'YTickLabel', fliplr(rows)); ylim([yTop - 3.6, yTop + 0.9])
-xl = xlim; xlim([0, max(xl(2), ms(tE) * 1.08)]); grid on; box on
+xl = xlim; xlim([0, max([xl(2), ms(hw.lpc.enc_cycles) * 1.5])]); grid on; box on
 xlabel('Time per frame (ms, 100 MHz)'); title('Encode and decode time per frame')
 save_fig(f, P.outDir, 'fig_timing.png');
 
@@ -270,7 +270,6 @@ title(tl, 'FPGA resources: encoder, decoder, both', 'FontSize', 10, 'FontWeight'
 save_fig(f, P.outDir, 'fig_resources.png');
 
 fprintf('\nPoster figures and tables written to %s\n', P.outDir);
-
 
 %% ======================= LOCAL FUNCTIONS =================================
 function stage2 = run_stage2(P)
