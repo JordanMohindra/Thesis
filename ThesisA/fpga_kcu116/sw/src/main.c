@@ -181,7 +181,7 @@ int main(void)
     dma_init(DMA_C_BASE);
     if (has_decomp) dma_init(DMA_D_BASE);
 
-    puts_("\nframe   comp bytes      CR   comp cyc  latency  decomp cyc  maxdiff  status\n");
+    puts_("\nframe   comp bytes      CR   comp cyc  latency  decomp cyc  maxdiff  dec lat  status\n");
 
     uint64_t sum_in = 0, sum_out = 0;
     uint32_t worst_diff = 0, n_bad = 0, sum_cr_x10000 = 0;
@@ -190,7 +190,7 @@ int main(void)
         uint32_t in_addr  = IN_BASE + f * FRAME_BYTES;
         uint32_t c_addr   = COMP_OUT_BASE + f * COMP_SLOT;
         uint32_t r_addr   = RECON_BASE + f * FRAME_BYTES;
-        uint32_t st = 0, t0, t1 = 0, t2 = 0, t3 = 0, t_in_done = 0;
+        uint32_t st = 0, t0, t1 = 0, t2 = 0, t3 = 0, t_in_done = 0, t_d_in = 0;
         uint32_t comp_bytes = 0, recon_bytes = 0;
         int e;
 
@@ -226,11 +226,18 @@ int main(void)
             REG(DMA_D_BASE, DMA_MM2S_SA)     = c_addr;
             REG(DMA_D_BASE, DMA_MM2S_SA_MSB) = 0;
             REG(DMA_D_BASE, DMA_MM2S_LEN)    = comp_bytes;
-            e = wait_ioc(DMA_D_BASE, DMA_S2MM_SR, t2, TIMEOUT_CYC, &t3);
-            if (e) st |= (e == 1) ? ERR_DECOMP_TIMEOUT : ERR_DMA_D;
+            /* timestamp both channels: t_d_in = last compressed word read,
+             * t3 = last reconstructed word written -> decode latency */
+            t_d_in = t2;
+            e = wait_both(DMA_D_BASE, t2, TIMEOUT_CYC, &t_d_in, &t3);
+            if (e == 2) st |= ERR_DMA_D;
+            else if (e == 1) {
+                /* output complete but input left unread: the decompressor must
+                 * consume every compressed word */
+                if (REG(DMA_D_BASE, DMA_S2MM_SR) & DMA_SR_IOC) st |= ERR_MM2S_LEFTOVER;
+                else st |= ERR_DECOMP_TIMEOUT;
+            }
             if (wait_idle(DECOMP_BASE, TIMEOUT_CYC)) st |= ERR_DECOMP_TIMEOUT;
-            /* the decompressor must have consumed every compressed word */
-            if (wait_ioc(DMA_D_BASE, DMA_MM2S_SR, t2, 1000000u, 0)) st |= ERR_MM2S_LEFTOVER;
             recon_bytes = REG(DMA_D_BASE, DMA_S2MM_LEN);
             if (recon_bytes != FRAME_BYTES) st |= ERR_RECON_LEN;
             if (st) dma_init(DMA_D_BASE);
@@ -260,12 +267,14 @@ int main(void)
         res[f].mismatches    = nmis;
         res[f].status        = st;
         res[f].latency_cycles = t1 - t_in_done;   /* latency: last input read -> last output written */
+        res[f].decomp_latency_cycles = has_decomp ? t3 - t_d_in : 0;
+        for (int w = 0; w < 7; w++) res[f].reserved[w] = 0;
 
         uint32_t cr = comp_bytes ? (uint32_t)(((uint64_t)FRAME_BYTES * 10000u + comp_bytes / 2u) / comp_bytes) : 0;
         putu_w(f, 5); putu_w(comp_bytes, 13); puts_("  "); put_fixed4(cr);
         putu_w(t1 - t0, 11); putu_w(t1 - t_in_done, 9);
-        if (has_decomp) { putu_w(t3 - t2, 12); putu_w(maxd, 9); }
-        else            { puts_("         n/a      n/a"); }
+        if (has_decomp) { putu_w(t3 - t2, 12); putu_w(maxd, 9); putu_w(t3 - t_d_in, 9); }
+        else            { puts_("         n/a      n/a      n/a"); }
         puts_("   "); if (st) puthex(st); else puts_((has_decomp && maxd) ? "DIFF" : "OK");
         puts_("\n");
 

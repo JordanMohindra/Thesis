@@ -34,20 +34,23 @@
 #define MAXDIFF_NA      0xFFFFFFFFu  /* max_diff when there is no on-chip decompressor */
 #define STATUS_RUNNING  0xB007B007u
 #define STATUS_DONE     0xD0D0D0D0u
-#define FW_VERSION      0x00010000u
+#define FW_VERSION      0x00010100u   /* 1.1: decode latency, 64-byte records */
 
-/* one result record per frame, 8 words = 32 bytes */
+/* one result record per frame, 16 words = 64 bytes (RESULT_WORDS) */
 typedef struct {
     uint32_t frame;
     uint32_t comp_bytes;      /* bytes the compressor produced (S2MM count) */
     uint32_t comp_cycles;     /* 100 MHz cycles, DMA start -> S2MM complete */
-    uint32_t decomp_cycles;
+    uint32_t decomp_cycles;   /* decoder: DMA start -> S2MM complete */
     uint32_t max_diff;        /* max |reconstructed - original| over int16s */
     uint32_t mismatches;      /* number of int16 values that differ         */
     uint32_t status;          /* 0 = ok, otherwise ERR_* bits                */
-    uint32_t latency_cycles;  /* last input word read (MM2S IOC) -> last output
+    uint32_t latency_cycles;  /* encoder: last input word read (MM2S IOC) -> last output
                                  word written (S2MM IOC); Kiem's end-to-end latency */
+    uint32_t decomp_latency_cycles; /* decoder: the same measurement on dma_d */
+    uint32_t reserved[7];
 } result_t;
+#define RESULT_WORDS 16
 
 #define ERR_COMP_TIMEOUT    0x01u
 #define ERR_DECOMP_TIMEOUT  0x02u

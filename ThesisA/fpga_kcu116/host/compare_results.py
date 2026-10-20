@@ -41,7 +41,11 @@ if os.path.exists(pp):
 else:
     print("(no pc_decompress.txt - run pc_decompress.bat %s to decompress on the PC)" % tag)
 raw = open(os.path.join(rdir, "results.bin"), "rb").read()
-recs = [struct.unpack_from("<8I", raw, 32 * i) for i in range(len(raw) // 32)]
+# firmware 1.1+ writes 16-word records (adds the decoder latency); older runs 8 words
+rec_words = int(info.get("rec_words", "8"))
+recs_full = [struct.unpack_from("<%dI" % rec_words, raw, 4 * rec_words * i) for i in range(len(raw) // (4 * rec_words))]
+recs = [r[:8] for r in recs_full]
+dlat = [r[8] for r in recs_full] if rec_words >= 9 else []
 
 golden = []
 gpath = os.path.join(root, "golden", f"golden_{algo}_tdm_compressed.bin")
@@ -113,7 +117,12 @@ if lats:
           f"  = {sum(lats) / len(lats) / 100:.2f} us mean  (last input read -> last output written)")
 dcyc = [r[3] for r in recs if r[3]] if has_decomp else []
 if dcyc:
-    print(f"decompress cycles/frame   : min {min(dcyc)}  mean {sum(dcyc) / len(dcyc):.0f}  max {max(dcyc)}")
+    print(f"decompress cycles/frame   : min {min(dcyc)}  mean {sum(dcyc) / len(dcyc):.0f}  max {max(dcyc)}"
+          f"  = {sum(dcyc) / len(dcyc) / 100:.1f} us per frame")
+dl = [x for x in dlat if x] if has_decomp else []
+if dl:
+    print(f"decoder latency           : min {min(dl)}  mean {sum(dl) / len(dl):.0f}  max {max(dl)} cycles"
+          f"  = {sum(dl) / len(dl) / 100:.2f} us mean  (last compressed word read -> last output written)")
 if has_decomp:
     print("\nRESULT:", "PASS - lossless on every frame and identical to C simulation" if ok_all else "FAIL - see the rows marked FAIL")
 else:

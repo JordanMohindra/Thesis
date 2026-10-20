@@ -3,15 +3,17 @@
 %  Everything here is computed from the simulation code in this folder:
 %    Stage 1  run_coloradar_benchmark  -> all 8 algorithms (runCompressionSim)
 %    Stage 2  compress_drhe / compress_lpc_huffman on the FPGA test set
-%             (4 RX), with Kiem's and the re-derived Huffman dictionaries
+%             (4 RX): how much of the compression comes from the Huffman
+%             coder and how much from the prediction
 %    Hardware Vivado reports and board results in ../fpga_kcu116
 %
 %  Change the PARAMETERS below and run again. Simulation results are cached
 %  in <outDir>/poster_results.mat and only recomputed when the parameters
-%  that affect them change (or when P.recompute = true).
+%  that affect them change (or when P.recompute = true). The cache does not
+%  notice edits to the algorithm code itself: set P.recompute = true then.
 %
 %  Outputs (in P.outDir): fig_stage1.png, fig_cr_bars.png, fig_cr_frames.png,
-%  fig_latency.png, fig_resources.png, and the numbers behind the poster
+%  fig_timing.png, fig_resources.png, and the numbers behind the poster
 %  tables: poster_stage1.csv, poster_stage2.csv, poster_hardware.csv.
 
 clear; close all;
@@ -31,7 +33,8 @@ P.stage1PredLag = [];          % DRHE/LPC lag: [] = per transmitter (nTx),
 P.stage2Frames  = 50;
 P.stage2Rx      = 1:4;         % RX channels (the FPGA test uses 4)
 P.stage2PredLag = [];          % [] = nTx (12)
-P.dictMode      = 'thesis';    % 'thesis': tables in huffman_tables.m (= FPGA cores)
+P.dictMode      = 'thesis';    % re-derived dictionary for the per-frame plot:
+                               % 'thesis': tables in huffman_tables.m (= FPGA cores)
                                % 'train' : retrain from P.trainFrames below
 P.trainFrames   = 0:4;         % training frames ('train' mode retrains on these;
                                %  the 'thesis' tables were trained on 0:4)
@@ -39,6 +42,7 @@ P.pseudoCount   = 1;           % added to every S4 count when training
 
 % Hardware results
 P.fpgaDir       = fullfile(repo, 'fpga_kcu116');
+P.clockHz       = 100e6;       % FPGA clock
 
 P.recompute     = false;       % true = ignore the cache and rerun everything
 P.outDir        = fullfile(repo, 'poster');
@@ -96,34 +100,37 @@ end
 fprintf('Re-derived dictionaries (%s):\n  DRHE %s\n  LPC  %s\n', P.dictMode, mat2str(dictD), mat2str(dictL));
 
 crOf = @(hist, dict, extra) stage2.inputBits ./ (hist * (dict + (0:15))' + extra);
-cr.none     = crOf(stage2.histNone, kiem,  0);
-cr.drheKiem = crOf(stage2.histDRHE, kiem,  0);
+cr.none     = crOf(stage2.histNone, kiem,  0);       % Huffman coder alone, no prediction
+cr.drheKiem = crOf(stage2.histDRHE, kiem,  0);       % prediction + Huffman coder
 cr.lpcKiem  = crOf(stage2.histLPC,  kiem,  stage2.lpcOverhead);
 cr.drheNew  = crOf(stage2.histDRHE, dictD, 0);
 cr.lpcNew   = crOf(stage2.histLPC,  dictL, stage2.lpcOverhead);
 heldOut = ~ismember(stage2.frame, P.trainFrames);
 
-S2 = table({'No prediction'; 'DRHE'; 'LPC'}, ...
-    [mean(cr.none); mean(cr.drheKiem); mean(cr.lpcKiem)], ...
-    [NaN; mean(cr.drheNew); mean(cr.lpcNew)], ...
-    [NaN; mean(cr.drheNew(heldOut)); mean(cr.lpcNew(heldOut))], ...
-    'VariableNames', {'Method', 'CR_KiemDict', 'CR_RederivedDict', 'CR_Rederived_HeldOut'});
+% Where the compression comes from (Kiem's dictionary):
+%   Huffman coder alone on the raw values  -> cr.none
+%   + prediction (code the residual instead) -> cr.<algo>Kiem
+S2 = table({'DRHE'; 'LPC'}, ...
+    [mean(cr.none); mean(cr.none)], ...
+    [mean(cr.drheKiem) - mean(cr.none); mean(cr.lpcKiem) - mean(cr.none)], ...
+    [mean(cr.drheKiem); mean(cr.lpcKiem)], ...
+    [mean(cr.drheNew); mean(cr.lpcNew)], ...
+    [mean(cr.drheNew(heldOut)); mean(cr.lpcNew(heldOut))], ...
+    'VariableNames', {'Algorithm', 'CR_HuffmanOnly', 'CR_AddedByPrediction', 'CR_Total', ...
+                      'CR_RederivedDict', 'CR_Rederived_HeldOut'});
 disp(S2);
 writetable(S2, fullfile(P.outDir, 'poster_stage2.csv'));
 
 %% ---- Hardware: Vivado reports and board results -------------------------
-hw = read_hardware(P.fpgaDir);
-H = table({'DRHE'; 'LPC'}, [hw.drhe.cycles; hw.lpc.cycles], [hw.drhe.gibps; hw.lpc.gibps], ...
-    [hw.drhe.latency_us; hw.lpc.latency_us], [hw.drhe.util; hw.lpc.util], [hw.drhe_full.util; hw.lpc_full.util], ...
-    'VariableNames', {'Algorithm', 'CyclesPerFrame', 'Throughput_Gibps', 'Latency_us', ...
-                      'Util_CompOnly_LUT_BRAM_DSP', 'Util_WithDecomp_LUT_BRAM_DSP'});
-disp(H); fprintf('  (board results from: %s)\n', hw.source);
+hw = read_hardware(P);
+H = table({'DRHE'; 'LPC'}, ...
+    [hw.drhe.enc_cycles; hw.lpc.enc_cycles], [hw.drhe.enc_latency; hw.lpc.enc_latency], [hw.drhe.gibps; hw.lpc.gibps], ...
+    [hw.drhe.dec_cycles; hw.lpc.dec_cycles], [hw.drhe.dec_latency; hw.lpc.dec_latency], ...
+    [hw.drhe.res_enc; hw.lpc.res_enc], [hw.drhe.res_dec; hw.lpc.res_dec], ...
+    'VariableNames', {'Algorithm', 'EncCyclesPerFrame', 'EncLatencyCycles', 'EncThroughput_Gibps', ...
+                      'DecCyclesPerFrame', 'DecLatencyCycles', 'Encoder_LUT_FF_BRAM_DSP', 'Decoder_LUT_FF_BRAM_DSP'});
+disp(H); fprintf('  encoder timing from: %s\n  decoder timing from: %s\n', hw.encSource, hw.decSource);
 writetable(H, fullfile(P.outDir, 'poster_hardware.csv'));
-
-% Reference values from Kiem's thesis (ZU3CG, Infineon CTRX), quoted, not simulated
-K.latency_us = 79.4;      % end-to-end incl. range FFT
-K.gibps      = 11.92;     % calculated input throughput
-K.crHW       = 3.17;      % lossless CR on hardware
 
 %% ======================= FIGURES =========================================
 W = P.figWidth;
@@ -138,9 +145,9 @@ grp = containers.Map({'FP16', 'DRHEfp16', 'FX16', 'DRHE', 'BAQ', 'RDVLE', 'RDVLE
 fx16FN = T1.FN_pct(strcmp(T1.Algorithm, 'FX16'));
 f = newfig(W, 2.5);
 xr = [0.8, max(T1.CR) + 0.6]; yr = [-2, max(T1.FN_pct) * 1.4];          % headroom for the legend
-goalX = min(T1.CR(strcmp(T1.Algorithm, 'DRHE') | strcmp(T1.Algorithm, 'LPC_Huffman'))) - 0.4;
-rectangle('Position', [goalX, yr(1), xr(2) - goalX, fx16FN + 1.7 - yr(1)], 'FaceColor', [0.89 0.94 0.85], 'EdgeColor', 'none'); hold on
-text(xr(2) - 0.05, 0, 'goal', 'HorizontalAlignment', 'right', 'Color', [0.18 0.49 0.20]);
+selX = min(T1.CR(strcmp(T1.Algorithm, 'DRHE') | strcmp(T1.Algorithm, 'LPC_Huffman'))) - 0.4;
+rectangle('Position', [selX, yr(1), xr(2) - selX, fx16FN + 1.7 - yr(1)], 'FaceColor', [0.89 0.94 0.85], 'EdgeColor', 'none'); hold on
+text(xr(2) - 0.05, 0, 'selected', 'HorizontalAlignment', 'right', 'Color', [0.18 0.49 0.20]);
 cols = {grey, C(1,:), C(2,:)}; h = gobjects(1, 3);
 for i = 1:height(T1)
     g = grp(T1.Algorithm{i});
@@ -157,22 +164,29 @@ title(sprintf('Stage 1: all algorithms (%d frames)', P.stage1Frames))
 legend(h, {'reference', 'lossless', 'lossy'}, 'Location', 'northeast')
 save_fig(f, P.outDir, 'fig_stage1.png');
 
-% ---- Stage 2: mean CR, two dictionaries ----
-y = [S2.CR_KiemDict, S2.CR_RederivedDict];
+% ---- Stage 2: where the compression comes from (waterfall) ----
+% For each algorithm: the Huffman coder alone, the extra from predicting,
+% and the total. The two contributions add up to the total.
 f = newfig(W, 2.35);
-b = bar(y, 0.8); hold on
-b(1).FaceColor = 'flat'; b(1).CData(1, :) = grey;
-for s = 1:2
-    for i = 1:3
-        if ~isnan(y(i, s))
-            text(b(s).XEndPoints(i), y(i, s) + 0.08, sprintf('%.2f', y(i, s)), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7.5);
-        end
-    end
+xs = [1 2 3; 5 6 7];                                     % DRHE group, LPC group
+for a = 1:2
+    base = S2.CR_HuffmanOnly(a); add = S2.CR_AddedByPrediction(a); tot = S2.CR_Total(a);
+    bar(xs(a, 1), base, 0.7, 'FaceColor', C(1,:)); hold on
+    bm = bar(xs(a, 2), [base add], 0.7, 'stacked');                % middle bar floats on the first
+    bm(1).FaceColor = 'none'; bm(1).EdgeColor = 'none'; bm(2).FaceColor = C(2,:);
+    bar(xs(a, 3), tot, 0.7, 'FaceColor', [0.30 0.30 0.30]);
+    plot([xs(a, 1) + 0.35, xs(a, 2) - 0.35], [base base], 'k:', 'LineWidth', 0.8);
+    plot([xs(a, 2) + 0.35, xs(a, 3) - 0.35], [tot tot], 'k:', 'LineWidth', 0.8);
+    text(xs(a, 1), base + 0.08, sprintf('%.2f', base), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7.5);
+    text(xs(a, 2), base + add + 0.08, sprintf('+%.2f', add), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7.5);
+    text(xs(a, 3), tot + 0.08, sprintf('%.2f', tot), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7.5, 'FontWeight', 'bold');
 end
-xticklabels(S2.Method); ylim([0 ceil(max(y(:)) + 1.5)]); grid on; box on
-ylabel('Compression ratio'); title(sprintf('Stage 2: DRHE vs LPC, mean CR (%d frames)', P.stage2Frames))
-lg1 = patch(NaN, NaN, C(1,:)); lg2 = patch(NaN, NaN, C(2,:));
-legend([lg1 lg2], {'Kiem''s dictionary', 'Re-derived dictionary'}, 'Location', 'north', 'NumColumns', 2)
+xlim([0.3 7.7]); ylim([0, ceil(max(S2.CR_Total)) + 1]); grid on; box on
+set(gca, 'XTick', [2 6], 'XTickLabel', {'DRHE', 'LPC'});
+lg1 = patch(NaN, NaN, C(1,:)); lg2 = patch(NaN, NaN, C(2,:)); lg3 = patch(NaN, NaN, [0.30 0.30 0.30]);
+legend([lg1 lg2 lg3], {'Huffman coder', '+ prediction', 'Total'}, 'Location', 'north', 'NumColumns', 3, 'FontSize', 7)
+
+ylabel('Compression ratio'); title('Stage 2: where the CR comes from')
 save_fig(f, P.outDir, 'fig_cr_bars.png');
 
 % ---- Per-frame CR, re-derived dictionary ----
@@ -188,24 +202,71 @@ xlabel('Frame'); ylabel('Compression ratio'); title('Per-frame CR, re-derived di
 legend([p1 p2], {'DRHE', 'LPC'}, 'Location', 'north', 'NumColumns', 2)
 save_fig(f, P.outDir, 'fig_cr_frames.png');
 
-% ---- Latency (log scale) ----
-lat = [hw.drhe.latency_us, K.latency_us, hw.lpc.latency_us];
-f = newfig(W * 0.92, 2.2);
-b = bar(lat, 0.6); b.FaceColor = 'flat'; b.CData = [C(1,:); grey; C(2,:)]; hold on
-set(gca, 'YScale', 'log', 'YMinorGrid', 'off', 'YMinorTick', 'off'); ylim([1, 10^ceil(log10(max(lat)) + 0.3)]); grid on; box on
-for i = 1:3
-    text(i, lat(i) * 1.3, [fmt_num(lat(i)) ' \mus'], 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7.5);
+% ---- Encode / decode time per frame (linear time axis) ----
+% One row per operation. The encoder rows are split into phases:
+%   DRHE streams: input and output overlap, so it is one bar.
+%   LPC must store the whole frame, solve the predictor for every
+%   (bin, RX) pair, then emit: store and emit are one 128-bit word per
+%   clock (nSamples x nRamps words), solve is the rest.
+% The latency bracket is the measured last-input -> last-output time.
+ms = @(cyc) cyc / P.clockHz * 1e3;
+words = 128 * 192;                                        % 128-bit words per frame
+rows = {'DRHE encode', 'DRHE decode', 'LPC encode', 'LPC decode'};
+f = newfig(W, 2.3); hold on
+yTop = 4; hgt = 0.6;
+% DRHE encode
+y = yTop;     barh_seg(y, 0, ms(hw.drhe.enc_cycles), C(1,:), hgt);
+text(ms(hw.drhe.enc_cycles) + 0.05, y, sprintf('%.2f ms, latency %s', ms(hw.drhe.enc_cycles), fmt_time(hw.drhe.enc_latency, P.clockHz)), 'FontSize', 7);
+% LPC encode
+y = yTop - 2; tE = hw.lpc.enc_cycles;
+barh_seg(y, 0, ms(words), [0.99 0.80 0.65], hgt);
+barh_seg(y, ms(words), ms(tE - words), C(2,:), hgt);
+barh_seg(y, ms(tE - words), ms(tE), [0.99 0.80 0.65], hgt);
+text(ms(words) / 2, y, 'store', 'HorizontalAlignment', 'center', 'FontSize', 6, 'Rotation', 90);
+text(ms(words + (tE - 2 * words) / 2), y, 'solve predictor', 'HorizontalAlignment', 'center', 'FontSize', 7, 'Color', 'w');
+text(ms(tE - words / 2), y, 'emit', 'HorizontalAlignment', 'center', 'FontSize', 6, 'Rotation', 90);
+lat0 = ms(tE - hw.lpc.enc_latency);
+plot([lat0 ms(tE)], [y + 0.5 y + 0.5], 'k-', 'LineWidth', 0.8); plot([lat0 lat0], [y + 0.4 y + 0.6], 'k-'); plot(ms([tE tE]), [y + 0.4 y + 0.6], 'k-');
+text((lat0 + ms(tE)) / 2, y + 0.72, ['latency ' fmt_time(hw.lpc.enc_latency, P.clockHz)], 'HorizontalAlignment', 'center', 'FontSize', 7);
+% decoders (on-chip, from the *_full bitstreams)
+for a = {'drhe', 'lpc'}
+    y = yTop - 1 - 2 * strcmp(a{1}, 'lpc'); d = hw.(a{1});
+    if isnan(d.dec_cycles)
+        text(0.05, y, 'decode: run run\_board.bat ' + string(a{1}) + '\_full', 'FontSize', 7, 'FontAngle', 'italic', 'Color', [0.4 0.4 0.4]);
+    else
+        barh_seg(y, 0, ms(d.dec_cycles), (C(1 + strcmp(a{1}, 'lpc'), :) + 1) / 2, hgt);
+        txt = sprintf('%.2f ms', ms(d.dec_cycles));
+        if ~isnan(d.dec_latency), txt = [txt ', latency ' fmt_time(d.dec_latency, P.clockHz)]; end %#ok<AGROW>
+        text(ms(d.dec_cycles) + 0.05, y, txt, 'FontSize', 7);
+    end
 end
-xticklabels({'DRHE', 'Kiem [1]', 'LPC'}); ylabel('Latency (\mus)'); title('End-to-end latency')
-save_fig(f, P.outDir, 'fig_latency.png');
+set(gca, 'YTick', yTop - (3:-1:0), 'YTickLabel', fliplr(rows)); ylim([yTop - 3.6, yTop + 0.9])
+xl = xlim; xlim([0, max(xl(2), ms(tE) * 1.08)]); grid on; box on
+xlabel('Time per frame (ms, 100 MHz)'); title('Encode and decode time per frame')
+save_fig(f, P.outDir, 'fig_timing.png');
 
-% ---- FPGA resources ----
-U = 100 * [hw.drhe.util; hw.lpc.util; hw.drhe_full.util; hw.lpc_full.util];
+% ---- FPGA resources: encoder, decoder, both (cores only) ----
 f = newfig(W, 2.3);
-b = bar(U, 0.85); ylim([0, 10 * ceil(max(U(:)) / 10 + 0.5)]); grid on; box on
-xticklabels({'DRHE', 'LPC', 'DRHE\newline+ decomp', 'LPC\newline+ decomp'}); xtickangle(0); ylabel('% of XCKU5P')
-title('FPGA resources (whole system)')
-legend(b, {'LUT', 'BRAM', 'DSP'}, 'Location', 'northwest', 'NumColumns', 3)
+tl = tiledlayout(f, 1, 2, 'TileSpacing', 'compact', 'Padding', 'compact');
+algs = {'drhe', 'lpc'}; names = {'DRHE', 'LPC'};
+chip = [216960, 433920, 480, 1824];                       % XCKU5P: LUT, FF, BRAM36, DSP
+U = cell(1, 2);
+for a = 1:2
+    e = hw.(algs{a}).res_enc ./ chip; d = hw.(algs{a}).res_dec ./ chip;
+    U{a} = 100 * [e([1 3 4]); d([1 3 4]); e([1 3 4]) + d([1 3 4])];   % rows: enc, dec, both
+end
+ymax = 10 * ceil(max([U{:}], [], 'all') / 10 + 0.3);
+for a = 1:2
+    nexttile(tl);
+    b = bar(U{a}, 0.85); grid on; box on; ylim([0 ymax])
+    set(gca, 'XTickLabel', {'Enc', 'Dec', 'Both'})
+    title(names{a}); if a == 1, ylabel('% of XCKU5P'); end
+    if a == 2
+        lg = legend(b, {'LUT', 'BRAM', 'DSP'}, 'Orientation', 'horizontal', 'FontSize', 7);
+        lg.Layout.Tile = 'south';
+    end
+end
+title(tl, 'FPGA resources: encoder, decoder, both', 'FontSize', 10, 'FontWeight', 'bold');
 save_fig(f, P.outDir, 'fig_resources.png');
 
 fprintf('\nPoster figures and tables written to %s\n', P.outDir);
@@ -245,46 +306,68 @@ function stage2 = run_stage2(P)
     fprintf('Stage 2: done in %.1f min\n', toc(t0) / 60);
 end
 
-function hw = read_hardware(fpgaDir)
-% Resources from the Vivado utilisation reports; speed and latency from the
-% board results (results/<tag>/results.bin) or, if those are not on this
-% PC, from the board-run summary in reports/.
-    tags = {'drhe', 'lpc', 'drhe_full', 'lpc_full'};
-    for i = 1:numel(tags)
-        rpt = first_existing({fullfile(fpgaDir, 'out', ['kcu116_' tags{i} '_util.rpt']), ...
-                              fullfile(fpgaDir, 'reports', ['kcu116_' tags{i} '_util.rpt'])});
-        hw.(tags{i}).util = read_util(rpt);
-    end
-    hw.source = '';
+function hw = read_hardware(P)
+% Encoder timing: board results/<algo>/results.bin, else the board-run
+% summary in reports/. Decoder timing: results/<algo>_full/results.bin
+% (bitstreams with the on-chip decompressor), NaN until that board run.
+% Resources: per-core rows of the hierarchical Vivado reports of the
+% *_full builds (compressor 'comp' and decompressor 'decomp').
+    fpgaDir = P.fpgaDir;
+    hw.encSource = ''; hw.decSource = '';
     for a = {'drhe', 'lpc'}
-        rb = fullfile(fpgaDir, 'results', a{1}, 'results.bin');
-        if exist(rb, 'file')
-            fid = fopen(rb); w = fread(fid, [8 inf], 'uint32=>double'); fclose(fid);
-            hw.(a{1}).cycles = mean(w(3, :));
-            hw.(a{1}).latency_us = mean(w(8, :)) / 100;       % 100 MHz clock
-            hw.source = [hw.source ' ' rb];
+        r = read_results(fullfile(fpgaDir, 'results', a{1}));
+        if ~isempty(r)
+            hw.(a{1}).enc_cycles = mean(r(3, :)); hw.(a{1}).enc_latency = mean(r(8, :));
+            hw.encSource = [hw.encSource ' results/' a{1}];
         else
             txt = fileread(fullfile(fpgaDir, 'reports', 'fpga_results_summary_kiem_dictionary.txt'));
             c = summary_pair(txt, 'Clock cycles per frame');
-            l = summary_pair(txt, 'End-to-end latency');
+            l = summary_pair(txt, 'End-to-end latency');            % in us
             col = 1 + strcmp(a{1}, 'lpc');
-            hw.(a{1}).cycles = c(col); hw.(a{1}).latency_us = l(col);
-            hw.source = 'reports/fpga_results_summary_kiem_dictionary.txt';
+            hw.(a{1}).enc_cycles = c(col); hw.(a{1}).enc_latency = l(col) * P.clockHz / 1e6;
+            hw.encSource = 'reports/fpga_results_summary_kiem_dictionary.txt';
         end
         frameBits = 128 * 192 * 4 * 2 * 16;
-        hw.(a{1}).gibps = frameBits / (hw.(a{1}).cycles / 100e6) / 2^30;
+        hw.(a{1}).gibps = frameBits / (hw.(a{1}).enc_cycles / P.clockHz) / 2^30;
+
+        r = read_results(fullfile(fpgaDir, 'results', [a{1} '_full']));
+        hw.(a{1}).dec_cycles = NaN; hw.(a{1}).dec_latency = NaN;
+        if ~isempty(r)
+            hw.(a{1}).dec_cycles = mean(r(4, :));
+            if size(r, 1) >= 9, hw.(a{1}).dec_latency = mean(r(9, :)); end
+            hw.decSource = [hw.decSource ' results/' a{1} '_full'];
+        end
+
+        rpt = first_existing({fullfile(fpgaDir, 'out', ['kcu116_' a{1} '_full_util_hier.rpt']), ...
+                              fullfile(fpgaDir, 'reports', ['kcu116_' a{1} '_full_util_hier.rpt'])});
+        txt = fileread(rpt);
+        hw.(a{1}).res_enc = hier_row(txt, 'comp');
+        hw.(a{1}).res_dec = hier_row(txt, 'decomp');
     end
+    if isempty(hw.decSource), hw.decSource = 'none yet (run the *_full bitstreams on the board)'; end
 end
 
-function u = read_util(rpt)
-% [LUT BRAM DSP] fractions from a Vivado report_utilization file
-    txt = fileread(rpt);
-    u = [util_row(txt, 'CLB LUTs'), util_row(txt, 'Block RAM Tile'), util_row(txt, 'DSPs')];
+function r = read_results(rdir)
+% results.bin from run_board.tcl: one record per frame, 8 words (older
+% firmware) or 16 words (fw 1.1, adds the decoder latency as word 9).
+    r = [];
+    rb = fullfile(rdir, 'results.bin');
+    if ~exist(rb, 'file'), return; end
+    words = 8;
+    ri = fullfile(rdir, 'run_info.txt');
+    if exist(ri, 'file')
+        tok = regexp(fileread(ri), 'rec_words (\d+)', 'tokens', 'once');
+        if ~isempty(tok), words = str2double(tok{1}); end
+    end
+    fid = fopen(rb); r = fread(fid, [words inf], 'uint32=>double'); fclose(fid);
 end
 
-function frac = util_row(txt, name)
-    tok = regexp(txt, ['\|\s*' name '\*?\s*\|\s*([\d.]+)\s*\|[^|]*\|[^|]*\|\s*([\d.]+)\s*\|'], 'tokens', 'once');
-    frac = str2double(tok{1}) / str2double(tok{2});
+function v = hier_row(txt, inst)
+% [LUT FF BRAM36 DSP] of one instance in a report_utilization -hierarchical file
+    line = regexp(txt, ['\|\s+' inst '\s+\|[^\n]*'], 'match', 'once');
+    c = str2double(strtrim(split(line, '|')));
+    c = c(~isnan(c));            % Total LUTs, Logic LUTs, LUTRAMs, SRLs, FFs, RAMB36, RAMB18, URAM, DSP
+    v = [c(1), c(5), c(6) + c(7) / 2, c(9)];
 end
 
 function v = summary_pair(txt, label)
@@ -300,10 +383,13 @@ function p = first_existing(list)
     error('none of these files exist: %s', strjoin(list, ', '));
 end
 
-function s = fmt_num(v)
-    if v >= 1000, s = regexprep(sprintf('%.0f', v), '(\d)(?=(\d{3})+$)', '$1,');
-    elseif v >= 100, s = sprintf('%.0f', v);
-    else, s = sprintf('%.1f', v); end
+function barh_seg(y, x0, x1, col, hgt)
+    rectangle('Position', [x0, y - hgt / 2, max(x1 - x0, 1e-3), hgt], 'FaceColor', col, 'EdgeColor', 'k', 'LineWidth', 0.5);
+end
+
+function s = fmt_time(cycles, clk)
+    t = cycles / clk;
+    if t >= 1e-3, s = sprintf('%.2f ms', t * 1e3); else, s = sprintf('%.1f \\mus', t * 1e6); end
 end
 
 function f = newfig(w, h)
@@ -311,6 +397,14 @@ function f = newfig(w, h)
 end
 
 function save_fig(f, outdir, name)
-    exportgraphics(f, fullfile(outdir, name), 'Resolution', 300, 'BackgroundColor', 'white');
+    target = fullfile(outdir, name);
+    try
+        exportgraphics(f, target, 'Resolution', 300, 'BackgroundColor', 'white');
+    catch
+        % the PNG is open in another program (e.g. Photos): save beside it
+        alt = strrep(target, '.png', '_new.png');
+        exportgraphics(f, alt, 'Resolution', 300, 'BackgroundColor', 'white');
+        warning('%s is open in another program; saved %s instead', name, alt);
+    end
     close(f);
 end

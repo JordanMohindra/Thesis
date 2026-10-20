@@ -1,0 +1,44 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+-----------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2026.1 (win64) Build 6511674 Tue Jun 16 11:02:23 MDT 2026
+| Date         : Tue Oct 20 14:56:13 2026
+| Host         : DESKTOP-6IQQE7O running 64-bit major release  (build 9200)
+| Command      : report_utilization -hierarchical -hierarchical_depth 2 -file D:/Thesis/ThesisA/fpga_kcu116/out/kcu116_drhe_full_util_hier.rpt
+| Design       : system_wrapper
+| Device       : xcku5p-ffvb676-2-e
+| Speed File   : -2
+| Design State : Routed
+-----------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++--------------------+----------------------------+------------+------------+---------+------+-------+--------+--------+------+------------+
+|      Instance      |           Module           | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs  | RAMB36 | RAMB18 | URAM | DSP Blocks |
++--------------------+----------------------------+------------+------------+---------+------+-------+--------+--------+------+------------+
+| system_wrapper     |                      (top) |      81573 |      74987 |    5000 | 1586 | 78537 |    139 |     10 |    0 |        184 |
+|   (system_wrapper) |                      (top) |          0 |          0 |       0 |    0 |     0 |      0 |      0 |    0 |          0 |
+|   dbg_hub          |                    dbg_hub |        429 |        409 |      20 |    0 |   741 |      0 |      0 |    0 |          0 |
+|     inst           | dbg_hub_xsdbm_v3_0_6_xsdbm |        429 |        409 |      20 |    0 |   741 |      0 |      0 |    0 |          0 |
+|   system_i         |                     system |      81144 |      74578 |    4980 | 1586 | 77796 |    139 |     10 |    0 |        184 |
+|     uart_0         |            system_uart_0_0 |         93 |         75 |       0 |   18 |   106 |      0 |      0 |    0 |          0 |
+|     comp           |              system_comp_0 |      35444 |      34788 |       0 |  656 | 23528 |     40 |      0 |    0 |        132 |
+|     ddr4_0         |            system_ddr4_0_0 |       9780 |       9018 |     452 |  310 | 12033 |     25 |      1 |    0 |          3 |
+|     decomp         |            system_decomp_0 |      14155 |      13956 |      40 |  159 |  9245 |     30 |      5 |    0 |         46 |
+|     dma_c          |             system_dma_c_0 |       2915 |       2759 |      32 |  124 |  4470 |      6 |      2 |    0 |          0 |
+|     dma_d          |             system_dma_d_0 |       2399 |       2236 |      24 |  139 |  3633 |      6 |      2 |    0 |          0 |
+|     gpio_led       |          system_gpio_led_0 |         44 |         44 |       0 |    0 |    72 |      0 |      0 |    0 |          0 |
+|     mdm_0          |             system_mdm_0_0 |         89 |         82 |       0 |    7 |   110 |      0 |      0 |    0 |          0 |
+|     microblaze_0   |      system_microblaze_0_0 |       1380 |       1258 |      64 |   58 |  1215 |      0 |      0 |    0 |          3 |
+|     sc_0           |              system_sc_0_0 |      14530 |      10051 |    4368 |  111 | 23058 |      0 |      0 |    0 |          0 |
+|     timer_0        |           system_timer_0_0 |        290 |        290 |       0 |    0 |   240 |      0 |      0 |    0 |          0 |
++--------------------+----------------------------+------------+------------+---------+------+-------+--------+--------+------+------------+
+* Note: The sum of lower-level cells may be larger than their parent cells total, due to cross-hierarchy LUT combining
+
+

@@ -89,15 +89,15 @@ while {1} {
 }
 
 puts "== dumping results"
-mrd -bin -file $outdir/results.bin $RESULT_BASE [expr {$nframes * 8}]
+mrd -bin -file $outdir/results.bin $RESULT_BASE [expr {$nframes * 16}]   ;# 16-word records (fw 1.1)
 for {set f 0} {$f < $ndump} {incr f} {
-    set nbytes [mrd -value [expr {$RESULT_BASE + $f * 32 + 4}]]
+    set nbytes [mrd -value [expr {$RESULT_BASE + $f * 64 + 4}]]
     if {$nbytes == 0} { continue }
     set addr [expr {$COMP_OUT_BASE + $f * $COMP_SLOT}]
     mrd -bin -file $outdir/comp_$f.bin $addr [expr {($nbytes + 3) / 4}]
     puts "   frame $f: $nbytes compressed bytes -> comp_$f.bin"
 }
 set fp [open $outdir/run_info.txt w]
-puts $fp "algo $algo\ntag $tag\nnframes $nframes\nndump $ndump\ndecomp $decomp\nbit $bit\nelf $elf\ndate [clock format [clock seconds]]"
+puts $fp "algo $algo\ntag $tag\nrec_words 16\nnframes $nframes\nndump $ndump\ndecomp $decomp\nbit $bit\nelf $elf\ndate [clock format [clock seconds]]"
 close $fp
 puts "== done. Now run:  python compare_results.py $tag"
