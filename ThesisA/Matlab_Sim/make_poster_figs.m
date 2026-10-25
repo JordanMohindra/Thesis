@@ -13,7 +13,7 @@
 %  notice edits to the algorithm code itself: set P.recompute = true then.
 %
 %  Outputs (in P.outDir): fig_stage1.png, fig_cr_bars.png, fig_cr_frames.png,
-%  fig_timing.png, fig_resources.png, and the numbers behind the poster
+%  fig_timing.png, fig_resources.png, fig_input.png, fig_residual.png, and the numbers behind the poster
 %  tables: poster_stage1.csv, poster_stage2.csv, poster_hardware.csv.
 
 clear; close all;
@@ -46,7 +46,10 @@ P.clockHz       = 100e6;       % FPGA clock
 
 P.recompute     = false;       % true = ignore the cache and rerun everything
 P.outDir        = fullfile(repo, 'poster');
-P.figWidth      = 3.4;         % inches: one poster column
+P.figWidth      = 3.4;         % inches (figure layout; scale up freely on the poster)
+P.dpi           = 600;         % PNG resolution: 3.4 in at 600 dpi stays sharp at ~7 in wide on A0
+P.inputFrame    = 0;           % frame and RX shown in fig_input
+P.inputRx       = 1;
 %% ========================================================================
 
 if ~exist(P.outDir, 'dir'), mkdir(P.outDir); end
@@ -138,6 +141,7 @@ writetable(H, fullfile(P.outDir, 'poster_hardware.csv'));
 W = P.figWidth;
 set(groot, 'defaultAxesFontSize', 9, 'defaultTextFontSize', 8);
 C = colororder; grey = [0.65 0.65 0.65];
+setappdata(groot, 'posterDPI', P.dpi);
 
 % ---- Stage 1: CR vs missed detections ----
 T1 = stage1.T;
@@ -269,6 +273,36 @@ end
 title(tl, 'FPGA resources: encoder, decoder, both', 'FontSize', 10, 'FontWeight', 'bold');
 save_fig(f, P.outDir, 'fig_resources.png');
 
+% ---- Input data: one range-FFT frame (what the compressor receives) ----
+[dataDir, frameFiles] = find_coloradar_data(P.dataDir);
+fi = find(arrayfun(@(d) sscanf(d.name, 'frame_%d.bin'), frameFiles) == P.inputFrame, 1);
+binFile = fullfile(dataDir, frameFiles(fi).name);
+loadOpts = struct('txSelect', 1:12, 'removeDC', true, 'fx16EffectiveBits', 16);
+[~, cube, config] = evalc('loadColoRadarFrame(binFile, loadOpts)');
+fx = compress_fx16(rangeFFT(preprocessing(cube, config), config), config);
+X = complex(double(fx.real_part(:, :, P.inputRx)), double(fx.imag_part(:, :, P.inputRx)));
+f = newfig(W, 2.5);
+imagesc(0:size(X, 2) - 1, 0:size(X, 1) - 1, 20 * log10(abs(X) + 1)); axis xy
+colormap(gca, parula); cb = colorbar; cb.Label.String = 'Magnitude (dB)';
+xlabel('Ramp (chirp loop \times TX)'); ylabel('Range bin');
+title(sprintf('Input: frame %d, RX %d (int16 I/Q)', P.inputFrame, P.inputRx))
+save_fig(f, P.outDir, 'fig_input.png');
+
+% ---- Why prediction helps: how many bits each value needs ----
+% S4 = number of magnitude bits a value needs (0 for zero). Small S4 means
+% a short Huffman code plus few APPEND bits.
+hN = sum(stage2.histNone, 1); hD = sum(stage2.histDRHE, 1); hL = sum(stage2.histLPC, 1);
+pct = 100 * [hN / sum(hN); hD / sum(hD); hL / sum(hL)]';
+kmax = find(any(pct > 0.5, 2), 1, 'last');
+f = newfig(W, 2.3);
+b = bar(0:kmax - 1, pct(1:kmax, :), 0.9);
+b(1).FaceColor = grey; b(2).FaceColor = C(1,:); b(3).FaceColor = C(2,:);
+grid on; box on; xlim([-0.6, kmax - 0.4])
+xlabel('Bits needed for the value (S4)'); ylabel('% of values')
+title('Prediction makes the values smaller')
+legend({'raw sample', 'DRHE residual', 'LPC residual'}, 'Location', 'northeast')
+save_fig(f, P.outDir, 'fig_residual.png');
+
 fprintf('\nPoster figures and tables written to %s\n', P.outDir);
 
 %% ======================= LOCAL FUNCTIONS =================================
@@ -396,13 +430,14 @@ function f = newfig(w, h)
 end
 
 function save_fig(f, outdir, name)
+    dpi = getappdata(groot, 'posterDPI'); if isempty(dpi), dpi = 300; end
     target = fullfile(outdir, name);
     try
-        exportgraphics(f, target, 'Resolution', 300, 'BackgroundColor', 'white');
+        exportgraphics(f, target, 'Resolution', dpi, 'BackgroundColor', 'white');
     catch
         % the PNG is open in another program (e.g. Photos): save beside it
         alt = strrep(target, '.png', '_new.png');
-        exportgraphics(f, alt, 'Resolution', 300, 'BackgroundColor', 'white');
+        exportgraphics(f, alt, 'Resolution', dpi, 'BackgroundColor', 'white');
         warning('%s is open in another program; saved %s instead', name, alt);
     end
     close(f);
