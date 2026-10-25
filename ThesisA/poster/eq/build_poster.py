@@ -190,22 +190,26 @@ def eq(key, x, y, k=EQK):
 
 ix, iw = xA2 + 0.4, wA2 - 0.8
 text(ix - 0.08, yA + 1.0, iw, 0.8, [
-    {'t': 'Predict sample xₘ (ramp m) from ramps of the **same transmitter**, L = 12 back, then **Huffman-code the error**:', 'size': 22}])
-yy = yA + 1.95
-w, _ = eq('c1', ix, yy + 0.02)
-eq('c2', ix + w + 0.7, yy)
+    {'t': 'Both **predict** each sample xₘ from earlier ramps of the **same transmitter** (L = 12 ramps back). Only the small **prediction error** is Huffman-coded:', 'size': 22}])
+eq('c1', ix + (iw - EQS['sizes']['c1'][0] * 0.95) / 2, yA + 1.9, k=0.95)
 colW = (iw - 0.4) / 2
 cxs = [ix, ix + colW + 0.4]
 yh = yA + 2.55
 s.shapes.add_connector(1, Inches(cxs[1] - 0.2), Inches(yh + 0.05), Inches(cxs[1] - 0.2), Inches(yA + hA - 0.3)).line.color.rgb = NAVY
-text(cxs[0] - 0.08, yh, colW, 0.55, [{'t': '**DRHE**   A = |x|,  φ = ∠x', 'size': 26}])
-text(cxs[1] - 0.08, yh, colW, 0.55, [{'t': '**LPC**   x = I or Q, per range bin', 'size': 26}])
-y1 = yh + 0.7
-for k in ('d1', 'd2', 'd3'):
-    _, h = eq(k, cxs[0], y1); y1 += h + 0.22
-y2 = yh + 0.7
-for k in ('l1', 'l2', 'l3'):
-    _, h = eq(k, cxs[1], y2); y2 += h + 0.12
+text(cxs[0] - 0.08, yh, colW, 0.55, [{'t': '**DRHE**', 'size': 28}])
+text(cxs[1] - 0.08, yh, colW, 0.55, [{'t': '**LPC**', 'size': 28}])
+# DRHE: words + the two key equations
+yd = yh + 0.6
+text(cxs[0] - 0.08, yd, colW, 0.8, [{'t': 'Predicts **magnitude A** and **phase φ** separately, with **fixed** filters:', 'size': 22}])
+yd += 1.0
+_, h = eq('d0', cxs[0] + 0.2, yd, k=0.9); yd += h + 0.15
+eq('d1', cxs[0] + 0.2, yd, k=0.9)
+# LPC: words + the predictor
+yl = yh + 0.6
+text(cxs[1] - 0.08, yl, colW, 0.8, [{'t': 'A **weighted sum** of the same range bin’s previous two ramps:', 'size': 22}])
+yl += 1.0
+_, h = eq('l1', cxs[1] + 0.2, yl, k=0.9); yl += h + 0.15
+text(cxs[1] - 0.08, yl, colW, 1.0, [{'t': 'a₁, a₂ are **fitted to the whole frame**, per range bin.', 'size': 22}])
 yn = yA + hA - 0.72
 text(cxs[0] - 0.08, yn, colW, 0.5, [{'t': 'Past ramps only → **streams**', 'size': 22, 'color': NAVY}])
 text(cxs[1] - 0.08, yn, colW, 0.5, [{'t': 'Needs **the whole frame** → waits', 'size': 22, 'color': NAVY}])

@@ -11,6 +11,7 @@ FS = 30
 EQ = {
     'c1': r'$e_m = x_m - \hat{x}_m$',
     'c2': r'$\mathrm{bits}(e_m) = \ell(S_4) + S_4,\quad S_4 = \lfloor \log_2 |e_m| \rfloor + 1$',
+    'd0': r'$\hat{x}_m = \hat{A}_m\,e^{\,j\hat{\phi}_m}$',
     'd1': r'$\hat{A}_m = \alpha\,\hat{A}_{m-L} + (1-\alpha)\,A_{m-L}$',
     'd2': r'$\hat{\phi}_m = \beta\,\hat{\phi}_{m-L} + (2-\beta)\,\phi_{m-L} - \phi_{m-2L}$',
     'd3': r'$\hat{x}_m = \hat{A}_m\,e^{\,j\hat{\phi}_m},\quad \alpha = 0.6,\ \beta = 0.4$',
