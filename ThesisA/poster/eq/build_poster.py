@@ -199,7 +199,7 @@ cxs = [ix, ix + colW + 0.4]
 yh = yA + 2.55
 s.shapes.add_connector(1, Inches(cxs[1] - 0.2), Inches(yh + 0.05), Inches(cxs[1] - 0.2), Inches(yA + hA - 0.3)).line.color.rgb = NAVY
 text(cxs[0] - 0.08, yh, colW, 0.55, [{'t': '**DRHE**   A = |x|,  φ = ∠x', 'size': 26}])
-text(cxs[1] - 0.08, yh, colW, 0.55, [{'t': '**LPC**   2 taps per range bin', 'size': 26}])
+text(cxs[1] - 0.08, yh, colW, 0.55, [{'t': '**LPC**   x = I or Q, per range bin', 'size': 26}])
 y1 = yh + 0.7
 for k in ('d1', 'd2', 'd3'):
     _, h = eq(k, cxs[0], y1); y1 += h + 0.22
