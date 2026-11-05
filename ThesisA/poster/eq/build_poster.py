@@ -216,17 +216,30 @@ y0 = yB + 1.2
 RY = [y0 + sum(ROWS[:i]) + RGAP * i for i in range(len(ROWS))]
 
 steps = [
-    ('Real radar data', 'ColoRadar recordings [1] from a **TI AWR2243 cascade** (12 TX × 16 RX). Range FFT, then **16-bit** frames.'),
-    ('Screen 8 methods', 'MATLAB: **compression ratio** and **missed targets** for every method, on **50 frames**.\n\nThe lossy methods **lose targets**. Only **DRHE and LPC** are lossless **and** compress more than 3×, so they go on to hardware.'),
-    ('DRHE vs LPC', 'Where does the compression come from? **Huffman coding**, **prediction**, and a **re-derived dictionary**. **The dictionary helps most.**'),
-    ('Build it in hardware', 'C++ in **Vitis HLS** → **Vivado** → AMD **KCU116** FPGA. Encoder and decoder on the chip.'),
-    ('Measure on the board', 'Stream 50 frames through the FPGA, **check every frame is bit-exact**, time it and measure chip use.'),
+    ('Real radar data',
+     'Recordings from the **ColoRadar** dataset [1], captured with a **TI AWR2243 cascade** radar (12 TX × 16 RX).\n\n'
+     'In MATLAB each frame gets a **range FFT** and is stored as **16-bit integers**: the input to every method.'),
+    ('Screen 8 methods',
+     'Every method is run in **MATLAB** on the same **50 frames**.\n\n'
+     'Each is scored on **compression ratio** and **missed targets**: targets the detector finds in the original data but not after compression.\n\n'
+     '**Lossy** methods (BAQ, RDVLE) shrink the data but **lose targets**. Stored as **float**, prediction barely works (CR ≈ 1).\n\n'
+     'Only **DRHE and LPC** are lossless **and** above 3×, so they go on to hardware.'),
+    ('DRHE vs LPC',
+     'Both are run on the **FPGA test set** (4 RX, 50 frames).\n\n'
+     'The compression is split into three parts: **Huffman coding** alone, **+ prediction**, and **+ a dictionary re-derived** from the first 5 frames.\n\n'
+     '**The new dictionary adds more than the predictor.**'),
+    ('Build it in hardware',
+     'The MATLAB model is rewritten in **C++**, turned into hardware with **Vitis HLS**, and built with **Vivado** for the AMD **KCU116** board.\n\n'
+     '**Encoder and decoder** both run on the chip.'),
+    ('Measure on the board',
+     'All 50 frames are streamed through the FPGA by **DMA**.\n\n'
+     'Every output is checked **bit for bit** against the simulation, and the **time per frame** and **chip use** are measured.'),
 ]
 for i, ((title, body), y, hR) in enumerate(zip(steps, RY, ROWS)):
     box(stepX, y, stepW, hR, fill=BLUE, radius=0.08)
     circle_num(stepX + 0.3, y + 0.3, 0.95, i + 1)
     text(stepX + 1.4, y + 0.38, stepW - 1.5, 0.8, [{'t': title, 'bold': True, 'size': 30}])
-    text(stepX + 0.3, y + 1.35, stepW - 0.5, hR - 1.4, [{'t': part, 'size': 22, 'space': 14} for part in body.split('\n\n')])
+    text(stepX + 0.3, y + 1.35, stepW - 0.5, hR - 1.4, [{'t': part, 'size': 21, 'space': 9} for part in body.split('\n\n')])
     arrow(arrX, y + hR / 2 - 0.4, arrW, 0.8)
 
 def callout(x, y, w, h, paras, fill=PALE, size=24, anchor=MSO_ANCHOR.MIDDLE):
