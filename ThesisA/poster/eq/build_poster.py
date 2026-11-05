@@ -161,7 +161,7 @@ S1 = rows('poster_stage1.csv')
 RED = RGBColor(0xB0, 0x1E, 0x1E)
 
 # ================= ROW A: why compress (left) / background and aim (right) =================
-yA, hA = 9.53, 5.6
+yA, hA = 9.53, 6.0
 wA2 = 12.6                                   # why compress (left)
 wA1 = W - wA2 - GAP                          # background (right)
 xA2 = X0
@@ -174,8 +174,8 @@ text(xBG + 0.35, yA + 1.05, wA1 - 0.7, 3.4, [
     'In a car, lost detail can mean a **missed pedestrian**, so a method has to be judged on whether **targets survive**, not just on how small the data gets.',
     'Results **depend on the data**: a method that does well on simulated noise can behave differently on **real radar recordings**.',
     'And only **real hardware** shows whether a method is **fast and small enough** to run at the sensor.'],
-    bullets=True, size=22, space=5)
-aim = box(xBG + 0.35, yA + hA - 1.45, wA1 - 0.7, 1.15, fill=YELLOW, radius=0.12)
+    bullets=True, size=23, space=6)
+aim = box(xBG + 0.35, yA + hA - 1.55, wA1 - 0.7, 1.25, fill=YELLOW, radius=0.12)
 text(0, 0, 0, 0, [{'t': '**Aim:** compare compression methods side by side on **real radar data**, pick the best **lossless** ones, '
                        'and build the **encoder and decoder on an FPGA**.', 'size': 26}], anchor=MSO_ANCHOR.MIDDLE, shape=aim)
 aim.text_frame.margin_left = aim.text_frame.margin_right = Inches(0.3)
@@ -187,7 +187,7 @@ text(xA2 + 0.35, yA + 1.05, wA2 - 0.7, 2.6, [
     'The link to the car\'s central computer (SoC) becomes the bottleneck: bandwidth, power and delay.',
     'So: **compress at the sensor, losslessly**. Less data on the link, **identical** data after decoding.'],
     bullets=True, size=22, space=6)
-gy, gh = yA + 3.55, 1.4
+gy, gh = yA + 3.6, 1.6
 bw = 2.55
 xs = [xA2 + 0.35, xA2 + 0.35 + bw + 1.15, xA2 + 0.35 + 2 * (bw + 1.15)]
 labels = [('Radar', f'{FRAME_KB:.0f} KB / frame'), ('FPGA', 'compress'), ('SoC', 'decompress')]
@@ -201,7 +201,7 @@ text(xs[1] + bw + 0.575 - 0.85, gy + gh / 2 + 0.2, 1.7, 0.6, [{'t': f'{FRAME_KB 
 text(xs[2] - 0.2, gy + gh + 0.02, bw + 0.4, 0.45, [{'t': 'same data, bit for bit', 'italic': True, 'size': 22, 'align': PP_ALIGN.CENTER}])
 
 # ================= ROW B: method -> results =================
-ROWS = [3.5, 6.2, 6.95, 3.3, 4.0]            # height of each step row
+ROWS = [4.0, 6.6, 4.7, 3.8, 4.2]            # height of each step row
 RGAP = 0.12
 yB = yA + hA + 0.5
 hB = 1.2 + sum(ROWS) + RGAP * (len(ROWS) - 1) + 0.3
@@ -334,63 +334,32 @@ ix, iw = bX + 0.3, bW - 0.6
 text(ix - 0.08, y + 0.15, iw, 0.6, [{'t': 'What are DRHE and LPC?', 'bold': True, 'size': 28}])
 text(ix - 0.08, y + 0.8, iw, 1.0, [{'t': 'Both **predict** each sample xₘ from earlier ramps of the **same transmitter** (L = 12 back) and **Huffman-code the error**:', 'size': 20}])
 eq('c1', ix + (iw - EQS['sizes']['c1'][0] * 0.85) / 2, y + 1.92, k=0.85)
-yy = y + 2.45
+yy = y + 2.38
+text(ix - 0.08, yy, iw, 0.65, [{'t': '**Huffman coding:** the most common error sizes get the **shortest codes**, from a **dictionary** re-derived for this data.', 'size': 17, 'color': NAVY}])
+yy += 0.72
 text(ix - 0.08, yy, iw, 0.75, [{'t': '**DRHE** predicts **magnitude A** and **phase φ** with **fixed** filters:', 'size': 20}])
 yy += 0.78
 w0, _ = eq('d0', ix + 0.1, yy, k=0.78)
 eq('d1', ix + 0.1 + w0 + 0.45, yy + 0.02, k=0.78)
-yy += 0.55
+yy += 0.52
 text(ix - 0.08, yy, iw, 0.4, [{'t': 'Past ramps only → **streams**', 'size': 20, 'color': NAVY}])
-yy += 0.6
-text(ix - 0.08, yy, iw, 0.75, [{'t': '**LPC** takes a **weighted sum** of the previous two ramps:', 'size': 20}])
-yy += 0.78
-eq('l1', ix + 0.1, yy, k=0.82)
 yy += 0.5
+text(ix - 0.08, yy, iw, 0.75, [{'t': '**LPC** takes a **weighted sum** of the previous two ramps:', 'size': 20}])
+yy += 0.7
+eq('l1', ix + 0.1, yy, k=0.82)
+yy += 0.47
 text(ix - 0.08, yy, iw, 0.4, [{'t': 'a₁, a₂ **fitted to the whole frame** → waits', 'size': 20, 'color': NAVY}])
 
-# ---- 3: DRHE vs LPC: three figures, then a strip on Huffman coding ----
+# ---- 3: DRHE vs LPC (three figures across the full width) ----
 y, hR = RY[2], ROWS[2]
-fH3 = 4.4                                   # figure height; the Huffman strip fills the rest
 figs3 = ['fig_residual.png', 'fig_cr_bars.png', 'fig_cr_frames.png']
 ws = []
 for f in figs3:
-    im = Image.open(FIG + f); ws.append(fH3 * im.width / im.height)
+    im = Image.open(FIG + f); ws.append(hR * im.width / im.height)
 g = (endX - figX - sum(ws)) / (len(figs3) - 1)
 x = figX
 for f, wf in zip(figs3, ws):
-    picture(f, x, y, h=fH3); x += wf + g
-
-with open(FIG + 'poster_huffman.csv') as fh_:
-    HF = list(csv.DictReader(fh_))
-hy, hh = y + fH3 + 0.15, hR - fH3 - 0.15
-box(figX, hy, endX - figX, hh, fill=PALE, radius=0.06)
-lw_ = 9.6
-text(figX + 0.22, hy + 0.12, lw_, 0.55, [{'t': 'Huffman coding and the dictionary', 'bold': True, 'size': 26}])
-text(figX + 0.22, hy + 0.7, lw_, hh - 0.8, [
-    {'t': 'Each prediction error is stored as a **Huffman code** for its size S4 (how many bits it needs), '
-          'followed by those S4 bits. Huffman gives the **most common sizes the shortest codes**.', 'size': 18, 'space': 6},
-    {'t': f'The **dictionary** is this table of codes. Re-deriving it for this radar data adds '
-          f'**+{float(S2["DRHE"]["CR_AddedByDictionary"]):.2f} (DRHE)** and **+{float(S2["LPC"]["CR_AddedByDictionary"]):.2f} (LPC)** to the compression ratio.', 'size': 18}])
-# table: share of DRHE errors and code lengths per size
-nS = 6
-pctD = [float(r['Pct_DRHE']) for r in HF]
-lenO = [int(float(r['Len_Original'])) for r in HF]
-lenN = [int(float(r['Len_DRHE'])) for r in HF]
-avgO = sum(p * l for p, l in zip(pctD, lenO)) / sum(pctD)
-avgN = sum(p * l for p, l in zip(pctD, lenN)) / sum(pctD)
-top = sorted(range(nS), key=lambda k: -pctD[k])[:3]               # most common sizes
-tx = figX + 0.22 + lw_ + 0.3
-tw = endX - 0.2 - tx
-c0, cA = 4.3, 2.3
-cS = (tw - c0 - cA) / nS
-rows_ = [
-    ['DRHE errors, size S4'] + [str(k) for k in range(nS)] + ['Average code'],
-    ['Share of errors'] + [f'**{pctD[k]:.0f} %**' if k in top else f'{pctD[k]:.0f} %' for k in range(nS)] + ['–'],
-    ['Code length, original'] + [str(lenO[k]) for k in range(nS)] + [f'{avgO:.2f} bits'],
-    ['Code length, re-derived'] + [f'**{lenN[k]}**' if k in top else str(lenN[k]) for k in range(nS)] + [f'**{avgN:.2f} bits**'],
-]
-make_table(tx, hy + (hh - 4 * 0.52) / 2, [c0] + [cS] * nS + [cA], 0.52, rows_, size=18, head_size=18,
-           fills=[None, None, None, GREEN], aligns=[PP_ALIGN.LEFT] + [PP_ALIGN.CENTER] * (nS + 1))
+    picture(f, x, y, h=hR); x += wf + g
 
 # ---- 4: build it in hardware: photo + design flow ----
 y, hR = RY[3], ROWS[3]
@@ -452,7 +421,7 @@ text(xC2 + 0.35, yC + 1.05, wC2 - 0.7, hC - 1.7, [
     f'**LPC compresses most: {crL:.2f}×** (DRHE {crD:.2f}×). Re-deriving the **Huffman dictionary** for this data helped **more than the predictor** did.',
     f'**DRHE streams** with no frame buffer; **LPC must buffer a whole frame** ({encL_ms:.2f} ms). Both meet the 15 ms limit here, but **DRHE scales better to bigger frames**.',
     'Next: a streaming LPC, all 16 receivers, fixed-point DRHE.'],
-    bullets=True, size=21, space=3)
+    bullets=True, size=22, space=4)
 text(xC2 + 0.35, yC + hC - 0.75, wC2 - 0.7, 0.65, [
     {'t': '[1] A. Kramer et al., ColoRadar: the direct 3D millimeter wave radar dataset, IJRR, 2022.', 'size': 14}])
 
