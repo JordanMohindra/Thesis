@@ -14,7 +14,7 @@
 %
 %  Outputs (in P.outDir): fig_stage1.png, fig_cr_bars.png, fig_cr_frames.png,
 %  fig_timing.png, fig_resources.png, fig_input.png, fig_residual.png, and the numbers behind the poster
-%  tables: poster_stage1.csv, poster_stage2.csv, poster_hardware.csv.
+%  tables: poster_stage1.csv, poster_stage2.csv, poster_huffman.csv, poster_hardware.csv.
 
 clear; close all;
 here = fileparts(mfilename('fullpath'));
@@ -125,6 +125,13 @@ S2 = table({'DRHE'; 'LPC'}, ...
                       'CR_Total', 'CR_Total_HeldOut'});
 disp(S2);
 writetable(S2, fullfile(P.outDir, 'poster_stage2.csv'));
+
+% Huffman dictionary table for the poster: how often each size S4 occurs and
+% the code length each dictionary gives it (original vs re-derived).
+pctOf = @(h) 100 * sum(h, 1)' / sum(h, 'all');
+HF = table((0:15)', pctOf(stage2.histNone), pctOf(stage2.histDRHE), pctOf(stage2.histLPC), kiem(:), dictD(:), dictL(:), ...
+    'VariableNames', {'S4', 'Pct_Raw', 'Pct_DRHE', 'Pct_LPC', 'Len_Original', 'Len_DRHE', 'Len_LPC'});
+writetable(HF, fullfile(P.outDir, 'poster_huffman.csv'));
 
 %% ---- Hardware: Vivado reports and board results -------------------------
 hw = read_hardware(P);
