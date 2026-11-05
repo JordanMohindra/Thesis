@@ -263,14 +263,13 @@ y, hR = RY[0], ROWS[0]
 w, _ = picture('fig_input.png', figX, y, h=hR)
 cx = figX + w + 0.4
 C, L_ = PP_ALIGN.CENTER, PP_ALIGN.LEFT
-make_table(cx, y, [3.1, 5.7, 1.9], hR / 6, [
-    ['Data', 'What it is', 'Size'],
-    ['Test set', '**50 frames** of real radar data, each compressed on its own', f'{50 * FRAME_KB / 1000:.1f} MB'],
-    ['Input frame', '128 range bins × 192 ramps × 4 RX, 16-bit I/Q', f'**{FRAME_KB:.0f} KB**'],
-    ['Compressed, DRHE', 'Huffman-coded prediction errors', f'**{FRAME_KB / crD:.0f} KB**'],
-    ['Compressed, LPC', 'The same, plus 2 coefficients per range bin', f'**{FRAME_KB / crL:.0f} KB**'],
-    ['Decompressed', '**Identical** to the input, bit for bit', f'**{FRAME_KB:.0f} KB**'],
-], fills=[None, None, None, PALE, PALE, GREEN], aligns=[L_, L_, C])
+make_table(cx, y, [3.1, 5.7, 1.9], hR / 5, [
+    ['Data', 'Details', 'Size'],
+    ['Dataset', '**ColoRadar** [1]: real radar recordings, open source', '–'],
+    ['Radar', 'TI MMWCAS-RF-EVM: 4 × AWR2243 chips, **12 TX × 16 RX**', '–'],
+    ['Frames used', '**50 frames**, each processed on its own', f'{50 * FRAME_KB / 1000:.1f} MB'],
+    ['One frame', '128 range bins × 192 ramps × 4 RX, 16-bit I/Q (after range FFT)', f'**{FRAME_KB:.0f} KB**'],
+], aligns=[L_, L_, C])
 jx = cx + 10.7 + 0.35
 jw = endX - jx
 box(jx, y, jw, hR, fill=PALE, radius=0.06)
@@ -278,7 +277,6 @@ text(jx + 0.2, y + 0.15, jw - 0.4, 0.55, [{'t': 'Each method is judged on:', 'bo
 ew, eh = (v * 0.8 for v in EQS['sizes']['cr'])
 eq('cr', jx + (jw - ew) / 2, y + 0.8, k=0.8)
 text(jx + 0.2, y + 0.9 + eh, jw - 0.4, hR - 1.0 - eh, [
-    {'t': f'DRHE **{crD:.2f}×**,  LPC **{crL:.2f}×**', 'size': 22, 'align': PP_ALIGN.CENTER, 'space': 8},
     {'t': '**Missed targets:** targets found in the original data but **not** after compression.', 'size': 20}])
 
 # ---- 2: screen all methods: figure | table of methods | what are DRHE and LPC ----
