@@ -150,147 +150,254 @@ X0, X1 = 0.85, 32.26
 W = X1 - X0
 GAP = 0.45
 
-# ================= ROW A: why compress / what are the algorithms / hardware photo =================
-yA, hA = 9.53, 6.6
-wA1, wA3 = 12.6, 6.0
-wA2 = W - wA1 - wA3 - 2 * GAP
-xA2, xA3 = X0 + wA1 + GAP, X0 + wA1 + wA2 + 2 * GAP
+EQS = json.load(open(HERE + '/eq/sizes.json'))
 
-box(X0, yA, wA1, hA, fill=BLUE)
-heading(X0 + 0.35, yA + 0.25, wA1 - 0.7, 'Why compress radar data?')
-text(X0 + 0.35, yA + 1.05, wA1 - 0.7, 2.6, [
+def eq(key, x, y, k=0.82):
+    w, h = (v * k for v in EQS['sizes'][key])
+    s.shapes.add_picture(HERE + f'/eq/{key}.png', Inches(x), Inches(y), Inches(w), Inches(h))
+    return w, h
+
+S1 = rows('poster_stage1.csv')
+RED = RGBColor(0xB0, 0x1E, 0x1E)
+
+# ================= ROW A: why compress (left) / background and aim (right) =================
+yA, hA = 9.53, 6.0
+wA2 = 12.6                                   # why compress (left)
+wA1 = W - wA2 - GAP                          # background (right)
+xA2 = X0
+xBG = X0 + wA2 + GAP
+
+box(xBG, yA, wA1, hA, fill=BLUE)
+heading(xBG + 0.35, yA + 0.25, wA1 - 0.7, 'Background and aim')
+text(xBG + 0.35, yA + 1.05, wA1 - 0.7, 3.4, [
+    'There are many ways to compress radar data, and **no single best one**: each trades **compression** against **accuracy**, **speed** and **hardware cost**.',
+    'In a car, lost detail can mean a **missed pedestrian**, so a method has to be judged on whether **targets survive**, not just on how small the data gets.',
+    'Results **depend on the data**: a method that does well on simulated noise can behave differently on **real radar recordings**.',
+    'And only **real hardware** shows whether a method is **fast and small enough** to run at the sensor.'],
+    bullets=True, size=23, space=6)
+aim = box(xBG + 0.35, yA + hA - 1.55, wA1 - 0.7, 1.25, fill=YELLOW, radius=0.12)
+text(0, 0, 0, 0, [{'t': '**Aim:** compare compression methods side by side on **real radar data**, pick the best **lossless** ones, '
+                       'and build the **encoder and decoder on an FPGA**.', 'size': 26}], anchor=MSO_ANCHOR.MIDDLE, shape=aim)
+aim.text_frame.margin_left = aim.text_frame.margin_right = Inches(0.3)
+
+box(xA2, yA, wA2, hA, fill=BLUE)
+heading(xA2 + 0.35, yA + 0.25, wA2 - 0.7, 'Why compress radar data?')
+text(xA2 + 0.35, yA + 1.05, wA2 - 0.7, 2.6, [
     'Cascaded MIMO radars (here **12 transmitters × 16 receivers**) produce **3.1 MB of raw data in every frame**, frame after frame.',
     'The link to the car\'s central computer (SoC) becomes the bottleneck: bandwidth, power and delay.',
-    'So: **compress at the sensor, losslessly**. Less data on the link, **identical** data after decoding, so target detection is unchanged.'],
-    bullets=True)
-# compression graphic: radar -> FPGA compress -> thin link -> SoC decompress
-gy, gh = yA + 3.95, 1.85
+    'So: **compress at the sensor, losslessly**. Less data on the link, **identical** data after decoding.'],
+    bullets=True, size=22, space=6)
+gy, gh = yA + 3.6, 1.6
 bw = 2.55
-xs = [X0 + 0.35, X0 + 0.35 + bw + 1.15, X0 + 0.35 + 2 * (bw + 1.15)]
+xs = [xA2 + 0.35, xA2 + 0.35 + bw + 1.15, xA2 + 0.35 + 2 * (bw + 1.15)]
 labels = [('Radar', f'{FRAME_KB:.0f} KB / frame'), ('FPGA', 'compress'), ('SoC', 'decompress')]
-fills = [WHITE, YELLOW, WHITE]
-for (t1, t2), xx, fc in zip(labels, xs, fills):
+for (t1, t2), xx, fc in zip(labels, xs, [WHITE, YELLOW, WHITE]):
     b = box(xx, gy, bw, gh, fill=fc, line=NAVY, lw=3, radius=0.12)
     text(0, 0, 0, 0, [{'t': t1, 'bold': True, 'size': 28, 'align': PP_ALIGN.CENTER, 'space': 2},
                       {'t': t2, 'size': 22, 'align': PP_ALIGN.CENTER}], anchor=MSO_ANCHOR.MIDDLE, shape=b)
 arrow(xs[0] + bw + 0.1, gy + gh / 2 - 0.45, 0.95, 0.9)                 # fat: raw data
 arrow(xs[1] + bw + 0.1, gy + gh / 2 - 0.13, 0.95, 0.26)                # thin: compressed
 text(xs[1] + bw + 0.575 - 0.85, gy + gh / 2 + 0.2, 1.7, 0.6, [{'t': f'{FRAME_KB / crD:.0f} KB', 'bold': True, 'size': 24, 'align': PP_ALIGN.CENTER}])
-text(xs[2] - 0.2, gy + gh + 0.05, bw + 0.4, 0.5, [{'t': 'same data, bit for bit', 'italic': True, 'size': 22, 'align': PP_ALIGN.CENTER}])
-
-box(xA2, yA, wA2, hA, fill=BLUE)
-heading(xA2 + 0.35, yA + 0.25, wA2 - 0.7, 'What are DRHE and LPC?')
-EQS = json.load(open(HERE + '/eq/sizes.json'))
-EQK = 0.82                                          # every equation at 0.82 x 30 pt ~ 25 pt
-
-def eq(key, x, y, k=EQK):
-    w, h = (v * k for v in EQS['sizes'][key])
-    s.shapes.add_picture(HERE + f'/eq/{key}.png', Inches(x), Inches(y), Inches(w), Inches(h))
-    return w, h
-
-ix, iw = xA2 + 0.4, wA2 - 0.8
-text(ix - 0.08, yA + 1.0, iw, 0.8, [
-    {'t': 'Both **predict** each sample xₘ from earlier ramps of the **same transmitter** (L = 12 ramps back). Only the small **prediction error** is Huffman-coded:', 'size': 22}])
-eq('c1', ix + (iw - EQS['sizes']['c1'][0] * 0.95) / 2, yA + 1.9, k=0.95)
-colW = (iw - 0.4) / 2
-cxs = [ix, ix + colW + 0.4]
-yh = yA + 2.55
-s.shapes.add_connector(1, Inches(cxs[1] - 0.2), Inches(yh + 0.05), Inches(cxs[1] - 0.2), Inches(yA + hA - 0.3)).line.color.rgb = NAVY
-text(cxs[0] - 0.08, yh, colW, 0.55, [{'t': '**DRHE**', 'size': 28}])
-text(cxs[1] - 0.08, yh, colW, 0.55, [{'t': '**LPC**', 'size': 28}])
-# DRHE: words + the two key equations
-yd = yh + 0.6
-text(cxs[0] - 0.08, yd, colW, 0.8, [{'t': 'Predicts **magnitude A** and **phase φ** separately, with **fixed** filters:', 'size': 22}])
-yd += 1.0
-_, h = eq('d0', cxs[0] + 0.2, yd, k=0.9); yd += h + 0.15
-eq('d1', cxs[0] + 0.2, yd, k=0.9)
-# LPC: words + the predictor
-yl = yh + 0.6
-text(cxs[1] - 0.08, yl, colW, 0.8, [{'t': 'A **weighted sum** of the same range bin’s previous two ramps:', 'size': 22}])
-yl += 1.0
-_, h = eq('l1', cxs[1] + 0.2, yl, k=0.9); yl += h + 0.15
-text(cxs[1] - 0.08, yl, colW, 1.0, [{'t': 'a₁, a₂ are **fitted to the whole frame**, per range bin.', 'size': 22}])
-yn = yA + hA - 0.72
-text(cxs[0] - 0.08, yn, colW, 0.5, [{'t': 'Past ramps only → **streams**', 'size': 22, 'color': NAVY}])
-text(cxs[1] - 0.08, yn, colW, 0.5, [{'t': 'Needs **the whole frame** → waits', 'size': 22, 'color': NAVY}])
-
-pb = box(xA3, yA, wA3, hA, fill=PALE, line=NAVY, lw=4, radius=0.06, dash=True)
-text(0, 0, 0, 0, [{'t': '[Photo: KCU116 FPGA board and laptop running the test]', 'italic': True, 'size': 24, 'align': PP_ALIGN.CENTER}],
-     anchor=MSO_ANCHOR.MIDDLE, shape=pb)
+text(xs[2] - 0.2, gy + gh + 0.02, bw + 0.4, 0.45, [{'t': 'same data, bit for bit', 'italic': True, 'size': 22, 'align': PP_ALIGN.CENTER}])
 
 # ================= ROW B: method -> results =================
+ROWS = [4.0, 6.6, 4.7, 3.8, 4.2]            # height of each step row
+RGAP = 0.12
 yB = yA + hA + 0.5
-hB = 24.4
+hB = 1.2 + sum(ROWS) + RGAP * (len(ROWS) - 1) + 0.3
 box(X0, yB, W, hB, fill=None, line=BLUE, lw=10, radius=0.025)
 text(X0, yB + 0.2, W, 0.8, [{'t': 'Method → Results', 'bold': True, 'size': 44, 'align': PP_ALIGN.CENTER}])
 
-stepX, stepW = X0 + 0.5, 7.9
-arrX, arrW = stepX + stepW + 0.25, 1.0
-figX = arrX + arrW + 0.3
-rowH, figH = 4.52, 4.25
+stepX, stepW = X0 + 0.5, 6.6
+arrX, arrW = stepX + stepW + 0.2, 0.8
+figX = arrX + arrW + 0.25
+endX = X1 - 0.5
 y0 = yB + 1.2
+RY = [y0 + sum(ROWS[:i]) + RGAP * i for i in range(len(ROWS))]
 
 steps = [
-    ('Real radar data', 'ColoRadar recordings [1] from a **TI AWR2243 cascade** (12 TX). Range FFT in MATLAB, then **16-bit frames**.'),
-    ('Screen 8 algorithms', 'MATLAB: **compression ratio** and **target detection** for every method on **50 frames**.'),
-    ('DRHE vs LPC', 'Where does the compression come from? **Huffman coding**, **prediction**, and a **dictionary re-derived** for this data. **The dictionary helps more than the predictor.**'),
+    ('Real radar data', 'ColoRadar recordings [1] from a **TI AWR2243 cascade** (12 TX × 16 RX). Range FFT, then **16-bit** frames.'),
+    ('Screen 8 methods', 'MATLAB: **compression ratio** and **missed targets** for every method, on **50 frames**.\n\nThe lossy methods **lose targets**. Only **DRHE and LPC** are lossless **and** compress more than 3×, so they go on to hardware.'),
+    ('DRHE vs LPC', 'Where does the compression come from? **Huffman coding**, **prediction**, and a **re-derived dictionary**. **The dictionary helps most.**'),
     ('Build it in hardware', 'C++ in **Vitis HLS** → **Vivado** → AMD **KCU116** FPGA. Encoder and decoder on the chip.'),
-    ('Measure on the board', 'Stream 50 frames through the FPGA, **check every frame is bit-exact**, and time it.'),
+    ('Measure on the board', 'Stream 50 frames through the FPGA, **check every frame is bit-exact**, time it and measure chip use.'),
 ]
-for i, (title, body) in enumerate(steps):
-    y = y0 + i * (rowH + 0.08)
-    card = box(stepX, y, stepW, figH, fill=BLUE, radius=0.08)
+for i, ((title, body), y, hR) in enumerate(zip(steps, RY, ROWS)):
+    box(stepX, y, stepW, hR, fill=BLUE, radius=0.08)
     circle_num(stepX + 0.3, y + 0.3, 0.95, i + 1)
-    text(stepX + 1.45, y + 0.38, stepW - 1.6, 0.8, [{'t': title, 'bold': True, 'size': 32}])
-    text(stepX + 0.3, y + 1.35, stepW - 0.5, figH - 1.4, [{'t': body, 'size': 24}])
-    arrow(arrX, y + figH / 2 - 0.4, arrW, 0.8)
+    text(stepX + 1.4, y + 0.38, stepW - 1.5, 0.8, [{'t': title, 'bold': True, 'size': 30}])
+    text(stepX + 0.3, y + 1.35, stepW - 0.5, hR - 1.4, [{'t': part, 'size': 22, 'space': 14} for part in body.split('\n\n')])
+    arrow(arrX, y + hR / 2 - 0.4, arrW, 0.8)
 
-def row_y(i):
-    return y0 + i * (rowH + 0.08)
-
-def callout(x, y, w, h, paras, fill=PALE):
+def callout(x, y, w, h, paras, fill=PALE, size=24, anchor=MSO_ANCHOR.MIDDLE):
     b = box(x, y, w, h, fill=fill, radius=0.06)
-    text(0, 0, 0, 0, paras, anchor=MSO_ANCHOR.MIDDLE, shape=b, size=24)
+    text(0, 0, 0, 0, paras, anchor=anchor, shape=b, size=size)
     b.text_frame.margin_left = b.text_frame.margin_right = Inches(0.3)
     return b
 
-endX = X1 - 0.5
-# 1: input
-y = row_y(0); w, _ = picture('fig_input.png', figX, y, h=figH)
+def make_table(x, y, colw, rowh, data, size=20, head_size=20, fills=None, aligns=None):
+    """data[0] is the header row. Cell text may use **bold**. fills[i] = row fill."""
+    t = s.shapes.add_table(len(data), len(colw), Inches(x), Inches(y), Inches(sum(colw)), Inches(rowh * len(data))).table
+    for j, cw in enumerate(colw):
+        t.columns[j].width = Inches(cw)
+    for i, row in enumerate(data):
+        t.rows[i].height = Inches(rowh)
+        for j, txt in enumerate(row):
+            c = t.cell(i, j)
+            head = i == 0
+            c.fill.solid(); c.fill.fore_color.rgb = NAVY if head else (fills[i] if fills and fills[i] else WHITE)
+            c.margin_left = c.margin_right = Inches(0.12); c.margin_top = c.margin_bottom = Inches(0.02)
+            c.vertical_anchor = MSO_ANCHOR.MIDDLE
+            c.text_frame.word_wrap = True
+            pp = c.text_frame.paragraphs[0]
+            pp.alignment = (aligns[j] if aligns else PP_ALIGN.LEFT)
+            for tt, bb in runs_of(txt):
+                r = pp.add_run(); r.text = tt
+                r.font.name = FONT; r.font.size = Pt(head_size if head else size)
+                r.font.bold = head or bb or j == 0
+                r.font.color.rgb = WHITE if head else BLACK
+    return t
+
+# ---- 1: input ----
+y, hR = RY[0], ROWS[0]
+w, _ = picture('fig_input.png', figX, y, h=hR)
 cx = figX + w + 0.4
-cb = callout(cx, y, endX - cx, figH, [
-    {'t': f'**Input:** one frame = 128 range bins × 192 ramps × 4 RX, 16-bit I/Q = **{FRAME_KB:.0f} KB**', 'space': 14},
-    {'t': f'**Output:** a compressed bitstream of about **{FRAME_KB / crD:.0f} KB** (DRHE). Decompressing it gives back **exactly the same frame**.'}])
-cb.text_frame.vertical_anchor = MSO_ANCHOR.TOP; cb.text_frame.margin_top = Inches(0.3)
-ew, eh = (v * 0.9 for v in EQS['sizes']['cr'])
-ecx = cx + (endX - cx) / 2 - ew - 0.2
-eq('cr', ecx, y + figH - eh - 0.3, k=0.9)
-text(ecx + ew + 0.2, y + figH - eh - 0.3, 6.5, eh, [{'t': f'= {FRAME_KB:.0f} KB / {FRAME_KB / crD:.0f} KB ≈ **{crD:.1f}×** (DRHE)', 'size': 28}], anchor=MSO_ANCHOR.MIDDLE)
-# 2: stage 1
-y = row_y(1); w, _ = picture('fig_stage1.png', figX, y, h=figH)
-cx = figX + w + 0.4
-callout(cx, y, endX - cx, figH, [
-    {'t': '**The green area is the goal:** high compression (right) **and** no extra missed targets (bottom).', 'space': 12},
-    {'t': '**Lossy** methods (BAQ, RDVLE) shrink the data but **lose targets**. Only **DRHE and LPC** land in the green.', 'space': 12},
-    {'t': 'The 3.77 % baseline comes from 16-bit rounding, not compression.', 'size': 20, 'italic': True}], fill=GREEN)
-# 3: DRHE vs LPC
-y = row_y(2); x = figX
-for f in ('fig_residual.png', 'fig_cr_bars.png', 'fig_cr_frames.png'):
-    w, _ = picture(f, x, y, h=figH); x += w + 0.35
-# 4: hardware
-y = row_y(3); w, _ = picture('fig_resources.png', figX, y, h=figH)
-cx = figX + w + 0.4
-callout(cx, y, endX - cx, figH, [
-    {'t': f'**Encoder + decoder use under a quarter of the chip:** DRHE {lutD:.0f} %, LPC {lutL:.0f} % of the logic (LUTs).', 'space': 12},
-    {'t': 'The same C++ that was simulated runs on the FPGA, so the hardware can be checked **bit for bit** against the simulation.'}])
-# 5: timing
-y = row_y(4); w, _ = picture('fig_timing.png', figX, y, h=figH)
-cx = figX + w + 0.4
-callout(cx, y, endX - cx, figH, [
-    {'t': '**50 / 50 frames bit-exact** on the FPGA', 'size': 30, 'space': 12},
-    {'t': f'**DRHE: {encD_ms:.2f} ms per frame.** Output streams out as the data comes in.', 'space': 10},
-    {'t': f'**LPC: {encL_ms:.2f} ms per frame.** It must store the whole frame before it can output anything.', 'space': 10},
-    {'t': 'Decode timing: board run pending.', 'size': 20, 'italic': True}])
+C, L_ = PP_ALIGN.CENTER, PP_ALIGN.LEFT
+make_table(cx, y, [3.1, 5.7, 1.9], hR / 5, [
+    ['Data', 'What it is', 'Size'],
+    ['Input frame', '128 range bins × 192 ramps × 4 RX, 16-bit I/Q', f'**{FRAME_KB:.0f} KB**'],
+    ['Compressed, DRHE', 'Huffman-coded prediction errors', f'**{FRAME_KB / crD:.0f} KB**'],
+    ['Compressed, LPC', 'The same, plus 2 coefficients per range bin', f'**{FRAME_KB / crL:.0f} KB**'],
+    ['Decompressed', '**Identical** to the input, bit for bit', f'**{FRAME_KB:.0f} KB**'],
+], fills=[None, None, PALE, PALE, GREEN], aligns=[L_, L_, C])
+jx = cx + 10.7 + 0.35
+jw = endX - jx
+box(jx, y, jw, hR, fill=PALE, radius=0.06)
+text(jx + 0.2, y + 0.15, jw - 0.4, 0.55, [{'t': 'Each method is judged on:', 'bold': True, 'size': 24}])
+ew, eh = (v * 0.8 for v in EQS['sizes']['cr'])
+eq('cr', jx + (jw - ew) / 2, y + 0.8, k=0.8)
+text(jx + 0.2, y + 0.9 + eh, jw - 0.4, hR - 1.0 - eh, [
+    {'t': f'DRHE **{crD:.2f}×**,  LPC **{crL:.2f}×**', 'size': 22, 'align': PP_ALIGN.CENTER, 'space': 8},
+    {'t': '**Missed targets:** targets found in the original data but **not** after compression.', 'size': 20}])
+
+# ---- 2: screen all methods: figure | table of methods | what are DRHE and LPC ----
+y, hR = RY[1], ROWS[1]
+fh = 6.0
+w, _ = picture('fig_stage1.png', figX, y + (hR - fh) / 2, h=fh)
+tX = figX + w + 0.35
+tW = 6.9
+methods = [   # (csv key, name, idea, selected)
+    ('FP16', 'FP16', '16-bit float, uncompressed', False),
+    ('FX16', 'FX16', '16-bit integer, uncompressed', False),
+    ('BAQ', 'BAQ', 'Block adaptive quantisation (lossy)', False),
+    ('RDVLE', 'RDVLE', 'Vector quantisation (lossy)', False),
+    ('RDVLE_UDRE', 'RDVLE UDRE', 'Vector quantisation variant (lossy)', False),
+    ('DRHEfp16', 'DRHE fp16', 'DRHE on float data', False),
+    ('DRHE', 'DRHE', 'Predict magnitude & phase, Huffman', True),
+    ('LPC_Huffman', 'LPC', 'Linear prediction, Huffman', True),
+]
+tH = 5.15
+tbl = s.shapes.add_table(len(methods) + 1, 4, Inches(tX), Inches(y), Inches(tW), Inches(tH)).table
+for j, cw in enumerate([1.55, 3.25, 0.95, 1.15]):
+    tbl.columns[j].width = Inches(cw)
+tbl.rows[0].height = Inches(0.55)
+for i in range(1, len(methods) + 1):
+    tbl.rows[i].height = Inches((tH - 0.55) / len(methods))
+
+def cell(i, j, t, bold=False, fill=WHITE, color=BLACK, align=PP_ALIGN.LEFT, size=18):
+    c = tbl.cell(i, j)
+    c.fill.solid(); c.fill.fore_color.rgb = fill
+    c.margin_left = c.margin_right = Inches(0.08); c.margin_top = c.margin_bottom = Inches(0.02)
+    c.vertical_anchor = MSO_ANCHOR.MIDDLE
+    tf = c.text_frame; tf.word_wrap = True
+    p = tf.paragraphs[0]; p.alignment = align
+    for tt, bb in runs_of(t):
+        r = p.add_run(); r.text = tt
+        r.font.name = FONT; r.font.size = Pt(size); r.font.bold = bold or bb; r.font.color.rgb = color
+
+for j, hd in enumerate(['Method', 'How it works', 'CR', 'Missed']):
+    cell(0, j, hd, bold=True, fill=NAVY, color=WHITE, align=PP_ALIGN.LEFT if j < 2 else PP_ALIGN.CENTER, size=20)
+for i, (key, name, idea, sel) in enumerate(methods, start=1):
+    cr_, fn = float(S1[key]['CR']), float(S1[key]['FN_pct'])
+    fill = GREEN if sel else WHITE
+    lossy = fn > 5
+    cell(i, 0, name, bold=True, fill=fill)
+    cell(i, 1, idea, fill=fill, size=17)
+    cell(i, 2, f'{cr_:.2f}', bold=sel, fill=fill, align=PP_ALIGN.CENTER)
+    cell(i, 3, f'{fn:.1f} %', bold=sel or lossy, fill=fill, color=RED if lossy else BLACK, align=PP_ALIGN.CENTER)
+text(tX - 0.08, y + tH + 0.08, tW + 0.16, hR - tH - 0.08, [
+    {'t': '**Green = selected:** high CR **and** no extra missed targets. The 3.8 % comes from 16-bit rounding, not compression.', 'size': 17}])
+
+bX = tX + tW + 0.3
+bW = endX - bX
+box(bX, y, bW, hR, fill=PALE, radius=0.05)
+ix, iw = bX + 0.3, bW - 0.6
+text(ix - 0.08, y + 0.15, iw, 0.6, [{'t': 'What are DRHE and LPC?', 'bold': True, 'size': 28}])
+text(ix - 0.08, y + 0.8, iw, 1.0, [{'t': 'Both **predict** each sample xₘ from earlier ramps of the **same transmitter** (L = 12 back) and **Huffman-code the error**:', 'size': 20}])
+eq('c1', ix + (iw - EQS['sizes']['c1'][0] * 0.85) / 2, y + 1.92, k=0.85)
+yy = y + 2.45
+text(ix - 0.08, yy, iw, 0.75, [{'t': '**DRHE** predicts **magnitude A** and **phase φ** with **fixed** filters:', 'size': 20}])
+yy += 0.78
+w0, _ = eq('d0', ix + 0.1, yy, k=0.78)
+eq('d1', ix + 0.1 + w0 + 0.45, yy + 0.02, k=0.78)
+yy += 0.55
+text(ix - 0.08, yy, iw, 0.4, [{'t': 'Past ramps only → **streams**', 'size': 20, 'color': NAVY}])
+yy += 0.6
+text(ix - 0.08, yy, iw, 0.75, [{'t': '**LPC** takes a **weighted sum** of the previous two ramps:', 'size': 20}])
+yy += 0.78
+eq('l1', ix + 0.1, yy, k=0.82)
+yy += 0.5
+text(ix - 0.08, yy, iw, 0.4, [{'t': 'a₁, a₂ **fitted to the whole frame** → waits', 'size': 20, 'color': NAVY}])
+
+# ---- 3: DRHE vs LPC (three figures across the full width) ----
+y, hR = RY[2], ROWS[2]
+figs3 = ['fig_residual.png', 'fig_cr_bars.png', 'fig_cr_frames.png']
+ws = []
+for f in figs3:
+    im = Image.open(FIG + f); ws.append(hR * im.width / im.height)
+g = (endX - figX - sum(ws)) / (len(figs3) - 1)
+x = figX
+for f, wf in zip(figs3, ws):
+    picture(f, x, y, h=hR); x += wf + g
+
+# ---- 4: build it in hardware: photo + design flow ----
+y, hR = RY[3], ROWS[3]
+pw = 7.2
+pb = box(figX, y, pw, hR, fill=PALE, line=NAVY, lw=4, radius=0.06, dash=True)
+text(0, 0, 0, 0, [{'t': '[Photo: KCU116 FPGA board and laptop running the test]', 'italic': True, 'size': 22, 'align': PP_ALIGN.CENTER}],
+     anchor=MSO_ANCHOR.MIDDLE, shape=pb)
+cx = figX + pw + 0.4
+cW = endX - cx
+box(cx, y, cW, hR, fill=PALE, radius=0.06)
+flow = [('MATLAB', 'model'), ('C++', 'Vitis HLS'), ('Vivado', 'bitstream'), ('KCU116', 'FPGA board')]
+fw, fgap = 2.6, (cW - 0.6 - 4 * 2.6) / 3
+for k, (t1, t2) in enumerate(flow):
+    fx = cx + 0.3 + k * (fw + fgap)
+    b = box(fx, y + 0.3, fw, 1.35, fill=YELLOW if k == 3 else WHITE, line=NAVY, lw=3, radius=0.12)
+    text(0, 0, 0, 0, [{'t': t1, 'bold': True, 'size': 24, 'align': PP_ALIGN.CENTER, 'space': 0},
+                      {'t': t2, 'size': 18, 'align': PP_ALIGN.CENTER}], anchor=MSO_ANCHOR.MIDDLE, shape=b)
+    if k < 3:
+        arrow(fx + fw + 0.12, y + 0.3 + 0.675 - 0.25, fgap - 0.24, 0.5)
+text(cx + 0.22, y + 1.85, cW - 0.44, hR - 1.95, [
+    {'t': 'The **same C++** that was simulated is built for the chip, so the board\'s output can be checked **bit for bit** against the simulation. Encoder and decoder each run as their own core, fed by DMA from the board\'s memory.', 'size': 22}])
+
+# ---- 5: measure on the board: timing + resources + numbers ----
+y, hR = RY[4], ROWS[4]
+w1, _ = picture('fig_timing.png', figX, y, h=hR)
+w2, _ = picture('fig_resources.png', figX + w1 + 0.3, y, h=hR)
+cx = figX + w1 + w2 + 0.7
+def ms_txt(cyc):
+    return 'pending' if cyc != cyc else f'{cyc / 1e5:.2f} ms'    # NaN -> pending
+decD, decL = float(HW['DRHE']['DecCyclesPerFrame']), float(HW['LPC']['DecCyclesPerFrame'])
+make_table(cx, y, [3.95, 2.9, 2.9], hR / 7, [
+    ['On the FPGA', 'DRHE', 'LPC'],
+    ['Frames bit-exact', '**50 / 50**', '**50 / 50**'],
+    ['Compression ratio', f'{crD:.2f}×', f'**{crL:.2f}×**'],
+    ['Encode time / frame', f'**{encD_ms:.2f} ms**', f'{encL_ms:.2f} ms'],
+    ['Output starts', '**as data arrives**', 'after whole frame'],
+    ['Chip logic (LUTs)', f'**{lutD:.0f} %**', f'{lutL:.0f} %'],
+    ['Decode time / frame', ms_txt(decD), ms_txt(decL)],
+], fills=[None, GREEN, None, PALE, None, PALE, None], aligns=[PP_ALIGN.LEFT, PP_ALIGN.CENTER, PP_ALIGN.CENTER])
 
 # ================= ROW C: why FPGA / conclusion =================
 yC = yB + hB + 0.5
@@ -313,8 +420,8 @@ text(xC2 + 0.35, yC + 1.05, wC2 - 0.7, hC - 1.7, [
     f'**LPC compresses most: {crL:.2f}×** (DRHE {crD:.2f}×). Re-deriving the **Huffman dictionary** for this data helped **more than the predictor** did.',
     f'**DRHE streams** with no frame buffer; **LPC must buffer a whole frame** ({encL_ms:.2f} ms). Both meet the 15 ms limit here, but **DRHE scales better to bigger frames**.',
     'Next: a streaming LPC, all 16 receivers, fixed-point DRHE.'],
-    bullets=True, size=24, space=6)
-text(xC2 + 0.35, yC + hC - 0.5, wC2 - 0.7, 0.4, [
+    bullets=True, size=22, space=4)
+text(xC2 + 0.35, yC + hC - 0.75, wC2 - 0.7, 0.65, [
     {'t': '[1] A. Kramer et al., ColoRadar: the direct 3D millimeter wave radar dataset, IJRR, 2022.', 'size': 14}])
 
 prs.save(HERE + '/Thesis_Poster.pptx')
