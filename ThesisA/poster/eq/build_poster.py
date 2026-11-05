@@ -283,7 +283,7 @@ text(jx + 0.2, y + 0.9 + eh, jw - 0.4, hR - 1.0 - eh, [
 
 # ---- 2: screen all methods: figure | table of methods | what are DRHE and LPC ----
 y, hR = RY[1], ROWS[1]
-fh = 6.0
+fh = 5.8
 w, _ = picture('fig_stage1.png', figX, y + (hR - fh) / 2, h=fh)
 tX = figX + w + 0.35
 tW = 6.9

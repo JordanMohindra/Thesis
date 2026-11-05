@@ -138,36 +138,43 @@ disp(H); fprintf('  encoder timing from: %s\n  decoder timing from: %s\n', hw.en
 writetable(H, fullfile(P.outDir, 'poster_hardware.csv'));
 
 %% ======================= FIGURES =========================================
+% Poster style: plain-language titles and axis labels, the key numbers and
+% the two selected methods in bold.
 W = P.figWidth;
-set(groot, 'defaultAxesFontSize', 9, 'defaultTextFontSize', 8);
+set(groot, 'defaultAxesFontSize', 9, 'defaultTextFontSize', 8, ...
+    'defaultAxesTitleFontSizeMultiplier', 1.2, 'defaultAxesLabelFontSizeMultiplier', 1.1, ...
+    'defaultAxesTitleFontWeight', 'bold', 'defaultLegendFontSize', 8);
 C = colororder; grey = [0.65 0.65 0.65];
+selGreen = [0.18 0.49 0.20];
 setappdata(groot, 'posterDPI', P.dpi);
 
-% ---- Stage 1: CR vs missed detections ----
+% ---- Stage 1: compression vs missed targets, all methods ----
 T1 = stage1.T;
 lbl = containers.Map({'FP16', 'DRHEfp16', 'FX16', 'DRHE', 'BAQ', 'RDVLE', 'RDVLE_UDRE', 'LPC_Huffman'}, ...
-                     {'FP16 / DRHE fp16 (float)', '', 'FX16 baseline', 'DRHE', 'BAQ', 'RDVLE', 'RDVLE UDRE', 'LPC'});
+                     {'FP16 / DRHE fp16 (float)', '', 'FX16 (16-bit, no compression)', 'DRHE', 'BAQ', 'RDVLE', 'RDVLE UDRE', 'LPC'});
 grp = containers.Map({'FP16', 'DRHEfp16', 'FX16', 'DRHE', 'BAQ', 'RDVLE', 'RDVLE_UDRE', 'LPC_Huffman'}, {1, 1, 1, 2, 3, 3, 3, 2});
 fx16FN = T1.FN_pct(strcmp(T1.Algorithm, 'FX16'));
 f = newfig(W, 2.5);
 xr = [0.8, max(T1.CR) + 0.6]; yr = [-2, max(T1.FN_pct) * 1.15];
 selX = min(T1.CR(strcmp(T1.Algorithm, 'DRHE') | strcmp(T1.Algorithm, 'LPC_Huffman'))) - 0.4;
-rectangle('Position', [selX, yr(1), xr(2) - selX, fx16FN + 1.7 - yr(1)], 'FaceColor', [0.89 0.94 0.85], 'EdgeColor', 'none'); hold on
-text(xr(2) - 0.05, 0, 'selected', 'HorizontalAlignment', 'right', 'Color', [0.18 0.49 0.20]);
-cols = {grey, C(1,:), C(2,:)}; h = gobjects(1, 3);
+rectangle('Position', [selX, yr(1), xr(2) - selX, fx16FN + 1.7 - yr(1)], 'FaceColor', [0.85 0.93 0.80], 'EdgeColor', selGreen, 'LineWidth', 0.8); hold on
+text(xr(2) - 0.05, 0, 'selected', 'HorizontalAlignment', 'right', 'Color', selGreen, 'FontWeight', 'bold');
+cols = {grey, C(1,:), C(2,:)};
 for i = 1:height(T1)
     g = grp(T1.Algorithm{i});
-    h(g) = plot(T1.CR(i), T1.FN_pct(i), 'o', 'MarkerSize', 6, 'MarkerFaceColor', cols{g}, 'MarkerEdgeColor', 'k');
+    sel = g == 2;
+    plot(T1.CR(i), T1.FN_pct(i), 'o', 'MarkerSize', 6 + 2 * sel, 'MarkerFaceColor', cols{g}, 'MarkerEdgeColor', 'k');
+    fw = 'normal'; if sel, fw = 'bold'; end
+    fs = 7 + sel;
     if any(strcmp(T1.Algorithm{i}, {'DRHE', 'RDVLE_UDRE'}))   % label on the left of the point
-        text(T1.CR(i) - 0.07, T1.FN_pct(i) + 0.05 * diff(yr), lbl(T1.Algorithm{i}), 'FontSize', 7, 'HorizontalAlignment', 'right');
+        text(T1.CR(i) - 0.08, T1.FN_pct(i) + 0.05 * diff(yr), lbl(T1.Algorithm{i}), 'FontSize', fs, 'FontWeight', fw, 'HorizontalAlignment', 'right');
     else
-        text(T1.CR(i) + 0.07, T1.FN_pct(i) + 0.012 * diff(yr) * (1 + 3 * (g == 2)), lbl(T1.Algorithm{i}), 'FontSize', 7);
+        text(T1.CR(i) + 0.08, T1.FN_pct(i) + 0.012 * diff(yr) * (1 + 3 * sel), lbl(T1.Algorithm{i}), 'FontSize', fs, 'FontWeight', fw);
     end
 end
 xlim(xr); ylim(yr); grid on; box on
-xlabel('Compression ratio  \rightarrow  better'); ylabel('Missed detections, FN (%)')
-title(sprintf('Stage 1: all algorithms (%d frames)', P.stage1Frames))
-
+xlabel('Compression ratio  (higher = smaller data)'); ylabel('Missed targets (%)')
+title(sprintf('Compression vs missed targets (%d frames)', P.stage1Frames))
 save_fig(f, P.outDir, 'fig_stage1.png');
 
 % ---- Stage 2: where the compression comes from (waterfall) ----
@@ -187,66 +194,63 @@ for a = 1:2
     plot([xs(a, 1) + 0.35, xs(a, 2) - 0.35], [base base], 'k:', 'LineWidth', 0.8);
     plot([xs(a, 2) + 0.35, xs(a, 3) - 0.35], [base + p, base + p], 'k:', 'LineWidth', 0.8);
     plot([xs(a, 3) + 0.35, xs(a, 4) - 0.35], [tot tot], 'k:', 'LineWidth', 0.8);
-    text(xs(a, 1), base + 0.08, sprintf('%.2f', base), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7);
-    text(xs(a, 2), base + p + 0.08, sprintf('+%.2f', p), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7);
-    text(xs(a, 3), tot + 0.08, sprintf('+%.2f', d), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7);
-    text(xs(a, 4), tot + 0.08, sprintf('%.2f', tot), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7.5, 'FontWeight', 'bold');
+    text(xs(a, 1), base + 0.08, sprintf('%.2f', base), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7.5);
+    text(xs(a, 2), base + p + 0.08, sprintf('+%.2f', p), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7.5);
+    text(xs(a, 3), tot + 0.08, sprintf('+%.2f', d), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 8, 'FontWeight', 'bold', 'Color', green * 0.75);
+    text(xs(a, 4), tot + 0.08, sprintf('%.2f', tot), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 9, 'FontWeight', 'bold');
 end
 xlim([0.3 9.7]); ylim([0, ceil(max(S2.CR_Total)) + 2]); grid on; box on
-set(gca, 'XTick', [2.5 7.5], 'XTickLabel', {'DRHE', 'LPC'});
+set(gca, 'XTick', [2.5 7.5], 'XTickLabel', {'\bfDRHE', '\bfLPC'}, 'TickLabelInterpreter', 'tex');
 lg = gobjects(1, 4); cl = {C(1,:), C(2,:), green, dark};
 for i = 1:4, lg(i) = patch(NaN, NaN, cl{i}); end
-legend(lg, {'Huffman coder', '+ prediction', '+ new dictionary', 'Total'}, 'Location', 'north', 'NumColumns', 2, 'FontSize', 7)
-ylabel('Compression ratio'); title('Stage 2: where the CR comes from')
+legend(lg, {'Huffman coding only', '+ prediction', '+ new dictionary', 'Total'}, 'Location', 'north', 'NumColumns', 2, 'FontSize', 7)
+ylabel('Compression ratio'); title('Where the compression comes from')
 save_fig(f, P.outDir, 'fig_cr_bars.png');
 
 % ---- Per-frame CR, re-derived dictionary ----
-f = newfig(W, 1.85);
+f = newfig(W, 2.1);
 fr = stage2.frame;
-p1 = plot(fr, cr.drheNew, '-o', 'MarkerSize', 2.5, 'LineWidth', 1.2, 'Color', C(1,:), 'MarkerFaceColor', C(1,:)); hold on
-p2 = plot(fr, cr.lpcNew,  '-s', 'MarkerSize', 2.5, 'LineWidth', 1.2, 'Color', C(2,:), 'MarkerFaceColor', C(2,:));
+p1 = plot(fr, cr.drheNew, '-o', 'MarkerSize', 2.5, 'LineWidth', 1.3, 'Color', C(1,:), 'MarkerFaceColor', C(1,:)); hold on
+p2 = plot(fr, cr.lpcNew,  '-s', 'MarkerSize', 2.5, 'LineWidth', 1.3, 'Color', C(2,:), 'MarkerFaceColor', C(2,:));
 xlim([min(fr) - 0.5, max(fr) + 0.5]); ylim([0, ceil(max([cr.drheNew; cr.lpcNew])) + 1]); grid on; box on
-xlabel('Frame'); ylabel('Compression ratio'); title('Per-frame CR, re-derived dictionary')
-legend([p1 p2], {'DRHE', 'LPC'}, 'Location', 'south', 'NumColumns', 2)
+xlabel('Frame number'); ylabel('Compression ratio'); title('Compression ratio of each frame')
+legend([p1 p2], {sprintf('\\bfDRHE\\rm  (mean %.2f)', mean(cr.drheNew)), sprintf('\\bfLPC\\rm  (mean %.2f)', mean(cr.lpcNew))}, ...
+    'Location', 'south', 'NumColumns', 2, 'Interpreter', 'tex', 'FontSize', 7)
 save_fig(f, P.outDir, 'fig_cr_frames.png');
 
-% ---- Encode / decode time per frame (linear time axis) ----
+% ---- Compress / decompress time per frame (linear time axis) ----
 % One row per operation; the bar is the time to process one whole frame.
-% The latency bracket is the measured time from the last input word read
-% to the last output word written. DRHE outputs as it goes, so its
-% latency is tiny; LPC can only start emitting once it has the whole frame.
+% The bracket is the measured output delay: time from the last input word
+% read to the last output word written. DRHE outputs as it goes, so its
+% delay is tiny; LPC can only start emitting once it has the whole frame.
 ms = @(cyc) cyc / P.clockHz * 1e3;
-rows = {'DRHE encode', 'DRHE decode', 'LPC encode', 'LPC decode'};
+rows = {'DRHE compress', 'DRHE decompress', 'LPC compress', 'LPC decompress'};
 f = newfig(W, 2.3); hold on
 yTop = 4; hgt = 0.6;
 enc = {hw.drhe, hw.lpc};
 for a = 1:2
     y = yTop - 2 * (a - 1); e = enc{a}; tE = e.enc_cycles;
     barh_seg(y, 0, ms(tE), C(a,:), hgt);
-    if ms(e.enc_latency) <= 0.05                      % too short to draw: no bracket
-        text(ms(tE) + 0.05, y, sprintf('%.2f ms', ms(tE)), 'FontSize', 7);
-    else                                              % draw the latency as a bracket
-        text(ms(tE) + 0.05, y, sprintf('%.2f ms', ms(tE)), 'FontSize', 7);
+    text(ms(tE) + 0.06, y, sprintf('%.2f ms', ms(tE)), 'FontSize', 8.5, 'FontWeight', 'bold');
+    if ms(e.enc_latency) > 0.05                       % draw the output delay as a bracket
         lat0 = ms(tE - e.enc_latency);
         plot([lat0 ms(tE)], [y + 0.5 y + 0.5], 'k-', 'LineWidth', 0.8); plot([lat0 lat0], [y + 0.4 y + 0.6], 'k-'); plot(ms([tE tE]), [y + 0.4 y + 0.6], 'k-');
-        text((lat0 + ms(tE)) / 2, y + 0.72, ['latency ' fmt_time(e.enc_latency, P.clockHz)], 'HorizontalAlignment', 'center', 'FontSize', 7);
+        text((lat0 + ms(tE)) / 2, y + 0.75, ['waits for whole frame: ' fmt_time(e.enc_latency, P.clockHz)], 'HorizontalAlignment', 'center', 'FontSize', 7);
     end
 end
 % decoders (on-chip, from the *_full bitstreams)
 for a = {'drhe', 'lpc'}
     y = yTop - 1 - 2 * strcmp(a{1}, 'lpc'); d = hw.(a{1});
     if isnan(d.dec_cycles)
-        text(0.05, y, 'decode: run run\_board.bat ' + string(a{1}) + '\_full', 'FontSize', 7, 'FontAngle', 'italic', 'Color', [0.4 0.4 0.4]);
+        text(0.06, y, 'not measured yet', 'FontSize', 7.5, 'FontAngle', 'italic', 'Color', [0.4 0.4 0.4]);
     else
         barh_seg(y, 0, ms(d.dec_cycles), (C(1 + strcmp(a{1}, 'lpc'), :) + 1) / 2, hgt);
-        txt = sprintf('%.2f ms', ms(d.dec_cycles));
-        if ~isnan(d.dec_latency), txt = [txt ', latency ' fmt_time(d.dec_latency, P.clockHz)]; end %#ok<AGROW>
-        text(ms(d.dec_cycles) + 0.05, y, txt, 'FontSize', 7);
+        text(ms(d.dec_cycles) + 0.06, y, sprintf('%.2f ms', ms(d.dec_cycles)), 'FontSize', 8.5, 'FontWeight', 'bold');
     end
 end
-set(gca, 'YTick', yTop - (3:-1:0), 'YTickLabel', fliplr(rows)); ylim([yTop - 3.6, yTop + 0.9])
+set(gca, 'YTick', yTop - (3:-1:0), 'YTickLabel', fliplr(rows)); ylim([yTop - 3.6, yTop + 0.95])
 xl = xlim; xlim([0, max([xl(2), ms(hw.lpc.enc_cycles) * 1.5])]); grid on; box on
-xlabel('Time per frame (ms, 100 MHz)'); title('Encode and decode time per frame')
+xlabel('Time to process one frame (ms)'); title('Time per frame on the FPGA')
 save_fig(f, P.outDir, 'fig_timing.png');
 
 % ---- FPGA resources: encoder, decoder, both (cores only) ----
@@ -263,14 +267,16 @@ ymax = 10 * ceil(max([U{:}], [], 'all') / 10 + 0.3);
 for a = 1:2
     nexttile(tl);
     b = bar(U{a}, 0.85); grid on; box on; ylim([0 ymax])
-    set(gca, 'XTickLabel', {'Enc', 'Dec', 'Both'})
-    title(names{a}); if a == 1, ylabel('% of XCKU5P'); end
+    set(gca, 'XTickLabel', {'Comp', 'Decomp', '\bfBoth'}, 'TickLabelInterpreter', 'tex', 'XTickLabelRotation', 0, 'FontSize', 7.5)
+    text(3 + b(1).XOffset, U{a}(3, 1) + 0.6, sprintf('%.0f%%', U{a}(3, 1)), 'HorizontalAlignment', 'center', ...
+        'VerticalAlignment', 'bottom', 'FontWeight', 'bold', 'FontSize', 8);
+    title(names{a}); if a == 1, ylabel('% of the chip used'); end
     if a == 2
-        lg = legend(b, {'LUT', 'BRAM', 'DSP'}, 'Orientation', 'horizontal', 'FontSize', 7);
+        lg = legend(b, {'LUT (logic)', 'BRAM (memory)', 'DSP (multiply)'}, 'Orientation', 'horizontal', 'FontSize', 6.5);
         lg.Layout.Tile = 'south';
     end
 end
-title(tl, 'FPGA resources: encoder, decoder, both', 'FontSize', 10, 'FontWeight', 'bold');
+title(tl, 'How much of the FPGA chip is used', 'FontSize', 10.5, 'FontWeight', 'bold');
 save_fig(f, P.outDir, 'fig_resources.png');
 
 % ---- Input data: one range-FFT frame (what the compressor receives) ----
@@ -283,9 +289,9 @@ fx = compress_fx16(rangeFFT(preprocessing(cube, config), config), config);
 X = complex(double(fx.real_part(:, :, P.inputRx)), double(fx.imag_part(:, :, P.inputRx)));
 f = newfig(W, 2.5);
 imagesc(0:size(X, 2) - 1, 0:size(X, 1) - 1, 20 * log10(abs(X) + 1)); axis xy
-colormap(gca, parula); cb = colorbar; cb.Label.String = 'Magnitude (dB)';
-xlabel('Ramp (chirp loop \times TX)'); ylabel('Range bin');
-title(sprintf('Input: frame %d, RX %d (int16 I/Q)', P.inputFrame, P.inputRx))
+colormap(gca, parula); cb = colorbar; cb.Label.String = 'Signal strength (dB)';
+xlabel('Ramp number (192 per frame)'); ylabel('Range bin (distance)');
+title(sprintf('Input: one radar frame (receiver %d)', P.inputRx))
 save_fig(f, P.outDir, 'fig_input.png');
 
 % ---- Why prediction helps: how many bits each value needs ----
@@ -298,9 +304,12 @@ f = newfig(W, 2.3);
 b = bar(0:kmax - 1, pct(1:kmax, :), 0.9);
 b(1).FaceColor = grey; b(2).FaceColor = C(1,:); b(3).FaceColor = C(2,:);
 grid on; box on; xlim([-0.6, kmax - 0.4])
-xlabel('Bits needed for the value (S4)'); ylabel('% of values')
-title('Prediction makes the values smaller')
-legend({'raw sample', 'DRHE residual', 'LPC residual'}, 'Location', 'northeast')
+xlabel('Bits needed to store the value'); ylabel('Share of values (%)')
+title('Prediction makes the numbers smaller')
+legend({'raw data', '\bfDRHE\rm prediction error', '\bfLPC\rm prediction error'}, 'Location', 'northeast', 'Interpreter', 'tex')
+yl = ylim;
+text(kmax - 2.6, yl(2) * 0.5, {'\leftarrow fewer bits', '= more compression'}, 'FontWeight', 'bold', 'FontSize', 7.5, ...
+    'HorizontalAlignment', 'center', 'Interpreter', 'tex');
 save_fig(f, P.outDir, 'fig_residual.png');
 
 fprintf('\nPoster figures and tables written to %s\n', P.outDir);
