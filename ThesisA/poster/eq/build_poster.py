@@ -418,12 +418,12 @@ yC = yB + hB + 0.5
 hC = 46.15 - yC
 wC1 = 12.6
 box(X0, yC, wC1, hC, fill=BLUE)
-heading(X0 + 0.35, yC + 0.25, wC1 - 0.7, 'Why an FPGA, not just simulation?')
+heading(X0 + 0.35, yC + 0.25, wC1 - 0.7, 'Why an FPGA? A proof of concept')
 text(X0 + 0.35, yC + 1.05, wC1 - 0.7, hC - 1.2, [
-    'Compression has to run **at the sensor, in real time**, on small low-power hardware.',
-    'Simulation cannot show **speed, latency or chip size**.',
-    'Hardware proves the design reproduces the simulation **bit for bit**.'],
-    bullets=True)
+    'The FPGA is a **proof of concept**: it shows the compressor works as **real hardware**, not just as MATLAB code.',
+    'It measures what simulation cannot: **speed, delay and chip size**, with output **bit-exact** to the simulation.',
+    'In a production car the design would move to a **custom chip (ASIC)** or a **block inside the radar SoC**, which is cheaper and uses less power.'],
+    bullets=True, size=22, space=6)
 
 xC2 = X0 + wC1 + GAP
 wC2 = X1 - xC2
@@ -433,7 +433,7 @@ text(xC2 + 0.35, yC + 1.05, wC2 - 0.7, hC - 1.7, [
     '**Both DRHE and LPC are lossless on real radar data, on real hardware.**',
     f'**LPC compresses most: {crL:.2f}×** (DRHE {crD:.2f}×). Re-deriving the **Huffman dictionary** for this data helped **more than the predictor** did.',
     f'**DRHE streams** with no frame buffer; **LPC must buffer a whole frame** ({encL_ms:.2f} ms). Both meet the 15 ms limit here, but **DRHE scales better to bigger frames**.',
-    'Next: a streaming LPC, all 16 receivers, fixed-point DRHE.'],
+    'STILL NEED TO GET LATENCY RESULT AND PUT IT HERE'],
     bullets=True, size=22, space=4)
 text(xC2 + 0.35, yC + hC - 0.75, wC2 - 0.7, 0.65, [
     {'t': '[1] A. Kramer et al., ColoRadar: the direct 3D millimeter wave radar dataset, IJRR, 2022.', 'size': 14}])
