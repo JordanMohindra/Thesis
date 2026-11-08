@@ -1,0 +1,414 @@
+% ===================================================================
+\chapter{Hardware Implementation}
+\label{ch:hardware}
+
+Both algorithms were implemented as a compressor core and a matching
+decompressor core in C++ for Vitis HLS, and built into a test system on an AMD
+KCU116 evaluation board. This chapter describes the cores, the measures that
+keep them exactly lossless on any input, and the board system that runs and
+measures them.
+
+\section{Common interface and bit packing}
+\label{sec:interface}
+
+All four cores share one interface. A compressor accepts AXI4-Stream input at
+\num{128} bits per beat --- four receive channels, each a 16-bit real and a
+16-bit imaginary part --- and emits a compressed AXI4-Stream at \num{256} bits
+per beat, with TLAST marking the end of the frame. A decompressor does the
+reverse. Frame dimensions (range bins, ramps, receive channels and $\nTx$)
+arrive on an AXI4-Lite control interface, so there is no header in the
+bitstream.
+
+Both compressors share the bit packer. Codewords accumulate in a 512-bit
+register, least-significant-bit first, and a 256-bit word is written out
+whenever at least 256 bits are waiting, with one final partial word at the end
+of the frame. Flushing per frame rather than per ramp avoids wasting up to 255
+bits per ramp, about \SI{2.9}{\percent} of the ratio. The Huffman codewords are
+stored bit-reversed relative to their usual most-significant-bit-first form,
+because the packer is least-significant-bit first; the reversed code set is
+still prefix-free, so a decoder can match candidates from the low end of its
+buffer with no ambiguity. Compressor and decompressor read the same
+sixteen-entry table. Each core was built with both dictionaries of
+Section~\ref{sec:dict}; the two builds differ only in the contents of this table,
+and have the same schedule and timing. The board measurements of
+Chapter~\ref{ch:results} were made with the original-dictionary builds.
+
+\section{DRHE compressor}
+\label{sec:drheimpl}
+
+\subsection{State and parallelism}
+
+DRHE holds five \texttt{float} state arrays --- the magnitude prediction, the
+previous magnitude, the phase prediction and the previous two phases --- each
+indexed by (transmitter, receive channel, range bin). The transmitter index is
+the ramp number modulo $\nTx$, which is all it takes to put the predictor on the
+per-transmitter axis of Section~\ref{sec:predaxis}: indexing by transmitter
+changes \emph{which} address is read, not \emph{when}, so the schedule is the
+same as for a lag-1 design. Each transmitter's history starts on its own first
+ramp, so the state is reset while $m < \nTx$. Frames are independent:
+nothing carries over from one frame to the next, so a frame lost in transit
+cannot corrupt its successors.
+
+The channel dimension is completely partitioned, so the four receive channels
+are four parallel copies of the datapath inside one pipelined iteration of the
+sample loop. The state occupies 40 block RAMs (36\,Kb).
+
+\subsection{Where the logic goes}
+
+Per sample and per channel, DRHE evaluates \texttt{sqrt} and \texttt{atan2} to
+convert the reconstructed sample to polar form, and \texttt{sin} and
+\texttt{cos} to convert the prediction back --- four floating-point
+transcendental functions, for each of four channels, on every one of the
+\num{24576} beats of a frame. These operators dominate the design: they account
+for about two thirds of its LUTs and all 132 of its DSP slices, and the two
+arctangent units alone are about a third of the logic. Kiem's design uses fixed
+point for the same functions; Section~\ref{sec:hwvskiem} compares the two.
+
+\subsection{Initiation interval}
+
+DRHE runs at $\mathrm{II} = 2$, and the reason has nothing to do with
+arithmetic. Each state array is partitioned by channel, so each channel's
+history is one dual-port block RAM. Every iteration reads a value and writes
+the updated one --- two accesses, which two ports can serve. On the first ramps
+of a frame the iteration also writes a reset value: three accesses against two
+ports, which forces the tool to serialise, and the loop settles at
+$\mathrm{II} = 2$ for the whole frame. Reading the state as zero on the first
+ramps instead of writing zeros to it reaches $\mathrm{II} = 1$. It was not
+adopted, because it doubles the floating-point arithmetic (units can no longer
+be shared between two channels) and the sensor does not need the throughput:
+the $\mathrm{II} = 2$ design already runs many times faster than the radar
+produces frames (Section~\ref{sec:boardtiming}).
+
+\section{LPC compressor}
+\label{sec:lpcimpl}
+
+\subsection{Three passes}
+
+LPC cannot stream, so its structure is explicitly multi-pass
+(Figure~\ref{fig:lpcblock}):
+
+\begin{enumerate}
+\item \textbf{Ingest.} Read the whole frame into a buffer.
+\item \textbf{Correlate, solve and residual}, once per (channel, bin): compute
+$R_0$, $R_1$ and $R_2$ at lags $0$, $\nTx$ and $2\nTx$ from the buffer, solve
+Equation~\eqref{eq:yw}, then walk the ramps again computing residuals and
+writing them back into the buffer \emph{in place}.
+\item \textbf{Emit.} Write the coefficient table, then the coded residuals.
+\end{enumerate}
+
+\noindent
+Rewriting the buffer in place means one \SI{3.0}{\mebi bit} memory serves both
+purposes rather than two.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[font=\small,
+  b/.style={draw=slate,fill=white,rounded corners=2pt,minimum width=30mm,minimum height=9mm,font=\scriptsize,align=center},
+  h/.style={b,draw=accent,line width=0.9pt,fill=lightbg},
+  m/.style={draw=slate,fill=warm!12,rounded corners=2pt,minimum width=18mm,minimum height=22mm,font=\scriptsize,align=center},
+  a/.style={-{Latex[length=1.5mm]},slate}]
+\node[b]  (in)  at (0,0)    {AXI in\\128\,b/beat};
+\node[h]  (p1)  at (3.3,0)  {\textbf{pass 1}\\ingest};
+\node[m]  (buf) at (6.6,0)  {frame\\buffer\\\SI{3.0}{\mebi bit}};
+\node[h]  (p2)  at (9.9,0)  {\textbf{pass 2}, per bin\\correlate, solve,\\residual (in place)};
+\node[h,minimum width=44mm]  (p3)  at (6.6,-2.5) {\textbf{pass 3} --- emit coefficients,\\then residuals in raster order};
+\node[b]  (out) at (0,-2.4) {AXI out\\256\,b/beat};
+\draw[a] (in) -- (p1);
+\draw[a] (p1) -- (buf);
+\draw[a] (buf) -- (p2);
+\draw[a] (p2.south) -- (9.9,-2.5) -- (p3.east);
+\draw[a] (p3) -- (out);
+\node[font=\scriptsize,text=slate,align=center] at (9.9,1.15) {$R_0,R_1,R_2$ at lags $0,\nTx,2\nTx$};
+\end{tikzpicture}
+\caption[LPC three-pass architecture]{The LPC compressor. Because the
+Yule--Walker coefficients depend on the whole frame, the compressor must buffer
+it; each (channel, bin) is then correlated, solved and turned into residuals,
+which overwrite the buffer in place so that only one memory is needed. Emitting residuals in the original raster order is what lets
+the \emph{decompressor} avoid a frame buffer entirely.}
+\label{fig:lpcblock}
+\end{figure}
+
+\subsection{Reaching back $\nTx$ and $2\nTx$ ramps}
+
+Both the correlation and the residual loops need $x[m - \nTx]$ and
+$x[m - 2\nTx]$. A shift register of depth $2\nTx = 24$ would move 24 entries
+every iteration. Instead a \emph{ring} of exactly $2\nTx$ entries gives both
+taps for free. At ramp $m$, let $k = m \bmod 2\nTx$. Slot $k$ still holds the
+value written at ramp $m - 2\nTx$, because it is about to be overwritten and has
+not been touched since; and slot $(k + \nTx) \bmod 2\nTx$ holds the value from
+ramp $m - \nTx$. So:
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+read $x[m-2\nTx]$ & from slot $k$ \\
+read $x[m-\nTx]$  & from slot $(k+\nTx) \bmod 2\nTx$ \\
+write $x[m]$      & to slot $k$ \\
+\end{tabular}
+\end{center}
+Nothing is shifted; the cost is $2\nTx$ registers and two multiplexers. Every
+loop in the design reaches $\mathrm{II} = 1$.
+
+\subsection{Where the cycles go}
+
+A frame takes \num{325366} cycles on the board. Ingest and emit are
+\num{24576} cycles each, one per beat. The remaining \num{276000} or so are the
+per-bin pass, which runs two short pipelined loops --- correlation and residual
+--- for each of the 512 (channel, bin) pairs. A pipelined loop pays its
+pipeline depth once on entry before reaching steady state, about \num{71} cycles
+for the correlation loop and \num{56} for the residual loop, so 512 invocations
+add roughly $512 \times (71 + 56) \approx \num{65000}$ cycles of fill that a
+trip-count model does not show. Merging the two loops, or processing several
+bins per invocation, would recover most of it; overlapping the three passes
+across frames would bring the time per frame down further. Neither was
+necessary for this thesis, and both are listed as future work.
+
+\subsection{Fixed-point choices}
+
+Coefficients are quantised to \texttt{ap\_fixed<16,2>} for $a_1$ (range
+$[-2,2)$) and \texttt{ap\_fixed<16,1>} for $a_2$ (range $[-1,1)$), which follows
+from the stability conditions of Equation~\eqref{eq:stability}. Over 50 frames
+this quantisation costs nothing measurable: the residuals are identical to the
+bit to those of double-precision coefficients.
+
+The autocorrelations are accumulated as exact 64-bit integers rather than in
+floating point. $R_0^2 - R_1^2$ is a difference of two nearly equal quantities
+whenever the data is strongly correlated --- precisely the regime the predictor
+exists for --- so computing it in floating point would lose most of its
+significant digits exactly when accuracy matters most. The numerators and the
+determinant are formed exactly as 128-bit integers before the single division.
+
+\subsection{An asymmetry that favours the decoder}
+
+Pass 3 emits the coefficient table first --- the decoder needs all of it before
+it can reconstruct anything --- and then the residuals \emph{in the raster
+order the samples arrived in}, not in the (channel, bin, ramp) order pass 2
+produced them. The decompressor therefore needs no frame buffer at all: it holds
+the coefficient table and the last $2\nTx$ reconstructed samples of each
+(channel, bin), and writes each output sample as its residual arrives. The
+reordering is paid for once, by the side that already had to buffer. LPC's
+non-causality is a compressor-side cost only.
+
+\section{Exactly lossless on any input}
+\label{sec:robust}
+
+Real radar data exercises only the lower part of the entropy coder's range
+(Section~\ref{sec:edgecases}). Two situations that real data never produces, but synthetic input does
+(Section~\ref{sec:edgecases}), are handled explicitly so that both designs are
+lossless on \emph{any} input.
+
+\subsection{The one value the code cannot represent}
+
+Category 15 of the $S_4$ code covers $|v| \in [16384, 32767]$: counting both
+signs, exactly the $2^{15}$ patterns its fifteen payload bits can hold. But
+16-bit arithmetic can produce $v = -32768$, for which
+Equation~\eqref{eq:append} gives $A(-32768) = -1$, which truncated to fifteen
+bits is \texttt{0x7FFF} --- the same payload as $v = +32767$. The two would be
+indistinguishable on the wire.
+
+Three remedies were considered: extend the code with a category 16, which
+changes the bitstream format; reject the input; or saturate $-32768$ to
+$-32767$. Saturation was chosen. It costs at most one least-significant bit on
+the affected sample, leaves the format untouched, and never fires on real data.
+
+Saturation alone is not enough, though, and this is where the closed-loop
+prediction of Section~\ref{sec:closedloop} becomes concrete. If the encoder
+drove its predictor from the \emph{original} sample while the decoder drives
+its own from the \emph{reconstructed} one, a single saturated sample would make
+them diverge, and because DRHE's filters are recursive that divergence would
+carry through every remaining ramp. The encoder therefore reconstructs exactly
+what the decoder will see and updates its state from that:
+
+\begin{verbatim}
+int diff_re = wrap_int16(re - pred_re);
+if (diff_re == -32768) diff_re = -32767;      // saturate
+int recon_re = wrap_int16(diff_re + pred_re); // what the decoder will see
+float curr_mag   = hls::sqrt(recon_re*recon_re + recon_im*recon_im);
+float curr_phase = hls::atan2(recon_im, recon_re);   // state from recon
+\end{verbatim}
+
+\noindent
+On real data the reconstruction always equals the original, so the closed loop
+changes no output bit. Its cost is in the schedule: the reconstruction sits
+ahead of the polar conversion on the dependency chain, and accounts for 26 of
+the pipeline's 58 stages.
+
+\subsection{Wide-integer conversion in the coefficient solver}
+
+The LPC solver forms its numerators and determinant as 128-bit integers. The
+conversion of such a value directly to \texttt{float} is not correct above
+$2^{64}$ in this toolchain. All three operands are therefore normalised by one
+common arithmetic right shift into 62 bits before the division, with the shift
+chosen from the largest of them:
+\begin{equation}
+k = \max\bigl(\mathrm{msb}|D|,\ \mathrm{msb}|N_1|,\ \mathrm{msb}|N_2|\bigr) - 61,
+\end{equation}
+clamped at zero. Because numerator and denominator are shifted alike, the
+quotient is unchanged. On ColoRadar the correlations reach only 44 bits, so
+the shift is zero; on full-scale synthetic input it is what keeps the
+coefficients correct.
+
+\section{Decompressors}
+\label{sec:dechw}
+
+A decompressor exists for each algorithm, for two reasons. It is what makes
+bit-exact verification possible --- every frame is compressed, decompressed and
+compared --- and it completes the pipeline a vehicle would need, with the
+encoder at the sensor and the decoder at the central processor. Each
+decompressor is built twice from the same C++ source: as an FPGA core, and as a
+PC program compiled through Vitis C-simulation, which uses the same
+bit-accurate models of the floating-point functions.
+
+\subsection{Why decoding is the harder half}
+
+Entropy decoding is inherently serial: the length of a codeword is known only
+once it has been matched, and the next codeword starts where it ends. A DRHE
+decoder that keeps pace with the compressor --- eight values (four channels,
+real and imaginary) per two clocks --- needs eight chained codeword matches and
+very wide variable shifters per cycle, plus four copies of the floating-point
+predictor. HLS estimates such a design at about \num{182000} LUTs. HLS
+over-estimates (by about three times for the serial decoder below), but even a
+third of that would be four times the serial decoder's logic. Keeping pace is
+also unnecessary: a decoder that takes \SI{2}{\milli\second} per frame is a
+hundred times faster than the radar produces frames. The DRHE decoder was
+therefore designed to be small rather than fast.
+
+\subsection{DRHE: a two-stage serial decoder}
+
+The DRHE decompressor is therefore a dataflow pair of stages connected by a
+stream:
+
+\begin{itemize}
+\item \textbf{Unpack} decodes one value per clock. It cuts a 29-bit window from
+two 256-bit input words, matches all sixteen codewords against it in parallel,
+extracts the payload, and reads the next input word just in time, stopping at
+TLAST.
+\item \textbf{Rebuild} runs one floating-point predictor that handles one
+receive channel per step at $\mathrm{II} = 2$ (limited by the ports of the
+sine/cosine tables), keeps its state in block RAM, and uses exactly the same
+expressions as the compressor so that its arithmetic matches bit for bit.
+\end{itemize}
+
+\noindent
+The two stages are balanced at about \num{196608} clocks per frame, roughly
+\SI{2}{\milli\second} at \SI{100}{\mega\hertz}. HLS estimated \num{42846} LUTs; after
+placement and routing the core uses \num{14155}.
+
+Bit-for-bit agreement of the floating-point arithmetic is not optional for
+DRHE. The predictor feeds back on itself, so a decoder whose \texttt{atan2} or
+\texttt{sin} differs from the encoder's in the last bit will drift. A
+double-precision Python decoder written as a cross-check is exact for LPC but
+drifts by 1 to 6 least-significant bits on 8 of the 50 DRHE frames; the
+decoder built from the HLS source, which the FPGA core shares, is exact on all
+of them.
+
+\subsection{LPC}
+
+The LPC decompressor reads the coefficient table into registers, then
+reconstructs each sample as its residual arrives, holding the last $2\nTx$
+reconstructed values of each (channel, bin) in a ring as the compressor does.
+It needs no frame buffer and no block RAM for data, and its only arithmetic is
+two fixed-point multiply--accumulates per value.
+
+\section{The board test system}
+\label{sec:system}
+
+The cores run in a complete system on an AMD KCU116 evaluation board, whose
+Kintex UltraScale+ \texttt{XCKU5P} provides \num{216960} LUTs, \num{433920}
+flip-flops, 480 block RAMs (36\,Kb) and \num{1824} DSP slices
+(Figure~\ref{fig:system}).
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[font=\small,x=0.88cm,
+  b/.style={draw=slate,fill=white,rounded corners=2pt,minimum height=8mm,inner xsep=4pt,font=\scriptsize,align=center},
+  h/.style={b,draw=accent,line width=0.9pt,fill=lightbg},
+  a/.style={{Latex[length=1.4mm]}-{Latex[length=1.4mm]},slate}]
+\node[b,fill=lightbg,minimum width=20mm] (pc) at (-3.4,1.7) {host PC\\(JTAG, UART)};
+\node[b,minimum width=24mm] (mb) at (0,1.7) {MicroBlaze\\128\,KB local RAM};
+\node[b,minimum width=24mm] (io) at (0,0.1) {UART, timer,\\LEDs};
+\node[b,minimum width=20mm,minimum height=32mm] (ic) at (3.4,0.9) {AXI\\SmartConnect};
+\node[b,minimum width=24mm] (ddr) at (7.0,2.5) {DDR4-2400, 1\,GB\\frames and results};
+\node[b,minimum width=18mm] (dc) at (7.0,0.9) {DMA \texttt{dma\_c}};
+\node[b,minimum width=18mm] (dd) at (7.0,-0.7) {DMA \texttt{dma\_d}};
+\node[h,minimum width=28mm] (cc) at (10.6,0.9) {compressor\\128\,b in, 256\,b out};
+\node[h,minimum width=28mm] (dk) at (10.6,-0.7) {decompressor\\256\,b in, 128\,b out};
+\draw[a] (pc) -- (mb);
+\draw[a] (mb) -- (mb -| ic.west);
+\draw[a] (io) -- (io -| ic.west);
+\draw[a] (ic.east |- ddr) -- (ddr);
+\draw[a] (ic.east |- dc) -- (dc);
+\draw[a] (ic.east |- dd) -- (dd);
+\draw[a] (dc) -- (cc);
+\draw[a] (dd) -- (dk);
+\node[font=\scriptsize,text=slate] at (10.6,-1.45) {\texttt{\_full} builds only};
+\end{tikzpicture}
+\caption[The KCU116 test system]{The board test system. The host places the
+frames in DDR4 over JTAG; the MicroBlaze starts the DMAs, times each frame and
+writes a result record; the host then reads the results and compressed frames
+back. Everything runs at
+\SI{100}{\mega\hertz}.}
+\label{fig:system}
+\end{figure}
+
+\paragraph{Hardware.} A MicroBlaze processor with \SI{128}{\kilo\byte} of local
+memory controls the system. A DDR4-2400 controller gives access to \SI{1}{\giga\byte}
+of board memory, which holds the input frames, the compressed frames, the
+reconstructed frames and the results. An AXI DMA (\texttt{dma\_c}) streams
+each frame from DDR4 through the compressor and writes the compressed stream
+back. In the \texttt{\_full} build a second DMA (\texttt{dma\_d}) streams the
+compressed frame through the decompressor and writes the reconstruction back,
+so the board compresses, decompresses and checks every frame by itself. A UART,
+a hardware timer and LEDs complete the system, all on one AXI interconnect at
+\SI{100}{\mega\hertz}. Each algorithm therefore has two bitstreams: a
+compress-only build and a \texttt{\_full} build with the decompressor.
+
+\paragraph{Firmware.} For each frame the MicroBlaze configures the core's frame
+dimensions, starts the DMA transfers, and reads a hardware timer at the start,
+when the DMA's read channel reports the last input word read, and when its
+write channel reports the last output word written. From these it
+records the cycles per frame and the end-to-end latency of
+Section~\ref{sec:metrics}, together with the compressed length; the
+\texttt{\_full} firmware also records the decompressor's cycles and latency and
+compares the reconstruction with the original word by word. Each frame's
+results are a 16-word record in DDR4.
+
+\paragraph{Host.} A script on the PC (\texttt{run\_board.bat}, driving
+\texttt{xsdb}) programs the FPGA, loads the frames into DDR4 over JTAG, runs the
+firmware, and reads back the result records and compressed frames. For the
+compress-only build the PC then decompresses every frame with the decompressor
+built from the HLS source. Finally \texttt{compare\_results.py} checks every
+compressed frame byte for byte against the C-simulation output, checks every
+reconstruction against the original frame, and tabulates compression ratio,
+cycles and latency.
+
+\section{Building and timing closure}
+\label{sec:timing}
+
+Each core is exported from Vitis HLS as an IP block and placed in a Vivado block
+design with the system above; a script builds each of the four bitstreams. HLS
+estimated both compressors below the \SI{100}{\mega\hertz} target. Its estimate
+is the tool's own model of operator delays against a budget that reserves
+about a quarter of the period for clock uncertainty, not a timing analysis of a
+real circuit, and once placed and routed all four systems meet
+\SI{100}{\mega\hertz} with positive slack (Table~\ref{tab:builds}). Two system
+details were needed for that: a false path from the DDR4 calibration-complete
+signal to the processor reset, and the DDR4 interface at \SI{2400}{MT/s}.
+
+\begin{table}[t]
+\centering
+\caption[The four board builds]{The four board builds, whole system (processor,
+DDR4 controller, DMAs and cores), post-route on the \texttt{XCKU5P} at
+\SI{100}{\mega\hertz}, with the re-derived dictionaries; the original-dictionary
+builds also meet timing. BRAM is in 36\,Kb blocks.}
+\label{tab:builds}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Build & LUT & BRAM & DSP & WNS (ns)\\
+\midrule
+DRHE, compress only    & \num{61011} (\SI{28}{\percent}) & 104.5 & 138 & $+0.243$\\
+LPC, compress only     & \num{59203} (\SI{27}{\percent}) & 162.5 & 164 & $+0.174$\\
+DRHE, \texttt{\_full}  & \num{81573} (\SI{38}{\percent}) & 144   & 184 & $+0.341$\\
+LPC, \texttt{\_full}   & \num{85707} (\SI{40}{\percent}) & 169.5 & 172 & $+0.331$\\
+\bottomrule
+\end{tabular}
+\end{table}
