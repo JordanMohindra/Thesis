@@ -114,7 +114,8 @@ every reconstructed sample equals its original exactly. There is no tolerance
 to argue about and no distortion metric to trade off: a single differing bit
 anywhere in the \num{157} million input bits of the test set is a failure, and
 the test reports it as one. Every design in this thesis is checked against that
-criterion at every level, from MATLAB to the FPGA board.
+criterion, from MATLAB through C-simulation and RTL co-simulation to the
+compressors running on the FPGA board.
 
 \section{Aim and objectives}
 \label{sec:objectives}
@@ -123,9 +124,9 @@ The starting point is the master's thesis of Lukas Kiem \cite{kiem2025}, which
 evaluated a range of radar compression schemes on recordings from a
 single-transmitter Infineon radar, selected Doppler Redundancy Hybrid Encoding
 (DRHE) as the best of them, and implemented its compressor on a Zynq
-UltraScale+ device (compression ratio \num{3.17} in hardware). Section~\ref{sec:kiem}
-describes that work. It left four questions open, which became the objectives
-of this thesis.
+UltraScale+ device (compression ratio \num{3.17} in hardware). Chapter~\ref{ch:kiem}
+describes that work. Four questions that his work leaves open define the
+objectives of this thesis.
 
 \begin{keybox}
 \textbf{Aim.} Compare compression methods side by side on real, public,
@@ -154,7 +155,7 @@ designed for this thesis as a controlled comparison with DRHE.
 \item \textbf{Implement and measure the complete pipeline.} Kiem implemented
 compression only and measured it on his own system. This thesis implements
 compression \emph{and} decompression for both selected algorithms, verifies them
-bit-exactly at every level of abstraction, and measures throughput, latency and
+bit-exactly from MATLAB to the board, and measures throughput, latency and
 resources on an AMD KCU116 board.
 \end{enumerate}
 
@@ -189,13 +190,16 @@ on, and reverse the ranking of the two algorithms.
 
 \item \textbf{Complete, verified hardware for both algorithms}
 (Chapters~\ref{ch:hardware} and~\ref{ch:results}). Encoders and decoders were
-implemented in Vitis HLS and Vivado and run in a board test system on an AMD
-KCU116. Compressed output is byte-identical to the simulation on all 50 frames,
-reconstruction is exact, and throughput, latency and resources are measured.
+implemented in Vitis HLS and Vivado, and the compressors were run in a board
+test system on an AMD KCU116. Their output is byte-identical to the simulation
+on all 50 frames, reconstruction (on the PC, and of the hardware decoders in
+C-simulation) is exact, and the compressors' throughput, latency and resources
+are measured.
 
-\item \textbf{A comparison with the baseline} (Section~\ref{sec:vskiem}),
-including a reconstruction of Kiem's simulation from his text, which reproduces
-his results and explains how they relate to the ones here.
+\item \textbf{A comparison with the baseline} (Chapters~\ref{ch:hwinterpret} and~\ref{ch:vskiem}),
+including a reconstruction of Kiem's simulation from his text, which reaches
+his simulated DRHE ratio at one plausible noise level and explains how his
+results relate to the ones here.
 \end{enumerate}
 
 \section{Thesis outline}
@@ -205,13 +209,18 @@ Chapter~\ref{ch:background} gives the necessary background: how an FMCW radar
 measures range and velocity, how MIMO and time-division multiplexing produce a
 virtual array, why the data is large, how lossless compression works, the
 sensor and dataset, number representation, FPGAs and high-level synthesis, and
-related work including Kiem's thesis. Chapter~\ref{ch:methods} describes the
-eight compression methods, the entropy coder shared by the two predictive ones,
-the choice of prediction axis, the two predictors in detail, and the Huffman
-dictionary. Chapter~\ref{ch:evaluation} sets out how they are evaluated: the
-two-stage evaluation, the signal chain, the metrics and the verification ladder
-from MATLAB to the board. Chapter~\ref{ch:hardware} describes the hardware
-architectures of the encoders and decoders and the board test system.
-Chapter~\ref{ch:results} reports the results, Chapter~\ref{ch:discussion}
-discusses what they mean and how they compare with the baseline, and
-Chapter~\ref{ch:conclusion} concludes and proposes future work.
+related work. Chapter~\ref{ch:kiem} describes the baseline, Kiem's thesis, in
+enough detail that every later comparison can be followed without it.
+Chapter~\ref{ch:methods} describes the eight compression methods, the entropy
+coder shared by the two predictive ones, the choice of prediction axis, the two
+predictors in detail, and the Huffman dictionary. Chapter~\ref{ch:evaluation}
+sets out how they are evaluated: the two-stage evaluation, the signal chain, the
+metrics and the verification ladder from MATLAB to the board.
+Chapter~\ref{ch:hardware} describes the hardware architectures of the encoders
+and decoders and the board test system. Chapter~\ref{ch:results} reports the
+results. Chapter~\ref{ch:hwinterpret} interprets the hardware numbers --- what
+each one means, how far to trust it, and why each differs from Kiem's design ---
+and Chapter~\ref{ch:vskiem} compares every one of Kiem's published results with
+this thesis's, using a reconstruction of his simulation.
+Chapter~\ref{ch:discussion} discusses what the results mean for a radar sensor,
+and Chapter~\ref{ch:conclusion} concludes and proposes future work.

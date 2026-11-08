@@ -545,6 +545,114 @@ occupy $16 + 10 + 10 + 14 + 12 + 6 = \num{68}$ bits. Nearly three times as many,
 for identical information.
 
 
+\subsection{Decoding the same stream}
+\label{sec:decodeexample}
+
+Decoding is the mirror image, and seeing it done confirms that no side
+information beyond the fixed dictionary is needed. The decoder holds a bit
+buffer and consumes from the low end.
+
+\begin{enumerate}
+\item Buffer is \texttt{1011\,1000\ldots}. Match the low bits against the
+dictionary. The two-bit prefix \texttt{10} is category 2's codeword; no shorter
+or longer entry can also match, because the reversed code set is prefix-free.
+Consume two bits.
+\item Category 2 means two payload bits. Read \texttt{11}, so $A = 3$. The most
+significant of those two bits is set, so the value is positive: $d = +3$.
+Consume two bits.
+\item Add the prediction: the decoder has already reconstructed ramp
+$168 - \nTx = 156$ for this bin, runs the identical filters on it, obtains
+$\hat{x} = -72$, and outputs $x = 3 + (-72) = -69$ --- which is the value in
+Table~\ref{tab:worked16}.
+\item Buffer is now \texttt{1000\,0101\ldots}. Match \texttt{10} again:
+category 2. Read payload \texttt{00}, so $A = 0$, MSB clear, so
+$d = 0 - (2^2 - 1) = -3$. Prediction $-49$, output $-52$. Correct.
+\item Buffer is \texttt{0101\,0010\ldots}. Now \texttt{10} does \emph{not}
+match, because the low two bits are \texttt{01}, which is no entry's codeword.
+The four-bit prefix \texttt{0101} is category 0's codeword. Category 0 has no
+payload and means $d = 0$ exactly. Prediction $59$, output $59$. Correct.
+\end{enumerate}
+
+Step 5 is the one that shows why prefix-freeness is doing real work: the
+decoder never had to be told how long the next codeword would be.
+
+\subsection{Where the bits go over a whole frame}
+\label{sec:bitbudget}
+
+The sixteen-sample window is illustrative but small. Table~\ref{tab:bitbudget}
+gives the same accounting over an entire frame --- \num{196608} values, all
+four receive channels --- which is what the compression ratio actually
+integrates.
+
+\begin{table}[t]
+\centering
+\caption[Bit budget by category]{Where the bits go, one frame, four receive
+channels, \num{196608} values, original dictionary. ``\% values'' is how often a category occurs;
+``\% bits'' is how much of the output it accounts for. The two columns are very
+different, and the difference is the whole point of entropy coding.}
+\label{tab:bitbudget}
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}rr rr @{\hskip 10pt} rr @{\hskip 10pt} rr@{}}
+\toprule
+& & \multicolumn{2}{c}{\textbf{no prediction}}
+  & \multicolumn{2}{c}{\textbf{DRHE, lag 1}}
+  & \multicolumn{2}{c}{\textbf{DRHE, lag $\nTx$}}\\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}
+$S_4$ & cost & \% values & \% bits & \% values & \% bits & \% values & \% bits\\
+\midrule
+0  & 4  & 16.71 & 14.61 & 11.78 & 9.81  & \textbf{18.85} & 17.87\\
+1  & 4  & 28.57 & 24.97 & 22.01 & 18.33 & \textbf{32.94} & 31.22\\
+2  & 4  & 31.45 & 27.49 & 31.95 & 26.60 & \textbf{34.40} & 32.60\\
+3  & 5  & 14.66 & 16.02 & 22.21 & 23.12 & 11.31 & 13.40\\
+4  & 6  & 4.31  & 5.65  & 6.46  & 8.07  & 1.49  & 2.12\\
+5  & 10 & 1.75  & 3.82  & 2.36  & 4.92  & 0.50  & 1.18\\
+6  & 12 & 1.15  & 3.01  & 1.43  & 3.58  & 0.29  & 0.82\\
+7  & 14 & 1.14  & 3.47  & 1.09  & 3.17  & 0.18  & 0.59\\
+8  & 16 & 0.19  & 0.66  & 0.65  & 2.17  & 0.03  & 0.13\\
+9  & 18 & 0.07  & 0.29  & 0.06  & 0.23  & 0.01  & 0.05\\
+\midrule
+\multicolumn{2}{@{}l}{bits/value} & \multicolumn{2}{c}{4.576}
+  & \multicolumn{2}{c}{4.803} & \multicolumn{2}{c}{\textbf{4.220}}\\
+\multicolumn{2}{@{}l}{compression ratio} & \multicolumn{2}{c}{3.497}
+  & \multicolumn{2}{c}{3.331} & \multicolumn{2}{c}{\textbf{3.792}}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{fig_bitbudget.pdf}
+\caption[Bit budget by category]{The ``\% bits'' columns of
+Table~\ref{tab:bitbudget} drawn. The lag-$\nTx$ predictor concentrates spending
+into the three four-bit categories; the lag-1 predictor pushes it out into
+categories 3 through 8, where each value costs two to four times as much.}
+\label{fig:bitbudget}
+\end{figure}
+
+Several things are visible here that the headline ratios hide.
+
+\paragraph{The expensive categories are rare but not negligible.}
+Under lag-1 prediction, categories 5 through 8 account for only
+\SI{5.53}{\percent} of values but \SI{13.84}{\percent} of bits. One value in
+eighteen is consuming one bit in seven. That asymmetry is exactly why the tail
+of the residual distribution matters so much, and why
+Section~\ref{sec:predaxisres} reports the 99th percentile of the error
+magnitude rather than the mean.
+
+\paragraph{Same-transmitter prediction works by emptying the tail.}
+Comparing the last two column pairs: the lag-$\nTx$ predictor moves
+\SI{86.19}{\percent} of values into categories 0--2, all of which cost four
+bits, and cuts categories 5--8 from \SI{5.53}{\percent} to
+\SI{1.00}{\percent} of values. It is not that individual residuals got a little
+smaller; it is that the expensive ones almost stopped occurring.
+
+\paragraph{The lag-1 predictor loses to doing nothing in a specific way.}
+Against the no-prediction column it \emph{gains} slightly in categories 0--2
+but loses heavily in 3, 4 and 8. It is redistributing values upward, not
+downward. A predictor that helps should hollow out the right-hand side of this
+table; this one fills it in.
+
 \subsection{Why not one model per transmitter?}
 
 An alternative way to keep prediction on one antenna is to split each frame
@@ -782,7 +890,7 @@ range bin in earlier \emph{ramps} --- along slow time, after the range FFT,
 exactly where DRHE predicts --- and uses DRHE's own entropy coder. It was
 designed that way on purpose: by keeping DRHE's input, axis and coder and
 changing only the predictor, any difference in compression ratio can be
-attributed to the predictor alone. Section~\ref{sec:vskiem} returns to how the
+attributed to the predictor alone. Section~\ref{sec:kc_lpc} returns to how the
 two methods called LPC compare.
 
 \section{The Huffman dictionary}

@@ -640,7 +640,7 @@ real and a 16-bit imaginary part --- and emit \num{256} bits per beat of
 compressed bitstream. A useful consequence for benchmarking is that
 ``\num{128} bits per cycle'' is the theoretical maximum input rate, and
 therefore what a perfectly efficient design at $\mathrm{II}=1$ would achieve.
-Section~\ref{sec:hwvskiem} uses this to interpret a published throughput
+Chapter~\ref{ch:hwinterpret} uses this to interpret a published throughput
 figure.
 
 \section{Related work and the baseline}
@@ -697,83 +697,16 @@ end of the ratio spectrum.
 \label{sec:kiem}
 
 The direct predecessor of this work is the master's thesis of Lukas Kiem
-\cite{kiem2025}, carried out at Infineon. Because most comparisons in this
-thesis are made against it, this section sets out what he did, on what data,
+\cite{kiem2025}, carried out at Infineon. It defined the transport problem for
+a single-transmitter Infineon radar (\SI{2.4}{Gbit/s} of raw data, so a ratio
+of \num{2.4}, or \num{2.7} with protocol headers, to fit Gigabit Ethernet),
+compared deterministic industrial schemes with DRHE on private recordings,
+selected DRHE (\num{3.25} in simulation), simplified it for hardware with a
+fixed Huffman dictionary, and implemented the compressor on a Zynq UltraScale+
+device (\num{3.17} in hardware). Because most comparisons in this thesis are
+made against it, Chapter~\ref{ch:kiem} describes that work in full: his use
+case and data, his design space and results, how he adapted DRHE, his hardware,
 and what he left open.
-
-\subsection{His problem and data}
-
-Kiem defined the transport problem with a use case: one Infineon CTRX8191F
-radar MMIC, four receive channels, 12-bit samples at \SI{50}{MS/s}, giving
-\SI{2.4}{Gbit/s} of raw data, in frames of 1024 ramps of 1024 samples that
-take about \SI{21}{\milli\second} to acquire. Carrying it over one Gigabit
-Ethernet link
-therefore needs a compression ratio of \num{2.4} (\num{2.7} with protocol
-headers). The sensor cycles at \SI{20}{\hertz}, and he allowed compression
-\SI{15}{\milli\second} of the \SI{50}{\milli\second} cycle.
-
-His radar used a \emph{single transmitter} and delivered \emph{real} IF
-samples. Consecutive ramps are therefore consecutive observations by the same
-antenna, so the transmitter interleaving of Section~\ref{sec:tdm} never arises
-for him. Every compression result he publishes was measured on private
-recordings of this radar ($512$ samples $\times$ $512$ ramps, four channels,
-14-bit data); a synthetic scene appears in his thesis only as an illustration.
-
-\subsection{His design-space exploration}
-
-Kiem compared FP16 and FX16 references, Infineon's common-exponent formats
-CMPRA and CMPRB, Texas Instruments' Exponential-Golomb variants EGE4--EGE10,
-and DRHE, using a MATLAB chain of pre-processing, range FFT, compression,
-Doppler FFT, non-coherent integration and peak detection --- the same chain
-this thesis adopts (Section~\ref{sec:refchain}). DRHE reached a compression
-ratio of \num{3.25} with exactly FX16's detection metrics, while the lossy
-formats either stayed at or below the required ratio or lost detections. He
-did not implement linear predictive coding, judging the raw-ADC method of
-\cite{meucci2022} less promising than DRHE.
-
-\subsection{His final scheme and hardware}
-
-For hardware he simplified DRHE in two ways: he dropped its run-length code,
-which cost almost nothing (\num{3.25} to \num{3.24}), and he fixed the Huffman
-dictionary, deriving it once from one of his recordings so that it need not be
-computed or transmitted per frame. That dictionary is used here as the
-\emph{original dictionary} (Appendix~\ref{app:huffman}).
-
-He implemented the compressor with Vitis HLS and Vivado 2022.2 on a Zynq
-UltraScale+ \texttt{XCZU3CG}, in fixed-point arithmetic at $\mathrm{II} = 1$
-and \SI{100}{\mega\hertz}, inside a system that streamed data through an FFT
-core and the compressor by DMA. Table~\ref{tab:kiemhw} lists his results.
-
-\begin{table}[htbp]
-\centering
-\caption[Kiem's published results]{Kiem's published results
-\cite[Sections~3.5 and~5.2]{kiem2025}.}
-\label{tab:kiemhw}
-\small
-\begin{tabular}{@{}lr@{}}
-\toprule
-Quantity & Value\\
-\midrule
-Compression ratio, MATLAB / hardware & \num{3.25} / \num{3.17}\\
-Compressor IP: LUT / FF / BRAM (36\,Kb) / DSP & \num{45892} / \num{9243} / 10 / 44\\
-Clock, initiation interval & \SI{100}{\mega\hertz}, 1\\
-System latency (last DMA read to last DMA write) & \SI{79.4}{\micro\second}\\
-Input throughput (theoretical)\textsuperscript{*} & \SI{11.92}{Gibit/s}\\
-\bottomrule
-\multicolumn{2}{@{}l}{\footnotesize\textsuperscript{*}Gibit $= 2^{30}$ bits; \SI{11.92}{Gibit/s} is \SI{12.8}{Gbit/s}.}
-\end{tabular}
-\end{table}
-
-\subsection{What he left open}
-
-He concluded that DRHE met every requirement of his use case. His suggestions
-for future work included investigating floating-point arithmetic for the
-prediction, a bit-accurate decompressor, and tests with a real sensor and other
-configurations. Four gaps follow, and they are the objectives of
-Section~\ref{sec:objectives}: his results come from a private single-transmitter
-dataset; the detection loss of the FX16 step was identified but not resolved;
-only one predictive coder was evaluated; and no decompressor was built, so the
-hardware could not be checked bit for bit.
 
 \section{Summary of what the later chapters assume}
 

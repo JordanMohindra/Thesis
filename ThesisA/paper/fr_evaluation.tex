@@ -19,7 +19,7 @@ scored on compression ratio and on what it does to target detection. A method
 goes forward only if it is lossless --- it loses no detections beyond those of
 the FX16 step every method shares --- and compresses by more than three, which
 leaves a margin over the \num{2.4}--\num{2.7} that a Gigabit Ethernet link needs
-(Section~\ref{sec:kiem}).
+(Section~\ref{sec:kiem} and Chapter~\ref{ch:kiem}).
 
 \paragraph{Stage 2 --- where does the compression come from, and what does it
 cost in hardware?}
@@ -339,20 +339,20 @@ Appendix~\ref{app:verify} lists what was checked.
 
 Kiem's recordings and source code are not public, so his numbers cannot be
 re-run directly. Two reconstructions connect them to this thesis, and
-Section~\ref{sec:vskiem} and Section~\ref{sec:hwvskiem} report what they show.
+Chapters~\ref{ch:hwinterpret} and~\ref{ch:vskiem} report what they show.
 
 \paragraph{His simulation.} His MATLAB chain was rebuilt from the text of his
 thesis --- pre-processing, range FFT, FX16, DRHE with and without run-length
 coding, Doppler FFT and detection --- and run on the synthetic five-target scene
-his thesis describes. The noise level is the one parameter his text does not
-pin down, so it was swept, and the chain was also used to run the fast-time
+his thesis describes. The noise level is the parameter his text leaves most
+open and the one that moves the ratio most, so it was swept, and the chain was also used to run the fast-time
 LPC-Huffman method he excluded.
 
 \paragraph{His hardware.} His compressor was rebuilt from its description ---
 the same fixed-point types, functions, state arrays and packing --- in the same
 tool flow and on the same device as this thesis's DRHE, and connected to it by
-a ladder of variants that each change one design decision (arithmetic, state
-width, state reset, packer). Every variant was implemented through placement
+a ladder of variants that each change one design decision (offset handling,
+packer, state reset, arithmetic, open- or closed-loop prediction). Every variant was implemented through placement
 and routing and checked lossless, so each step's change in resources has one
 identified cause.
 

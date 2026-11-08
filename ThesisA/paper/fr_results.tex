@@ -290,6 +290,45 @@ were always the smaller of the two --- over five frames, \num{4.10} against
 bits per value of coefficients --- but a dictionary that cannot code anything in fewer than four
 bits hides most of that difference.
 
+\subsection{How close to the limit}
+\label{sec:coderlimit}
+
+The order-0 entropy of Equation~\eqref{eq:entropy} gives the floor for any code
+that treats values independently, and an \emph{ideal} $S_4$ dictionary --- a
+Huffman code built on each design's own category counts --- shows how much of the
+gap to that floor is the dictionary and how much the $S_4$ construction itself.
+Table~\ref{tab:coderlimit} gives both, in bits per value, over five frames.
+
+\begin{table}[htbp]
+\centering
+\caption[How close the coder gets to the entropy]{Bits per value of the
+residuals (coefficient table excluded), five frames, four receive channels:
+with the original dictionary, with an ideal $S_4$ dictionary, and the order-0
+entropy of the values.}
+\label{tab:coderlimit}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Residuals & Original dictionary & Ideal $S_4$ & Entropy & Overhead of original\\
+\midrule
+No prediction (raw FX16 codes)   & 4.586 & 4.214 & 4.094 & \SI{12.0}{\percent}\\
+DRHE, lag $\nTx$                 & 4.240 & 3.711 & 3.516 & \SI{20.6}{\percent}\\
+LPC, lags $\nTx$, $2\nTx$        & 4.102 & 3.242 & 3.040 & \SI{34.9}{\percent}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+Two things follow. The $S_4$ construction itself is efficient: the ideal
+dictionary comes within 2 to \SI{7}{\percent} of the entropy, so splitting each
+value into a coded size and raw payload bits loses little. Almost all of the
+original dictionary's excess is the dictionary, and it grows as prediction
+improves --- from \SI{12}{\percent} on the raw codes to \SI{35}{\percent} on
+LPC's errors --- because the better the predictor, the further its errors sit
+below the sizes the original dictionary favours. That is why re-deriving the
+dictionary gains more for LPC than for DRHE, and why the gain grows with
+prediction quality rather than shrinking.
+
 % -------------------------------------------------------------------
 \section{Frame-to-frame variation}
 \label{sec:perframe}
@@ -316,8 +355,8 @@ wide margin over the \num{2.4}--\num{2.7} required.
 \section{Verification}
 \label{sec:verifres}
 
-Every design passed every level of the ladder of Section~\ref{sec:ladder} that
-it has reached, with $\mathrm{MaxDiff} = 0$:
+Every level of the ladder of Section~\ref{sec:ladder} that has been run
+passed with $\mathrm{MaxDiff} = 0$:
 
 \begin{itemize}
 \item \textbf{C-simulation}, 50 frames (\num{4915200} complex samples,
@@ -331,10 +370,11 @@ MATLAB's by 15 to 252 bits, always less than one word.
 \item \textbf{Edge cases}: all eight synthetic cases of
 Table~\ref{tab:edgecases} pass for both algorithms. Uniformly random input
 \emph{expands} by \SI{67}{\percent} (CR \num{0.60}), as any lossless coder must
-on incompressible data.
+on incompressible data: every value lands in a high category, costing a long
+codeword plus up to 15 payload bits.
 \item \textbf{Board}: with the original dictionary, both compressors produced
 compressed output \emph{byte-identical} to the C-simulation on all 50 frames,
-and every frame decompressed on the PC with zero error. Mean compression ratio on the
+and every frame, decompressed on the PC, matched the input exactly. Mean compression ratio on the
 board was \num{3.7508} for DRHE (range \numrange{3.517}{3.815}) and
 \num{3.6968} for LPC (\numrange{3.461}{3.761}), exactly the C-simulation
 figures. The bitstreams with the re-derived dictionaries differ only in the
@@ -483,7 +523,7 @@ End-to-end latency                               & \textbf{\SI{13.1}{\micro\seco
 First output available                           & \textbf{immediately} & after the whole frame\\
 Compressor frame buffer                          & \textbf{none} & \SI{3.0}{\mebi bit}\\
 Encoder + decoder LUTs                           & \textbf{\SI{23}{\percent}} & \SI{25}{\percent}\\
-Encoder + decoder BRAM                           & \textbf{72.5} & 98\\
+Encoder + decoder BRAM (36\,Kb blocks)          & \textbf{72.5} & 98\\
 Side information                                 & \textbf{none} & \SI{1.04}{\percent}\\
 \bottomrule
 \end{tabular}

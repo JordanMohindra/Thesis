@@ -14,9 +14,10 @@ Eight methods were compared in MATLAB on 50 frames of ColoRadar data from a
 twelve-transmitter, sixteen-receiver Texas Instruments cascade. Two lossless
 predictive coders --- Doppler Redundancy Hybrid Encoding and a second-order
 linear predictive coder --- were specified, implemented in C++ for Vitis HLS
-with matching decompressors, built with Vivado into a test system on an AMD
-KCU116 board, and verified bit for bit at every level from MATLAB to the board,
-where the compressors' output matched the simulation byte for byte.
+with matching decompressors, and built with Vivado into a test system on an AMD
+KCU116 board. They were verified bit for bit from MATLAB through C-simulation
+and RTL co-simulation to the board, where the compressors' output matched the
+simulation byte for byte.
 A third, independent implementation in Python reproduced their bit counts.
 
 \section{Findings}
@@ -44,14 +45,15 @@ compression ratio.
 
 \item \textbf{The dictionary matters more than the predictor.} A Huffman
 dictionary re-derived from five frames for each algorithm's prediction errors
-raises DRHE from \num{3.75} to \num{4.22} and LPC from \num{3.70} to \num{4.40},
-holds on the 45 frames it was not trained on, costs nothing in hardware, and
-puts LPC ahead of DRHE on ratio.
+raises DRHE from \num{3.75} to \num{4.22} and LPC from \num{3.70} to \num{4.40}
+in simulation of the hardware code, holds on the 45 frames it was not trained
+on, changes only the contents of a table in hardware, and puts LPC ahead of
+DRHE on ratio.
 
 \item \textbf{The hardware is exact and fast.} On the KCU116 at
 \SI{100}{\mega\hertz}, both compressors produced output byte-identical to the
-simulation on all 50 frames, and every frame decompressed on the PC with zero
-error. DRHE
+simulation on all 50 frames, and every frame, decompressed on the PC, matched
+the input exactly. DRHE
 compresses a frame in \SI{0.61}{\milli\second} (\SI{5.1}{Gbit/s}) with
 \SI{13}{\micro\second} of latency; LPC in \SI{3.25}{\milli\second} with
 \SI{3.0}{\milli\second} of latency, because it must see the whole frame first.
@@ -67,8 +69,8 @@ could not keep up.
 \item \textbf{The baseline carries over, with one change.} Kiem's DRHE is
 reproduced bit for bit and works on a cascade once the prediction lag is set to
 the transmitter count; with a matched dictionary it compresses public cascade
-data by \num{4.2}, and unlike his system it is verified end to end with a
-decoder.
+data by \num{4.2}. Unlike his system it has a decoder, and the board's
+compressed output reconstructs exactly.
 \end{enumerate}
 
 \section{Future work}
