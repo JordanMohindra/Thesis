@@ -1,0 +1,43 @@
+High-resolution cascaded MIMO radar produces more raw data than a vehicle's
+network and central processor can comfortably absorb. Compressing that data at
+the sensor buys back bandwidth, but only if the compressor is lossless, fast and
+small, because anything it discards is lost before target detection ever sees
+it.
+
+This thesis compares data compression methods for automotive radar on real data
+and implements the most suitable of them in hardware. Eight methods were
+evaluated in MATLAB on 50 frames of the public ColoRadar dataset, recorded with
+a twelve-transmitter Texas Instruments cascade radar. The lossy quantisers
+reached compression ratios of up to \num{3.76} but missed up to
+\SI{28.7}{\percent} of targets, and floating-point storage barely compressed at
+all. Two lossless predictive coders compressed by more than three:
+Doppler Redundancy Hybrid Encoding (DRHE), which predicts magnitude and phase
+with fixed filters, and a second-order linear predictive coder (LPC) whose
+coefficients are fitted to each frame. On a time-division MIMO radar both must
+predict each ramp from the previous ramp of the \emph{same transmitter}, twelve
+ramps back; predicting from the adjacent ramp does worse than not predicting
+at all.
+
+The compression ratio was broken down into its sources. Huffman coding of the
+16-bit range-FFT data alone achieves \num{3.48}; prediction adds a further
+\num{0.22}--\num{0.27}; and a Huffman dictionary re-derived for the prediction
+errors adds \num{0.47} for DRHE and \num{0.71} for LPC, giving \num{4.22} and
+\num{4.40} overall, measured on the hardware, with every frame reconstructed
+exactly.
+
+Both compressors and their decompressors were written in C++, synthesised
+with Vitis HLS and Vivado, and run on an AMD KCU116 (Kintex UltraScale+) board
+at \SI{100}{\mega\hertz}. On the board all 50 frames were compressed
+byte-identically to the simulation, and the board's own decoders reconstructed
+every frame exactly. DRHE
+compresses a frame in \SI{0.61}{\milli\second} (\SI{5.1}{Gbit/s}) and streams
+its output with \SI{13}{\micro\second} of latency. LPC takes
+\SI{3.25}{\milli\second} and, because its coefficients depend on the whole
+frame, cannot output anything until the whole frame has arrived: its last
+output word follows its last input word by \SI{3.0}{\milli\second}. The
+decoders take \SI{1.97}{\milli\second} (DRHE) and \SI{15.4}{\milli\second}
+(LPC) per frame. Encoder and decoder together use
+\SI{23}{\percent} (DRHE) and \SI{25}{\percent} (LPC) of the chip's logic. LPC
+compresses about \SI{4}{\percent} better; DRHE is recommended for a streaming
+sensor front end, because it needs no frame buffer and has a small fraction of
+LPC's latency.

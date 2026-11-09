@@ -1,0 +1,80 @@
+% ---- UNSW EE&T thesis template v2.00 definitions (unchanged) ------------
+\usepackage{xcolor}%for enabling colours in documents
+\definecolor{unswred1}{RGB}{238,49,36}
+\definecolor{unswred2}{RGB}{197,40,28}
+\definecolor{unswred3}{RGB}{158,28,15}
+\definecolor{unswred4}{RGB}{122,12,0}
+\definecolor{unswblue1}{RGB}{0,174,239}
+\definecolor{unswblue2}{RGB}{0,146,200}
+\definecolor{unswblue3}{RGB}{0,118,163}
+\definecolor{unswblue4}{RGB}{0,91,127}
+\definecolor{unswyellow}{RGB}{255,212,0}
+\usepackage{pslatex}%for using post-script fonts
+\pdfpagewidth=210 true mm%fix for pslatex
+\pdfpageheight=297 true mm%fix for pslatex
+\usepackage[margin=2.54cm]{geometry}%for setting margins correctly
+\usepackage[english]{babel}%for dealing neatly with umlautes
+% \usepackage{units} -- replaced by siunitx (the two are incompatible)
+\usepackage{url}%for type setting urls
+\usepackage{hyperref}%for internal document links
+\hypersetup{pdfborder=0 0 0}
+\hypersetup{colorlinks=true}
+\hypersetup{allcolors=unswred2}
+\usepackage{graphicx}%for including graphics
+\usepackage{array}%for better table control and commands
+\setlength{\extrarowheight}{1pt}
+\usepackage{verbatim}%for typesetting code
+\usepackage{latexsym}%for a few extra symbols - alternatively use amssymb
+\usepackage{sectsty}%for nice colourful headings
+\chapterfont{\color{unswred2}}
+\sectionfont{\color{unswred2}}
+\subsectionfont{\color{unswred2}}
+\subsubsectionfont{\color{unswred2}}
+\usepackage{tocbibind}%for adding bibliography to toc
+
+\renewcommand{\baselinestretch}{1.5}%
+
+% ---- additions for this thesis ------------------------------------------
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{siunitx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{enumitem}
+\usepackage{etoolbox}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{arrows.meta,positioning,calc,patterns,decorations.pathreplacing,
+                shapes.geometric,fit,backgrounds,3d}
+\sisetup{detect-weight=true,detect-family=true,group-separator={,},group-digits=integer,group-minimum-digits=4}
+\sisetup{text-micro=\ensuremath{\mu}}
+\renewcommand{\S}{\ensuremath{\mathsection}}
+
+% tables, figures and captions single-spaced; body text stays at 1.5
+\captionsetup{font={small,stretch=1},labelfont=bf,width=0.92\textwidth}
+\AtBeginEnvironment{tabular}{\linespread{1}\selectfont}
+\AtBeginEnvironment{longtable}{\linespread{1}\selectfont}
+\AtBeginEnvironment{tikzpicture}{\linespread{1}\selectfont}
+\setlist{itemsep=2pt,parsep=0pt,topsep=4pt}
+\setlength{\emergencystretch}{3em}% long \texttt names wrap instead of overflowing
+
+% figure colours
+\definecolor{accent}{HTML}{2F5D7C}
+\definecolor{warm}{HTML}{B5553F}
+\definecolor{green2}{HTML}{2F6D4F}
+\definecolor{slate}{HTML}{4A5568}
+\definecolor{lightbg}{HTML}{EEF2F5}
+
+% a boxed "key result" environment
+\newenvironment{keybox}{%
+  \par\vspace{4pt}\noindent
+  \begin{tikzpicture}\node[draw=unswred2,line width=0.8pt,fill=lightbg,rounded corners=2pt,
+    inner sep=8pt,text width=\dimexpr\textwidth-22pt\relax,align=justify]\bgroup\small\linespread{1.2}\selectfont}
+  {\egroup;\end{tikzpicture}\par\vspace{4pt}}
+
+\input{hw_numbers}
+\graphicspath{{figs/}{./}}
+\newcommand{\nTx}{n_{\mathrm{Tx}}}
+\newcommand{\pending}[1]{\textcolor{warm}{\textbf{[pending: #1]}}}

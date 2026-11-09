@@ -1,0 +1,120 @@
+% ===================================================================
+% Thesis summary sheet and pointers (School of EE&T requirement).
+% Check against the current form on the thesis Moodle page, then sign.
+% ===================================================================
+\pagestyle{empty}
+\begingroup
+\linespread{1.1}\selectfont
+\setlength{\parindent}{0pt}
+\newcommand{\sumbox}[1]{\noindent\fbox{\parbox{\dimexpr\textwidth-2\fboxsep-2\fboxrule\relax}{#1}}\par}
+\newcommand{\ptr}[2]{#1 & #2\\ \hline}
+
+\textbf{Topic Title:}\quad Comparison and Implementation of Data Compression Methods for SoC-based Radar Systems\\[3mm]
+\textbf{Student Name:}\quad Jordan Mohindra \hfill \textbf{Student ID:} z5418455\\[4mm]
+
+A.\quad\textbf{Problem statement}\\
+\sumbox{High-resolution cascaded MIMO radars produce more raw data than a
+vehicle's network and central processor can comfortably absorb. Compressing at
+the sensor saves link bandwidth, but the compressor must be lossless (anything
+it discards is lost before target detection), keep up with the sensor, and be
+small enough for sensor hardware. Radar compression methods are rarely compared
+on the same real multi-transmitter data, and the lossless baseline was
+evaluated on a single-transmitter radar with no decoder.}
+\vspace{3mm}
+
+B.\quad\textbf{Objective}\\
+\sumbox{Compare compression methods side by side on real, public,
+multi-transmitter radar data; select the best lossless methods; and implement
+their encoders and decoders on an FPGA, verified and measured on a board.}
+\vspace{3mm}
+
+C.\quad\textbf{My solution}\\
+\sumbox{Eight methods were evaluated in MATLAB on 50 frames of the ColoRadar
+dataset (twelve-transmitter Texas Instruments cascade). The two lossless
+predictive coders, DRHE and a slow-time LPC, were adapted to time-division MIMO
+by predicting from the same transmitter, given Huffman dictionaries re-derived
+for their prediction errors, written in C++ for Vitis HLS with matching
+decoders, and built into a test system on an AMD KCU116 board, where their
+output was verified bit-exact against simulation.}
+\vspace{3mm}
+
+D.\quad\textbf{Contributions} (at most one per line, most important first)\\
+\begin{tabular}{|p{\dimexpr\textwidth-2\tabcolsep-2\arrayrulewidth\relax}|}\hline
+Bit-exact lossless radar compression on an FPGA: 4.22$\times$ (DRHE), 4.40$\times$ (LPC)\\ \hline
+Same-transmitter prediction lag for time-division MIMO radar\\ \hline
+Comparison of eight compression methods on real cascade radar data\\ \hline
+Breakdown of the compression ratio; Huffman dictionaries matched to the errors\\ \hline
+Hardware encoders and decoders measured on the board (time, latency, resources)\\ \hline
+Reconstruction of, and comparison with, the baseline design\\ \hline
+\end{tabular}
+\vspace{3mm}
+
+E.\quad\textbf{Suggestions for future work}\\
+\begin{tabular}{|p{\dimexpr\textwidth-2\tabcolsep-2\arrayrulewidth\relax}|}\hline
+Fixed-point DRHE datapath to cut logic and DSP use\\ \hline
+Streaming (backward-adaptive) LPC, and a parallel LPC decoder\\ \hline
+All sixteen receive channels, a range-FFT core on chip, and power measurement\\ \hline
+\end{tabular}
+\vspace{5mm}
+
+While I may have benefited from discussion with other people, I certify that
+this report is entirely my own work, except where appropriately documented
+acknowledgements are included.\\[10mm]
+Signature: \rule{6cm}{0.4pt} \hfill Date: \rule{1cm}{0.4pt}\,/\,\rule{1cm}{0.4pt}\,/\,\rule{1.5cm}{0.4pt}
+
+\newpage
+\small
+\begin{center}\textbf{\large Pointers}\end{center}
+List relevant page numbers in the column on the left. Be precise and selective.\\[3mm]
+\newcommand{\ptab}[2]{\textbf{#1}\\[1mm]\begin{tabular}{|p{2.2cm}|p{\dimexpr\textwidth-2.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}\hline #2\end{tabular}\\[1.5mm]}
+
+\begin{tabular}{|p{2.2cm}|p{\dimexpr\textwidth-2.2cm-4\tabcolsep-3\arrayrulewidth\relax}|}\hline
+\ptr{\pageref{sec:problem}}{Problem statement}
+\ptr{\pageref{sec:objectives}}{Objective}
+\end{tabular}\\[3mm]
+
+\ptab{Theory (up to 5 most relevant ideas)}{%
+\ptr{\pageref{sec:tdm}}{Time-division MIMO radar and the data cube}
+\ptr{\pageref{sec:compression}}{Lossless compression and entropy coding}
+\ptr{\pageref{sec:fx16}}{Fixed-point (FX16) quantisation}
+\ptr{\pageref{sec:fpga}}{FPGAs and high-level synthesis}
+\ptr{\pageref{ch:kiem}}{The baseline: Kiem's DRHE design}}
+
+\ptab{Method of solution (up to 5 most relevant points)}{%
+\ptr{\pageref{sec:candidates}}{Eight candidate methods}
+\ptr{\pageref{sec:entropycoder}}{Shared $S_4$/Huffman entropy coder}
+\ptr{\pageref{sec:predaxis}}{Prediction on a TDM-MIMO radar}
+\ptr{\pageref{sec:ladder}}{Verification ladder, MATLAB to board}
+\ptr{\pageref{ch:hardware}}{Hardware implementation}}
+
+\ptab{Contributions (most important first)}{%
+\ptr{\pageref{sec:verifres}}{Bit-exact lossless compression on the FPGA}
+\ptr{\pageref{sec:predaxisres}}{Same-transmitter prediction lag}
+\ptr{\pageref{sec:stage1}}{Comparison of eight methods}
+\ptr{\pageref{sec:decomp}}{Breakdown of the compression ratio; matched dictionaries}
+\ptr{\pageref{sec:boardtiming}}{Encoders and decoders measured on the board}}
+
+\ptab{My work}{%
+\ptr{\pageref{sec:lpc}}{Slow-time LPC coder}
+\ptr{\pageref{sec:dict}}{Re-derived Huffman dictionaries}
+\ptr{\pageref{sec:dechw}}{Hardware decompressors}
+\ptr{\pageref{sec:system}}{KCU116 board test system}}
+
+\ptab{Results}{%
+\ptr{\pageref{sec:stage1}}{Succinct presentation of results}
+\ptr{\pageref{ch:discussion}}{Analysis}
+\ptr{\pageref{sec:choice}}{Significance of results}}
+
+\ptab{Conclusion}{%
+\ptr{\pageref{ch:conclusion}}{Statement of whether the outcomes met the objectives}
+\ptr{\pageref{sec:futurework}}{Suggestions for future research}}
+
+\ptab{Literature (up to 5 most important references)}{%
+\ptr{\pageref{ch:kiem}}{\cite{kiem2025} L.~Kiem, master's thesis (the baseline design)}
+\ptr{\pageref{sec:sensor}}{\cite{kramer2022} A.~Kramer \emph{et al.}, ColoRadar dataset}
+\ptr{\pageref{sec:compression}}{\cite{huffman1952} D.~A.~Huffman, minimum-redundancy codes}
+\ptr{\pageref{sec:compression}}{\cite{sayood2017} K.~Sayood, \emph{Introduction to Data Compression}}}
+\endgroup
+\clearpage
+\pagestyle{plain}
+\thispagestyle{empty}

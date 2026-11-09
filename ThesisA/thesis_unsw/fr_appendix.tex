@@ -1,0 +1,228 @@
+\chapter{The Huffman Dictionaries}
+\label{app:huffman}
+
+Table~\ref{tab:huffman} gives the complete original dictionary
+\cite[Table~A.1]{kiem2025}, used in Stage~1, in the no-prediction baseline and
+in the original-dictionary board builds. The published codes are most-significant-bit first; the
+implementation packs least-significant-bit first, so the stored codewords are
+bit-reversed. Both forms are listed, and all sixteen entries were verified to
+agree with the published table.
+
+The reversed code set remains prefix-free, which is what allows the decoder to
+match candidates from the low end of its bit buffer with no ambiguity.
+
+\begin{table}[h]
+\centering
+\caption[The original Huffman dictionary]{The original Huffman dictionary. ``Cost'' is
+the total bits to code one residual in that category, $\ell + S_4$, from
+Equation~\eqref{eq:cost}.}
+\label{tab:huffman}
+\small
+\begin{tabular}{@{}rlrlrr@{}}
+\toprule
+$S_4$ & $|v|$ range & $\ell$ & code (MSB-first) & stored (LSB-first) & cost \\
+\midrule
+0  & $v = 0$          & 4  & \texttt{1010}           & \texttt{0x0005} & 4 \\
+1  & 1                & 3  & \texttt{100}            & \texttt{0x0001} & 4 \\
+2  & 2--3             & 2  & \texttt{01}             & \texttt{0x0002} & 4 \\
+3  & 4--7             & 2  & \texttt{00}             & \texttt{0x0000} & 5 \\
+4  & 8--15            & 2  & \texttt{11}             & \texttt{0x0003} & 6 \\
+5  & 16--31           & 5  & \texttt{10110}          & \texttt{0x000D} & 10 \\
+6  & 32--63           & 6  & \texttt{101110}         & \texttt{0x001D} & 12 \\
+7  & 64--127          & 7  & \texttt{1011110}        & \texttt{0x003D} & 14 \\
+8  & 128--255         & 8  & \texttt{10111110}       & \texttt{0x007D} & 16 \\
+9  & 256--511         & 9  & \texttt{101111110}      & \texttt{0x00FD} & 18 \\
+10 & 512--1023        & 10 & \texttt{1011111110}     & \texttt{0x01FD} & 20 \\
+11 & 1024--2047       & 11 & \texttt{10111111110}    & \texttt{0x03FD} & 22 \\
+12 & 2048--4095       & 14 & \texttt{10111111111111} & \texttt{0x3FFD} & 26 \\
+13 & 4096--8191       & 14 & \texttt{10111111111110} & \texttt{0x1FFD} & 27 \\
+14 & 8192--16383      & 13 & \texttt{1011111111110}  & \texttt{0x0FFD} & 27 \\
+15 & 16384--32767     & 12 & \texttt{101111111110}   & \texttt{0x07FD} & 27 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+Note the non-monotonicity at categories 12--15: the longest codewords are
+assigned to categories 12 and 13 rather than to 15. This is a property of the
+published dictionary and is reproduced faithfully. It has no effect on this
+dataset, where no residual exceeds category 10.
+
+
+\section*{The re-derived dictionaries}
+
+Table~\ref{tab:rederived} gives the codeword lengths of the dictionaries
+re-derived for each algorithm (Section~\ref{sec:dict}), built from the $S_4$
+counts of frames 0--4 with one added to every category, and the total cost of
+each category with each. The codewords themselves are the canonical Huffman
+codes for these lengths, bit-reversed for the packer; they are the tables
+\texttt{DRHE\_TDM\_HUFFMAN\_TABLE} and \texttt{LPC\_TDM\_HUFFMAN\_TABLE} in the
+HLS source.
+
+\begin{table}[h]
+\centering
+\caption[The re-derived dictionaries]{Codeword length $\ell$ and total cost
+$\ell + S_4$ per category for the original and the two re-derived dictionaries.}
+\label{tab:rederived}
+\small
+\begin{tabular}{@{}r rr rr rr@{}}
+\toprule
+& \multicolumn{2}{c}{original} & \multicolumn{2}{c}{DRHE} & \multicolumn{2}{c}{LPC}\\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+$S_4$ & $\ell$ & cost & $\ell$ & cost & $\ell$ & cost\\
+\midrule
+0 & 4 & 4 & 3 & 3 & 3 & 3\\
+1 & 3 & 4 & 2 & 3 & 1 & 2\\
+2 & 2 & 4 & 1 & 3 & 2 & 4\\
+3 & 2 & 5 & 4 & 7 & 4 & 7\\
+4 & 2 & 6 & 5 & 9 & 5 & 9\\
+5 & 5 & 10 & 6 & 11 & 6 & 11\\
+6 & 6 & 12 & 7 & 13 & 7 & 13\\
+7 & 7 & 14 & 8 & 15 & 8 & 15\\
+8 & 8 & 16 & 9 & 17 & 9 & 17\\
+9 & 9 & 18 & 10 & 19 & 10 & 19\\
+10 & 10 & 20 & 11 & 21 & 13 & 23\\
+11 & 11 & 22 & 14 & 25 & 13 & 24\\
+12 & 14 & 26 & 14 & 26 & 13 & 25\\
+13 & 14 & 27 & 13 & 26 & 13 & 26\\
+14 & 13 & 27 & 13 & 27 & 12 & 26\\
+15 & 12 & 27 & 13 & 28 & 12 & 27\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+The re-derived dictionaries code their commonest category in three bits (DRHE,
+category 2) or two (LPC, category 1), where the original cannot code anything
+in fewer than four. They are longer above category 3, which costs little
+because those categories are rare after prediction.
+
+\chapter{Bitstream Layouts}
+\label{app:bitstream}
+
+\section{DRHE}
+
+DRHE's bitstream is a single continuous sequence of coded residuals, in the
+raster order the samples arrive:
+\[
+\underbrace{\text{enc}(d_{\Re})\ \text{enc}(d_{\Im})}_{\text{ramp }0,\ \text{bin }0,\ \text{ch }0}\
+\underbrace{\text{enc}(d_{\Re})\ \text{enc}(d_{\Im})}_{\text{ramp }0,\ \text{bin }0,\ \text{ch }1}\
+\cdots
+\]
+where $\text{enc}(v)$ is the Huffman codeword for $S_4(v)$ followed by
+$S_4(v)$ APPEND bits. There is no header: the frame dimensions arrive over the
+AXI4-Lite control interface. The final AXI word is zero-padded.
+
+\section{LPC}
+
+LPC's bitstream has two sections:
+\[
+\underbrace{\big[a_1^{\Re}\ a_2^{\Re}\ a_1^{\Im}\ a_2^{\Im}\big]_{\text{ch},\text{bin}}}_{\text{coefficient table, }4\times16\text{ bits each}}
+\quad
+\underbrace{\text{enc}(d_{\Re})\ \text{enc}(d_{\Im})\ \cdots}_{\text{residuals, raster order}}
+\]
+The coefficient table comes first because the decoder needs all of it before it
+can reconstruct anything. The residuals follow in the original raster order ---
+not in the order the compressor computed them --- which is what allows the
+decompressor to operate without a frame buffer
+(Section~\ref{sec:lpcimpl}).
+
+
+\chapter{Reproducing the Results}
+\label{app:repro}
+
+All sources are in the thesis repository under \texttt{ThesisA/}. The build
+tree must sit on a path without spaces, which Vitis rejects.
+
+\section{Source files}
+
+\begin{longtable}{@{}p{58mm}p{82mm}@{}}
+\toprule
+File & Purpose \\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{MATLAB} (\texttt{Matlab\_Sim/})}\\
+\texttt{loadColoRadarFrame.m} & reads a frame and applies the TDM flattening \\
+\texttt{preprocessing.m}, \texttt{rangeFFT.m} & DC removal, window, range FFT \\
+\texttt{compress\_fx16.m} & FX16 quantisation, Equation~\eqref{eq:scale} \\
+\texttt{compress\_drhe.m}, \texttt{decompress\_drhe.m} & DRHE; lag from \texttt{config.predLag}, default $\nTx$ \\
+\texttt{compress\_lpc\_huffman.m}, \texttt{decompress\_lpc\_huffman.m} & LPC at lags $L$, $2L$ \\
+\texttt{huffman\_tables.m}, \texttt{huffman\_code\_lengths.m} & the original and re-derived dictionaries; retraining \\
+\texttt{run\_coloradar\_benchmark.m} & Stage~1: all eight methods with detection metrics \\
+\texttt{make\_poster\_figs.m} & Stage~2 breakdown, dictionary tables, and the figures of Chapter~\ref{ch:results}; parameters at the top \\
+\texttt{export\_frames\_for\_vitis.m} & writes the \texttt{int16} stimulus for the HLS testbenches \\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{HLS} (\texttt{hls\_component/})}\\
+\texttt{drhe\_tdm\_common.h}, \texttt{drhe\_tdm\_compress.cpp}, \texttt{drhe\_tdm\_decompress.cpp} & DRHE cores and the DRHE dictionary \\
+\texttt{lpc\_tdm\_common.h}, \texttt{lpc\_tdm\_compress.cpp}, \texttt{lpc\_tdm\_decompress.cpp} & LPC cores, Yule--Walker solver and the LPC dictionary \\
+\texttt{*\_tb.cpp}, \texttt{*\_tb\_edge.cpp} & 50-frame and edge-case testbenches \\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Board} (\texttt{fpga\_kcu116/})}\\
+\texttt{hls/export\_ips.bat} & C-simulation (writes the golden streams) and IP packaging \\
+\texttt{vivado/build.bat} & block design, synthesis, implementation, bitstream; \texttt{decomp 1} adds the decompressor \\
+\texttt{sw/src/main.c}, \texttt{board\_map.h} & MicroBlaze firmware \\
+\texttt{host/run\_board.bat}, \texttt{run\_board.tcl} & program the board, load frames, run, read results \\
+\texttt{host/pc\_decompress.bat} & PC decompression with the HLS decoder source \\
+\texttt{host/compare\_results.py} & byte comparison with C-simulation, reconstruction check, tables \\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Independent check} (\texttt{verify\_indep/}, Python)}\\
+\texttt{indep.py} & the whole chain from raw frame to bit count \\
+\texttt{retrain\_complete.py} & dictionaries trained on frames 0--4, tested on 5--49 \\
+\texttt{golden\_check.py}, \texttt{independent\_decode.py} & residual-level check and decoding of the hardware bitstreams \\
+\bottomrule
+\end{longtable}
+
+\section{Commands}
+
+C-simulation, synthesis and co-simulation of a core (DRHE shown):
+\begin{verbatim}
+vitis-run --mode hls --csim  --config test_tdm.cfg --work_dir hls_tdm
+v++ -c    --mode hls         --config test_tdm.cfg --work_dir hls_tdm
+vitis-run --mode hls --cosim --config test_tdm.cfg --work_dir hls_tdm
+\end{verbatim}
+
+\noindent
+Board run, from \texttt{fpga\_kcu116/host} (\texttt{<tag>} is \texttt{drhe},
+\texttt{lpc}, \texttt{drhe\_full} or \texttt{lpc\_full}):
+\begin{verbatim}
+run_board.bat <tag> 50
+pc_decompress.bat <tag>          (compress-only builds)
+python compare_results.py <tag>
+\end{verbatim}
+
+\noindent
+Figures and tables of Chapter~\ref{ch:results}, in MATLAB from
+\texttt{Matlab\_Sim}: \texttt{make\_poster\_figs}. Simulation results are cached;
+set \texttt{P.recompute = true} after changing the algorithm code.
+
+\chapter{Verification Record}
+\label{app:verify}
+
+Table~\ref{tab:verify} lists every check on which the results rest, where it
+was made, and its outcome.
+
+\begin{longtable}{@{}p{55mm}p{38mm}p{45mm}@{}}
+\caption[Verification record]{The verification record.}\label{tab:verify}\\
+\toprule
+Check & Where & Outcome\\
+\midrule
+\endfirsthead
+\toprule
+Check & Where & Outcome\\
+\midrule
+\endhead
+Stage~1, eight methods, 50 frames & MATLAB & Table~\ref{tab:stage1}; re-run reproduces every cell\\
+DRHE and LPC lossless, original dictionary & HLS C-sim, 50 frames & MaxDiff 0 on every frame\\
+DRHE and LPC lossless, re-derived dictionaries & HLS C-sim, 50 frames & MaxDiff 0; CR \num{4.21704}, \num{4.40345}\\
+MATLAB against HLS bit counts & both & equal up to the last 256-bit padding word\\
+Independent bit counts, original dictionary & Python, 50 frames & equal to HLS on every frame\\
+Independent decode, re-derived dictionaries & Python & no residual mismatch\\
+Edge cases, eight synthetic inputs & HLS C-sim & all pass within their allowed MaxDiff\\
+RTL behaviour & co-simulation, 1 frame & MaxDiff 0, both algorithms\\
+Timing closure, four builds & Vivado & all met at \SI{100}{\mega\hertz} (Table~\ref{tab:builds})\\
+Compressed bytes against C-sim, original dictionary & KCU116, 50 frames & byte-identical, both algorithms\\
+Decompression of board output & PC, 50 frames & MaxDiff 0, both algorithms\\
+Compressed bytes against C-sim, re-derived dictionaries & KCU116, 50 frames & byte-identical; CR \num{4.21704}, \num{4.40345}\\
+On-chip decompression (\texttt{\_full}) & KCU116, 50 frames & MaxDiff 0, both algorithms; \SI{1.97}{} and \SI{15.4}{\milli\second} per frame\\
+DRHE matches Kiem's specification & rebuilt simulation & bit-identical output\\
+\bottomrule
+\end{longtable}
