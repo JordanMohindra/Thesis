@@ -3,7 +3,7 @@
 \label{ch:vskiem}
 
 Chapter~\ref{ch:kiem} set out what Kiem measured; Chapter~\ref{ch:results} set
-out what this thesis measures. This appendix puts the two side by side. That is
+out what this thesis measures. This chapter puts the two side by side. That is
 less simple than it sounds, because every comparison has to cross two gaps at
 once: different data and a different radar. Kiem's compression ratios come from
 private recordings of a single-transmitter sensor with real-valued samples;
@@ -13,7 +13,7 @@ samples. Four questions cannot be answered across both gaps together:
 \begin{enumerate}
 \item Kiem reports a ratio of \num{3.25} for DRHE on his recordings; on
 ColoRadar this thesis's DRHE reaches \num{3.75}. What actually sets the ratio,
-and are the two numbers comparable? As a test of that question, this appendix
+and are the two numbers comparable? As a test of that question, this chapter
 also runs this thesis's own chain on synthetic scenes of the kind Kiem
 describes, and they compress to only about \num{1.1}
 (Section~\ref{sec:kr_scaling}). A comparison has to explain all three
@@ -26,12 +26,12 @@ come from design decisions, and which from tools, devices and data?
 \end{enumerate}
 
 \noindent
-The appendix answers them with two reconstructions. The first rebuilds Kiem's
+The chapter answers them with two reconstructions. The first rebuilds Kiem's
 MATLAB simulation \emph{from his text alone} --- his radar, his scene, his
 processing chain, one transmitter --- and runs on it every coder discussed in
 this thesis (Sections~\ref{sec:kr_built}--\ref{sec:kr_tdm}). It closes the
 data gap for the first three questions. The second rebuilds his compression IP
-in this thesis's tool flow; it is the subject of Appendix~\ref{ch:hwinterpret}
+in this thesis's tool flow; it is the subject of Chapter~\ref{ch:hwinterpret}
 (Section~\ref{sec:hw_replica} onwards), which closes the tool and device gap
 for the fourth question, and Section~\ref{sec:kc_replica} summarises what it
 means for this comparison. With both in place, every result and claim of
@@ -43,7 +43,7 @@ his is compared with this thesis's in turn
 
 Not every pair of numbers can be compared directly, and the most common error
 in comparing compression results is to compare numbers that measure different
-things. Each comparison in this appendix is placed in one of three classes.
+things. Each comparison in this chapter is placed in one of three classes.
 
 \begin{description}[leftmargin=!,labelwidth=30mm,style=nextline,font=\normalfont\bfseries]
 \item[Like for like] The two numbers measure the same quantity of the same
@@ -55,7 +55,7 @@ something built for the purpose connects them: the rebuilt simulation of his
 chain, or the rebuilt copy of his hardware.
 \item[Not comparable] The numbers look alike but measure different things, and
 no bridge closes the gap. Example: his CR on his recordings against this
-thesis's on ColoRadar. For these the appendix explains what each number does
+thesis's on ColoRadar. For these the chapter explains what each number does
 measure.
 \end{description}
 
@@ -784,7 +784,7 @@ a five-target scene say nothing about a 170-detection one.
 \section{Kiem's hardware, rebuilt}
 \label{sec:kc_replica}
 
-The hardware side of the comparison is made in Appendix~\ref{ch:hwinterpret},
+The hardware side of the comparison is made in Chapter~\ref{ch:hwinterpret},
 which rebuilds Kiem's compression IP from his description in this thesis's tool
 flow (Section~\ref{sec:hw_replica}) and connects it to this thesis's DRHE
 datapath one design decision at a time (Table~\ref{tab:hw_ladder}). Against
@@ -1046,11 +1046,11 @@ dataset, the noise floor is useful only for comparing schemes with each other.
 coding adds almost nothing; that DRHE beats every lossy scheme in the design
 space on the combination of ratio and detection; that the datapath meets
 \SI{100}{\mega\hertz} on his speed grade and fits his device
-(Appendix~\ref{ch:hwinterpret}).
+(Chapter~\ref{ch:hwinterpret}).
 
 \textbf{Different, and explained:} every hardware resource figure and the
 initiation interval (float datapath, packer, closed loop, state reset,
-per-transmitter state --- each measured in Appendix~\ref{ch:hwinterpret}); the
+per-transmitter state --- each measured in Chapter~\ref{ch:hwinterpret}); the
 throughput (a factor of two, once his theoretical binary figure is compared with
 this thesis's); the value of his fixed dictionary on other data; the LPC
 ranking, which holds for his LPC and not for this thesis's.

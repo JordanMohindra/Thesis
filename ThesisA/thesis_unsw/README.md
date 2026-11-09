@@ -9,5 +9,5 @@ cross-references settle). Output: `thesis.pdf`.
 - `summary.tex` - thesis summary sheet and pointers page (page numbers fill in
   automatically). Check it against the current form on Moodle, then sign.
 - `cover.tex` (+ `abstract_body.tex`), `acknowledgements.tex`, `abbreviations.tex`
-- `fr_*.tex` - the chapters. The two long baseline-comparison chapters are
-  Appendices A and B so the main body stays under the 100-page limit.
+- `fr_*.tex` - the chapters. The main body is longer than the template's
+  100-page limit; trim it before submission.

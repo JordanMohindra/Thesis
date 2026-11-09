@@ -8,7 +8,7 @@ each core. Kiem's thesis reports a comparable set of numbers for his DRHE
 compressor \cite{kiem2025}. Set side by side, the two sets differ on almost
 every line --- logic, registers, memory, DSP slices, pipeline depth, initiation
 interval, throughput and latency --- and a difference on its own explains
-nothing. This appendix interprets every one of these numbers: it says what each
+nothing. This chapter interprets every one of these numbers: it says what each
 one represents, what it should be compared against, how far it can be trusted,
 and, wherever this thesis's design and Kiem's differ, exactly why.
 
@@ -33,7 +33,7 @@ change in each number at each step is the cost of that one decision.
 \end{enumerate}
 
 \noindent
-The rest of the appendix then reads each metric --- latency, throughput,
+The rest of the chapter then reads each metric --- latency, throughput,
 resources, power and compression ratio --- against the yardsticks that give it
 meaning: the sensor, the system's time budget, the link, the device, and
 Kiem's design where the comparison is like for like. It closes with a ledger of
@@ -44,11 +44,11 @@ every difference from Kiem's design, its cause and the evidence for it
 $\nTx = 12$ (DRHE) and at lags $\nTx$ and $2\nTx$ (LPC); these are the cores on
 the board and every board figure refers to them. Two further variants appear
 as comparison points only: the same DRHE datapath predicting at lag~1, called
-\emph{DRHE-1} for short in this appendix, and the same LPC datapath at lags 1
+\emph{DRHE-1} for short in this chapter, and the same LPC datapath at lags 1
 and 2 (\emph{LPC-1,2}). Their datapaths are identical to those of the final
 designs except for how the predictor state is indexed
 (Section~\ref{sec:drheimpl}), so their resource and timing figures differ from
-the final designs' only where that indexing matters, and the appendix says where
+the final designs' only where that indexing matters, and the chapter says where
 that is. DRHE-1 has a particular role: Kiem's sensor has a single transmitter,
 for which lag~1 \emph{is} the per-transmitter lag, so DRHE-1 is the version of
 this thesis's datapath that implements the same predictor as his, and it is the
@@ -64,7 +64,7 @@ synthesised into device primitives, optimised, placed and routed. The two
 numbers are produced for different purposes and can differ widely. Kiem's
 figures, from his Table~5.3, are the second kind
 \cite{kiem2025}. A comparison with them is meaningful only with numbers of the
-same kind, so every core in this appendix was implemented, and the two kinds of
+same kind, so every core in this chapter was implemented, and the two kinds of
 number are reported side by side.
 
 \subsection{Implementing a core on its own}
@@ -218,7 +218,7 @@ what they are designed for: comparing one version of a design against another
 in the same tool, quickly, before committing to a long implementation run. They
 are not a substitute for implementation when the comparison is with a design
 that was implemented, and they are not a basis for deciding whether a design
-fits a device or meets its clock. Every hardware number in this appendix that is
+fits a device or meets its clock. Every hardware number in this chapter that is
 compared with Kiem's is therefore a post-route number, and every timing claim is
 a routed timing claim.
 
@@ -294,7 +294,7 @@ and \num{61472} cycles; for LPC \HW{lpcn}{framecyc} and \num{325366}. The board
 figure is longer by 219 and 200 cycles respectively --- about
 \SI{0.4}{\percent} and \SI{0.06}{\percent} --- which is the time for the DMA
 to start the stream and to write the last output word, neither of which the
-testbench models. Co-simulated cycle counts of the variants in this appendix can
+testbench models. Co-simulated cycle counts of the variants in this chapter can
 therefore be read as board figures to within a fraction of a per cent.
 
 \paragraph{The frame time is a full-speed figure.} Both the co-simulated and
@@ -330,7 +330,7 @@ ideal, the no-prediction coder, and the entropy bound.
 
 \noindent
 Table~\ref{tab:hw_sensor} gives the sensor and system figures. They are used
-throughout the rest of the appendix.
+throughout the rest of the chapter.
 
 \begin{table}[htbp]
 \centering
@@ -521,7 +521,7 @@ figure is the right one, and Section~\ref{sec:hw_resources} uses it that way.
 \section{From this thesis's datapath to Kiem's, one change at a time}
 \label{sec:hw_ladder}
 
-Table~\ref{tab:hw_ladder} is the central result of this appendix. Each row is a
+Table~\ref{tab:hw_ladder} is the central result of this chapter. Each row is a
 complete, lossless compressor, implemented through placement and routing on the
 same device with the same constraints. The first row is DRHE-1. Each following
 row changes exactly one design decision, and the last is the replica of Kiem's
@@ -1207,7 +1207,7 @@ time axis, together with the time-scales of the two sensors.
   (2e-1,13)[\SI{200}{ms}]};
 \end{axis}
 \end{tikzpicture}
-\caption[Latencies on one time axis]{Every latency in this appendix on one
+\caption[Latencies on one time axis]{Every latency in this chapter on one
 logarithmic time axis: DRHE (blue), LPC (red), Kiem's design and use case
 (grey) and the ColoRadar sensor (green). Board figures are measured on the
 KCU116 at \SI{100}{\mega\hertz}; DRHE's sensor-paced added latency is the work
@@ -1770,7 +1770,7 @@ Section~\ref{sec:decomp} shows that a large part of this thesis's ratio comes
 from unused headroom in the 16-bit container, before any prediction. That is a property of how ColoRadar's data is scaled, not
 of the algorithm. A CR measured on a different sensor with different scaling
 measures a different thing, so a higher or lower number on another dataset says
-nothing about which implementation is better. Appendix~\ref{ch:vskiem} makes the
+nothing about which implementation is better. Chapter~\ref{ch:vskiem} makes the
 same point from Kiem's side, with a rebuilt simulation of his chain, and goes
 through each of his results in turn.
 
@@ -1813,7 +1813,7 @@ ratio itself.
 \section{Every difference from Kiem, accounted for}
 \label{sec:hw_ledger}
 
-Table~\ref{tab:hw_ledger} closes the appendix's account. It lists every number
+Table~\ref{tab:hw_ledger} closes the chapter's account. It lists every number
 in which this thesis's DRHE and Kiem's differ, says whether the comparison is
 valid as published, names the cause of the difference and points to the
 measurement that shows it. Where the cause is one design decision, the evidence
@@ -1896,4 +1896,4 @@ of compression ratio. What remains unexplained is the replica's distance from
 Kiem's own LUT count, and Table~\ref{tab:hw_kiemgap} shows how much of it the
 testable explanations cover. Chapter~\ref{ch:discussion} draws the design
 conclusions; the comparison of compression results with Kiem's is in
-Appendix~\ref{ch:vskiem}.
+Chapter~\ref{ch:vskiem}.
