@@ -33,6 +33,10 @@ crD, crL = float(S2['DRHE']['CR_Total']), float(S2['LPC']['CR_Total'])
 FRAME_KB = 128 * 192 * 4 * 4 / 1000            # 393 KB
 encD_ms = float(HW['DRHE']['EncCyclesPerFrame']) / 1e5
 encL_ms = float(HW['LPC']['EncCyclesPerFrame']) / 1e5
+latD_us = float(HW['DRHE']['EncLatencyCycles']) / 100            # cycles at 100 MHz -> us
+latL_ms = float(HW['LPC']['EncLatencyCycles']) / 1e5
+decD_ms = float(HW['DRHE']['DecCyclesPerFrame']) / 1e5
+decL_ms = float(HW['LPC']['DecCyclesPerFrame']) / 1e5
 lutD = 100 * (float(HW['DRHE']['Encoder_LUT_FF_BRAM_DSP_1']) + float(HW['DRHE']['Decoder_LUT_FF_BRAM_DSP_1'])) / 216960
 lutL = 100 * (float(HW['LPC']['Encoder_LUT_FF_BRAM_DSP_1']) + float(HW['LPC']['Decoder_LUT_FF_BRAM_DSP_1'])) / 216960
 
@@ -233,7 +237,7 @@ steps = [
      '**Encoder and decoder** both run on the chip.'),
     ('Measure on the board',
      'All 50 frames are streamed through the FPGA by **DMA**.\n\n'
-     'Every output is checked **bit for bit** against the simulation, and the **time per frame** and **chip use** are measured.'),
+     'Every output is checked **bit for bit** against the simulation, and the **time per frame**, **delay** and **chip use** are measured.'),
 ]
 for i, ((title, body), y, hR) in enumerate(zip(steps, RY, ROWS)):
     box(stepX, y, stepW, hR, fill=BLUE, radius=0.08)
@@ -431,9 +435,9 @@ box(xC2, yC, wC2, hC, fill=BLUE)
 heading(xC2 + 0.35, yC + 0.25, wC2 - 0.7, 'Conclusion')
 text(xC2 + 0.35, yC + 1.05, wC2 - 0.7, hC - 1.7, [
     '**Both DRHE and LPC are lossless on real radar data, on real hardware.**',
-    f'**LPC compresses most: {crL:.2f}×** (DRHE {crD:.2f}×). Re-deriving the **Huffman dictionary** for this data helped **more than the predictor** did.',
-    f'**DRHE streams** with no frame buffer; **LPC must buffer a whole frame** ({encL_ms:.2f} ms). Both meet the 15 ms limit here, but **DRHE scales better to bigger frames**.',
-    'STILL NEED TO GET LATENCY RESULT AND PUT IT HERE'],
+    f'**LPC compresses most: {crL:.2f}×** (DRHE {crD:.2f}×). A **re-derived Huffman dictionary** helped **more than prediction** did.',
+    f'**Delay:** DRHE\'s output lags its input by only **{latD_us:.0f} µs**; LPC\'s waits for the **whole frame ({latL_ms:.1f} ms)**. Decoding: **{decD_ms:.2f} ms** (DRHE), {decL_ms:.1f} ms (LPC).',
+    '**DRHE streams** with no frame buffer, so it **scales better to bigger frames**.'],
     bullets=True, size=22, space=4)
 text(xC2 + 0.35, yC + hC - 0.75, wC2 - 0.7, 0.65, [
     {'t': '[1] A. Kramer et al., ColoRadar: the direct 3D millimeter wave radar dataset, IJRR, 2022.', 'size': 14}])

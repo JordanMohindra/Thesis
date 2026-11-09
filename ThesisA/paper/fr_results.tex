@@ -433,10 +433,12 @@ Decompressor latency            & \textbf{\SI{339}{\micro\second}} & \SI{2838}{\
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.62\textwidth]{fig_timing.png}
-\caption[Time per frame on the FPGA]{Time to process one frame on the FPGA. DRHE
-outputs as the data arrives; LPC must wait for the whole frame (bracket) before
-it can output anything.}
+\includegraphics[width=0.7\textwidth]{fig_timing.png}
+\caption[Time per frame on the FPGA]{Time to encode and decode one frame on the
+FPGA, measured on the board with the re-derived dictionaries, with each
+encoder's output delay. DRHE outputs as the data arrives; LPC must wait for the
+whole frame before it can output anything. The LPC decoder's time comes from its
+serial codeword search (Section~\ref{sec:boardtiming}).}
 \label{fig:timing}
 \end{figure}
 

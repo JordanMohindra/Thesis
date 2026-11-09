@@ -231,19 +231,21 @@ save_fig(f, P.outDir, 'fig_cr_frames.png');
 % read to the last output word written. DRHE outputs as it goes, so its
 % delay is tiny; LPC can only start emitting once it has the whole frame.
 ms = @(cyc) cyc / P.clockHz * 1e3;
-rows = {'DRHE compress', 'DRHE decompress', 'LPC compress', 'LPC decompress'};
+rows = {'DRHE encode', 'DRHE decode', 'LPC encode', 'LPC decode'};
 f = newfig(W, 2.3); hold on
 yTop = 4; hgt = 0.6;
 enc = {hw.drhe, hw.lpc};
 for a = 1:2
     y = yTop - 2 * (a - 1); e = enc{a}; tE = e.enc_cycles;
     barh_seg(y, 0, ms(tE), C(a,:), hgt);
-    text(ms(tE) + 0.06, y, sprintf('%.2f ms', ms(tE)), 'FontSize', 8.5, 'FontWeight', 'bold');
-    if ms(e.enc_latency) > 0.05                       % draw the output delay as a bracket
-        lat0 = ms(tE - e.enc_latency);
-        plot([lat0 ms(tE)], [y + 0.5 y + 0.5], 'k-', 'LineWidth', 0.8); plot([lat0 lat0], [y + 0.4 y + 0.6], 'k-'); plot(ms([tE tE]), [y + 0.4 y + 0.6], 'k-');
-        text((lat0 + ms(tE)) / 2, y + 0.75, ['waits for whole frame: ' fmt_time(e.enc_latency, P.clockHz)], 'HorizontalAlignment', 'center', 'FontSize', 7);
+    % value, then the measured output delay (last input word -> last output word)
+    if ms(e.enc_latency) > 0.05
+        dly = ['output waits for whole frame: ' fmt_time(e.enc_latency, P.clockHz)];
+    else
+        dly = ['output lags input by ' fmt_time(e.enc_latency, P.clockHz)];
     end
+    text(ms(tE) + 0.25, y, {sprintf('\\bf%.2f ms', ms(tE)), ['\rm\fontsize{6.5}' dly]}, 'FontSize', 8.5, ...
+        'Interpreter', 'tex', 'VerticalAlignment', 'middle');
 end
 % decoders (on-chip, from the *_full bitstreams)
 for a = {'drhe', 'lpc'}
@@ -252,11 +254,12 @@ for a = {'drhe', 'lpc'}
         text(0.06, y, 'not measured yet', 'FontSize', 7.5, 'FontAngle', 'italic', 'Color', [0.4 0.4 0.4]);
     else
         barh_seg(y, 0, ms(d.dec_cycles), (C(1 + strcmp(a{1}, 'lpc'), :) + 1) / 2, hgt);
-        text(ms(d.dec_cycles) + 0.06, y, sprintf('%.2f ms', ms(d.dec_cycles)), 'FontSize', 8.5, 'FontWeight', 'bold');
+        text(ms(d.dec_cycles) + 0.25, y, sprintf('%.2f ms', ms(d.dec_cycles)), 'FontSize', 8.5, 'FontWeight', 'bold');
     end
 end
 set(gca, 'YTick', yTop - (3:-1:0), 'YTickLabel', fliplr(rows)); ylim([yTop - 3.6, yTop + 0.95])
-xl = xlim; xlim([0, max([xl(2), ms(hw.lpc.enc_cycles) * 1.5])]); grid on; box on
+tmax = max([ms(hw.drhe.enc_cycles), ms(hw.lpc.enc_cycles), ms(hw.drhe.dec_cycles), ms(hw.lpc.dec_cycles)], [], 'omitnan');
+xlim([0, max(ms(hw.lpc.enc_cycles) * 1.5, tmax * 1.35)]); grid on; box on
 xlabel('Time to process one frame (ms)'); title('Time per frame on the FPGA')
 save_fig(f, P.outDir, 'fig_timing.png');
 
