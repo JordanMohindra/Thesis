@@ -1,0 +1,216 @@
+===== drhe run_board
+bitstream drhe (drhe), 50 frames, on-chip decompressor: 0, dumping 50 compressed frames
+== connect
+attempting to launch hw_server
+
+****** Xilinx hw_server v2026.1
+  **** Build date : May 29 2026 at 14:55:19
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+INFO: hw_server application started
+INFO: Use Ctrl-C to exit hw_server application
+
+
+
+****** Xilinx hw_server v2026.1
+
+  **** Build date : May 29 2026 at 14:55:19
+
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+
+    ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+
+
+INFO: hw_server application started
+
+INFO: Use Ctrl-C to exit hw_server application
+
+
+
+
+INFO: To connect to this hw_server instance use url: TCP:127.0.0.1:3121
+
+
+
+  1  xcku5p
+     2  MicroBlaze Debug Module at USER2
+        3  MicroBlaze #0 (Running)
+     4  Legacy Debug Hub
+== program FPGA with C:/Users/mohin/Thesis/ThesisA/fpga_kcu116/out/kcu116_drhe.bit
+== MicroBlaze: reset + download C:/Users/mohin/Thesis/ThesisA/fpga_kcu116/out/radar_app_drhe.elf
+== loading 50 frames (19660800 bytes) into DDR at 0x90000000 - this is slow over JTAG
+   loaded in 79.2 s (242 KB/s)
+== run (watch the UART terminal)
+   status 0xD0D0D0D0  frames done 50 / 50
+== dumping results
+   frame 0: 89440 compressed bytes -> comp_0.bin
+   frame 1: 89984 compressed bytes -> comp_1.bin
+   frame 2: 90976 compressed bytes -> comp_2.bin
+   frame 3: 92352 compressed bytes -> comp_3.bin
+   frame 4: 93408 compressed bytes -> comp_4.bin
+   frame 5: 92096 compressed bytes -> comp_5.bin
+   frame 6: 90304 compressed bytes -> comp_6.bin
+   frame 7: 89568 compressed bytes -> comp_7.bin
+   frame 8: 89472 compressed bytes -> comp_8.bin
+   frame 9: 90048 compressed bytes -> comp_9.bin
+   frame 10: 90816 compressed bytes -> comp_10.bin
+   frame 11: 92320 compressed bytes -> comp_11.bin
+   frame 12: 94272 compressed bytes -> comp_12.bin
+   frame 13: 93920 compressed bytes -> comp_13.bin
+   frame 14: 91552 compressed bytes -> comp_14.bin
+   frame 15: 89376 compressed bytes -> comp_15.bin
+   frame 16: 89280 compressed bytes -> comp_16.bin
+   frame 17: 90880 compressed bytes -> comp_17.bin
+   frame 18: 95456 compressed bytes -> comp_18.bin
+   frame 19: 96000 compressed bytes -> comp_19.bin
+   frame 20: 94464 compressed bytes -> comp_20.bin
+   frame 21: 94400 compressed bytes -> comp_21.bin
+   frame 22: 92416 compressed bytes -> comp_22.bin
+   frame 23: 90880 compressed bytes -> comp_23.bin
+   frame 24: 88288 compressed bytes -> comp_24.bin
+   frame 25: 90432 compressed bytes -> comp_25.bin
+   frame 26: 90080 compressed bytes -> comp_26.bin
+   frame 27: 89216 compressed bytes -> comp_27.bin
+   frame 28: 90656 compressed bytes -> comp_28.bin
+   frame 29: 89600 compressed bytes -> comp_29.bin
+   frame 30: 89344 compressed bytes -> comp_30.bin
+   frame 31: 90752 compressed bytes -> comp_31.bin
+   frame 32: 90112 compressed bytes -> comp_32.bin
+   frame 33: 90112 compressed bytes -> comp_33.bin
+   frame 34: 94560 compressed bytes -> comp_34.bin
+   frame 35: 92960 compressed bytes -> comp_35.bin
+   frame 36: 92256 compressed bytes -> comp_36.bin
+   frame 37: 96960 compressed bytes -> comp_37.bin
+   frame 38: 99392 compressed bytes -> comp_38.bin
+   frame 39: 92608 compressed bytes -> comp_39.bin
+   frame 40: 94784 compressed bytes -> comp_40.bin
+   frame 41: 94592 compressed bytes -> comp_41.bin
+   frame 42: 94816 compressed bytes -> comp_42.bin
+   frame 43: 98592 compressed bytes -> comp_43.bin
+   frame 44: 99424 compressed bytes -> comp_44.bin
+   frame 45: 100096 compressed bytes -> comp_45.bin
+   frame 46: 100672 compressed bytes -> comp_46.bin
+   frame 47: 102880 compressed bytes -> comp_47.bin
+   frame 48: 104800 compressed bytes -> comp_48.bin
+   frame 49: 110816 compressed bytes -> comp_49.bin
+== done. Now run:  python compare_results.py drhe
+===== drhe pc_decompress 
+Decompressing 50 drhe frames on the PC ...
+  frame 0: 89440 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 1: 89984 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 2: 90976 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 3: 92352 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 4: 93408 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 5: 92096 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 6: 90304 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 7: 89568 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 8: 89472 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 9: 90048 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 10: 90816 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 11: 92320 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 12: 94272 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 13: 93920 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 14: 91552 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 15: 89376 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 16: 89280 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 17: 90880 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 18: 95456 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 19: 96000 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 20: 94464 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 21: 94400 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 22: 92416 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 23: 90880 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 24: 88288 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 25: 90432 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 26: 90080 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 27: 89216 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 28: 90656 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 29: 89600 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 30: 89344 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 31: 90752 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 32: 90112 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 33: 90112 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 34: 94560 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 35: 92960 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 36: 92256 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 37: 96960 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 38: 99392 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 39: 92608 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 40: 94784 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 41: 94592 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 42: 94816 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 43: 98592 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 44: 99424 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 45: 100096 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 46: 100672 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 47: 102880 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 48: 104800 compressed bytes, maxdiff 0, mismatches 0  OK
+  frame 49: 110816 compressed bytes, maxdiff 0, mismatches 0  OK
+[RESULT] decompressed 50 frames on the PC, worst maxdiff 0  - all bit-exact
+(full log: C:\Users\mohin\Thesis\ThesisA\fpga_kcu116\build\pc_decompress_drhe\csim.log)
+===== drhe compare 
+frame     bytes       CR  golden CR  comp cyc  latency decomp cyc maxdiff  check
+      (maxdiff = after decompression on the PC)
+    0     89440  4.39642    4.39642     61473     1172        n/a       0  ok  bitstream identical; PC decompress: exact
+    1     89984  4.36984    4.36984     61473     1172        n/a       0  ok  bitstream identical; PC decompress: exact
+    2     90976  4.32219    4.32219     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+    3     92352  4.25780    4.25780     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+    4     93408  4.20966    4.20966     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+    5     92096  4.26963    4.26963     61473     1172        n/a       0  ok  bitstream identical; PC decompress: exact
+    6     90304  4.35436    4.35436     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+    7     89568  4.39014    4.39014     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+    8     89472  4.39485    4.39485     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+    9     90048  4.36674    4.36674     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   10     90816  4.32981    4.32981     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   11     92320  4.25927    4.25927     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   12     94272  4.17108    4.17108     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   13     93920  4.18671    4.18671     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   14     91552  4.29500    4.29500     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   15     89376  4.39957    4.39957     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   16     89280  4.40430    4.40430     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   17     90880  4.32676    4.32676     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   18     95456  4.11934    4.11934     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   19     96000  4.09600    4.09600     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   20     94464  4.16260    4.16260     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   21     94400  4.16542    4.16542     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   22     92416  4.25485    4.25485     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   23     90880  4.32676    4.32676     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   24     88288  4.45379    4.45379     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   25     90432  4.34820    4.34820     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   26     90080  4.36519    4.36519     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   27     89216  4.40746    4.40746     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   28     90656  4.33745    4.33745     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   29     89600  4.38857    4.38857     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   30     89344  4.40115    4.40115     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   31     90752  4.33286    4.33286     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   32     90112  4.36364    4.36364     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   33     90112  4.36364    4.36364     61473     1172        n/a       0  ok  bitstream identical; PC decompress: exact
+   34     94560  4.15838    4.15838     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   35     92960  4.22995    4.22995     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   36     92256  4.26223    4.26223     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   37     96960  4.05545    4.05545     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   38     99392  3.95621    3.95621     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   39     92608  4.24603    4.24603     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   40     94784  4.14855    4.14855     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   41     94592  4.15697    4.15697     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   42     94816  4.14715    4.14715     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   43     98592  3.98832    3.98832     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   44     99424  3.95494    3.95494     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   45    100096  3.92839    3.92839     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   46    100672  3.90591    3.90591     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   47    102880  3.82208    3.82208     61473     1172        n/a       0  ok  bitstream identical; PC decompress: exact
+   48    104800  3.75206    3.75206     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+   49    110816  3.54837    3.54837     61472     1338        n/a       0  ok  bitstream identical; PC decompress: exact
+
+frames: 50
+mean per-frame CR (board) : 4.21704
+mean per-frame CR (csim)  : 4.21704   over 50 frames
+compress cycles/frame     : min 61472  mean 61472  max 61473  (100 MHz)
+compressor throughput     : 5.12 Gbit/s input  (= 4.77 Gibit/s, the unit Kiem's 11.92 uses)
+time per frame            : 614.7 us  -> 1627 frames/s
+end-to-end latency        : min 1172  mean 1321  max 1338 cycles  = 13.21 us mean  (last input read -> last output written)
+
+RESULT: PASS - FPGA compressed, PC decompressed: every frame exact, bitstreams identical to C simulation
+===== ALLDONE
