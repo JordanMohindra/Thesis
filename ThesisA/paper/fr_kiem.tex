@@ -422,10 +422,9 @@ This thesis takes up the first two directly. Its DRHE uses floating-point
 prediction (Section~\ref{sec:drheimpl}), and Chapter~\ref{ch:hwinterpret}
 (Section~\ref{sec:hw_replica} onwards) measures what that costs in hardware and
 what it buys in compression. It implements a decompressor for every design
-(Section~\ref{sec:dechw}). The compressors run on the FPGA board, their output
-is byte-identical to simulation and decompresses exactly on the PC; the
-on-chip decompressors are built, meet timing and are verified exactly in
-C-simulation, with their board run \pending{to be added}. It takes up the
+(Section~\ref{sec:dechw}). On the FPGA board the compressors' output is
+byte-identical to simulation, and the on-chip decompressors reconstruct every
+frame exactly. It takes up the
 third in part: both compressors run on an FPGA board
 on recorded radar frames, though not with a live sensor attached. Its saturation
 of the one value the code cannot represent (Section~\ref{sec:robust}) is a

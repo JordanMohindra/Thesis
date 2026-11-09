@@ -115,7 +115,7 @@ to argue about and no distortion metric to trade off: a single differing bit
 anywhere in the \num{157} million input bits of the test set is a failure, and
 the test reports it as one. Every design in this thesis is checked against that
 criterion, from MATLAB through C-simulation and RTL co-simulation to the
-compressors running on the FPGA board.
+encoders and decoders running on the FPGA board.
 
 \section{Aim and objectives}
 \label{sec:objectives}
@@ -190,11 +190,10 @@ on, and reverse the ranking of the two algorithms.
 
 \item \textbf{Complete, verified hardware for both algorithms}
 (Chapters~\ref{ch:hardware} and~\ref{ch:results}). Encoders and decoders were
-implemented in Vitis HLS and Vivado, and the compressors were run in a board
-test system on an AMD KCU116. Their output is byte-identical to the simulation
-on all 50 frames, reconstruction (on the PC, and of the hardware decoders in
-C-simulation) is exact, and the compressors' throughput, latency and resources
-are measured.
+implemented in Vitis HLS and Vivado and run in a board test system on an AMD
+KCU116. Compressed output is byte-identical to the simulation on all 50 frames
+with both dictionaries, the hardware decoders reconstruct every frame exactly,
+and throughput, latency and resources are measured for both halves.
 
 \item \textbf{A comparison with the baseline} (Chapters~\ref{ch:hwinterpret} and~\ref{ch:vskiem}),
 including a reconstruction of Kiem's simulation from his text, which reaches

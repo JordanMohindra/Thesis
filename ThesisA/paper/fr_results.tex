@@ -278,9 +278,10 @@ The dictionaries were trained on frames 0--4, so their real test is the 45
 frames they did not see. On frames 5--49 DRHE reaches \num{4.207} and LPC
 \num{4.372} (Table~\ref{tab:decomp}), within \SI{1}{\percent} of their
 all-frame figures: five frames of a scene are enough to fix a dictionary for
-the rest of the recording. The C-simulation of the FPGA cores with the
-re-derived tables gives \num{4.21704} and \num{4.40345} per frame, matching
-MATLAB, and reconstructs all 50 frames exactly.
+the rest of the recording. The FPGA cores with the re-derived tables give \num{4.21704} and
+\num{4.40345} per frame, matching MATLAB, both in C-simulation and measured on
+the board (Section~\ref{sec:verifres}), and reconstruct all 50 frames
+exactly.
 
 The dictionary also reverses the ranking of the two algorithms. With the
 original dictionary DRHE leads by \SI{1.5}{\percent}; with dictionaries matched
@@ -372,27 +373,28 @@ Table~\ref{tab:edgecases} pass for both algorithms. Uniformly random input
 \emph{expands} by \SI{67}{\percent} (CR \num{0.60}), as any lossless coder must
 on incompressible data: every value lands in a high category, costing a long
 codeword plus up to 15 payload bits.
-\item \textbf{Board}: with the original dictionary, both compressors produced
-compressed output \emph{byte-identical} to the C-simulation on all 50 frames,
-and every frame, decompressed on the PC, matched the input exactly. Mean compression ratio on the
-board was \num{3.7508} for DRHE (range \numrange{3.517}{3.815}) and
-\num{3.6968} for LPC (\numrange{3.461}{3.761}), exactly the C-simulation
-figures. The bitstreams with the re-derived dictionaries differ only in the
-contents of the codeword table and were C-simulated lossless on all 50 frames;
-\pending{board run of the re-derived-dictionary bitstreams}.
-\item \textbf{On-chip decompression}: the \texttt{\_full} bitstreams, with the
-decompressor on the FPGA, build and meet timing (Table~\ref{tab:builds}); the
-decompressors were verified lossless on all 50 frames in C-simulation and on
-the PC with the board's compressed output. \pending{board run of the
-on-chip decompression builds}.
+\item \textbf{Board, compressors}: with both dictionaries, both compressors
+produced compressed output \emph{byte-identical} to the C-simulation on all 50
+frames, and every frame, decompressed on the PC, matched the input exactly.
+With the re-derived dictionaries the mean compression ratio on the board is
+\textbf{\num{4.21704}} for DRHE (range \numrange{3.548}{4.454}) and
+\textbf{\num{4.40345}} for LPC (\numrange{3.526}{4.793}); with the original
+dictionary it is \num{3.7508} (\numrange{3.517}{3.815}) and \num{3.6968}
+(\numrange{3.461}{3.761}). All four are exactly the C-simulation figures.
+\item \textbf{Board, on-chip decompression}: in the \texttt{\_full} builds
+the board compresses each frame, decompresses it with the hardware decoder and
+compares the reconstruction with the original word by word. Both decoders
+reconstruct all 50 frames exactly, and the compressed streams are again
+byte-identical to the C-simulation.
 \end{itemize}
 
 \noindent
 Agreement at the board level is the strongest result here: the bytes produced
-by the FPGA are the bytes the simulation predicted. The original-dictionary
-ratios are therefore measured hardware figures, and since the re-derived builds
-change only the contents of one table, their C-simulated ratios are what the
-same hardware will produce.
+by the FPGA are the bytes the simulation predicted, and the board's own decoder
+turns them back into the input exactly. Every compression ratio reported for the
+hardware is therefore a measured figure, and every link of the chain --- sensor
+data in, compressed stream, reconstructed data out --- has been run on the
+FPGA.
 
 % -------------------------------------------------------------------
 \section{Speed and latency on the board}
@@ -405,7 +407,10 @@ and Figure~\ref{fig:timing} draws it.
 \centering
 \caption[Measured timing on the board]{Timing measured on the KCU116 at
 \SI{100}{\mega\hertz}, 50 frames of \SI{393216}{\byte}. Latency is from the last
-input word read to the last output word written (Section~\ref{sec:metrics}).}
+input word read to the last output word written (Section~\ref{sec:metrics});
+for the decompressor, from the last compressed word read to the last
+reconstructed word written. Compressor figures are from the original-dictionary
+run; with the re-derived dictionaries they differ by at most 13 cycles.}
 \label{tab:timing}
 \small
 \begin{tabular}{@{}lrr@{}}
@@ -418,7 +423,10 @@ Frames per second               & \num{1627}    & \num{307}\\
 Input throughput                & \textbf{\SI{5.12}{Gbit/s}} & \SI{0.97}{Gbit/s}\\
 End-to-end latency              & \textbf{\SI{13.1}{\micro\second}} & \SI{3006}{\micro\second}\\
 \quad as a share of the frame time & \SI{2}{\percent} & \SI{92}{\percent}\\
-Decompression time per frame    & \pending{\texttt{\_full} run} & \pending{\texttt{\_full} run}\\
+\midrule
+Decompressor cycles per frame   & \num{196881}  & \num{1536042}\\
+Decompression time per frame    & \textbf{\SI{1.97}{\milli\second}} & \SI{15.4}{\milli\second}\\
+Decompressor latency            & \textbf{\SI{339}{\micro\second}} & \SI{2838}{\micro\second}\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -448,9 +456,31 @@ It is not an implementation weakness that better scheduling would remove: as
 long as the coefficients are fitted to the frame being compressed, the first
 output bit has to wait for the last input sample.
 
+\paragraph{Decoding.} The DRHE decoder takes \SI{1.97}{\milli\second} per
+frame (\num{196881} cycles, range \numrange{196858}{196919}), almost exactly
+the one value per clock it was designed for (Section~\ref{sec:dechw}): a frame
+holds \num{196608} values. It is 3.2 times slower than the compressor, by
+design, since it decodes one value per clock where the compressor encodes four
+channels at once. Its latency of \SI{339}{\micro\second} is the backlog this
+leaves: when the last compressed word has been read, about a sixth of the frame
+is still to be rebuilt.
+
+The LPC decoder takes \SI{15.4}{\milli\second} per frame, eight times as long,
+and its time depends on the data: \numrange{1501789}{1623838} cycles, or 7.6
+to 8.3 cycles per value. The cause is its codeword matcher. Where the DRHE
+unpack stage compares all sixteen codewords with the input at once, the LPC
+decoder tries them one after another in category order and stops at the first
+match, so the loop runs at no fixed rate; a value in a high category, which
+is rarer but costs more, takes more clocks to find. Nothing in LPC requires
+this --- its arithmetic is two multiply--accumulates per value --- and the
+parallel matcher of the DRHE decoder would bring it to about one value per
+clock, near \SI{2}{\milli\second} per frame. As built, it is the slowest part
+of either pipeline.
+
 Both are fast in absolute terms. The ColoRadar cascade records at
-\SI{5}{\hertz}, a frame every \SI{200}{\milli\second}, so DRHE uses
-\SI{0.3}{\percent} of the frame period and LPC under \SI{2}{\percent}. Section~\ref{sec:scaling} considers what happens
+\SI{5}{\hertz}, a frame every \SI{200}{\milli\second}, so DRHE's compressor uses
+\SI{0.3}{\percent} of the frame period and LPC's under \SI{2}{\percent}; the
+slowest stage of all, the LPC decoder, uses \SI{8}{\percent}. Section~\ref{sec:scaling} considers what happens
 on larger frames.
 
 % -------------------------------------------------------------------
@@ -515,12 +545,13 @@ quantity. Bold marks the better of the two on each row.}
 \toprule
 & \textbf{DRHE} & \textbf{LPC}\\
 \midrule
-Lossless (C-sim, 50 frames; board, original dictionary) & yes & yes\\
+Lossless on the board (50 frames, both dictionaries) & yes & yes\\
 Compression ratio, original dictionary (board)    & \textbf{\num{3.75}} & \num{3.70}\\
-Compression ratio, re-derived dictionary (C-sim)  & \num{4.22} & \textbf{\num{4.40}}\\
+Compression ratio, re-derived dictionary (board)  & \num{4.22} & \textbf{\num{4.40}}\\
 Time per frame                                   & \textbf{\SI{0.61}{\milli\second}} & \SI{3.25}{\milli\second}\\
 End-to-end latency                               & \textbf{\SI{13.1}{\micro\second}} & \SI{3006}{\micro\second}\\
 First output available                           & \textbf{immediately} & after the whole frame\\
+Decompression time per frame                     & \textbf{\SI{1.97}{\milli\second}} & \SI{15.4}{\milli\second}\\
 Compressor frame buffer                          & \textbf{none} & \SI{3.0}{\mebi bit}\\
 Encoder + decoder LUTs                           & \textbf{\SI{23}{\percent}} & \SI{25}{\percent}\\
 Encoder + decoder BRAM (36\,Kb blocks)          & \textbf{72.5} & 98\\
@@ -535,4 +566,6 @@ are close, and which one leads depends on the dictionary: DRHE by
 dictionaries matched to each. On logic they are level. On time, latency and
 memory DRHE is clearly ahead: it compresses a frame five times faster, needs no
 frame buffer, and its output lags its input by microseconds rather than
-milliseconds. Chapter~\ref{ch:discussion} weighs these against each other.
+milliseconds. Its decoder is also eight times faster as built, though that gap
+comes from the LPC decoder's serial codeword search rather than from the
+algorithm. Chapter~\ref{ch:discussion} weighs these against each other.

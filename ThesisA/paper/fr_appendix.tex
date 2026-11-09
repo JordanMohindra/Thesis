@@ -221,8 +221,8 @@ RTL behaviour & co-simulation, 1 frame & MaxDiff 0, both algorithms\\
 Timing closure, four builds & Vivado & all met at \SI{100}{\mega\hertz} (Table~\ref{tab:builds})\\
 Compressed bytes against C-sim, original dictionary & KCU116, 50 frames & byte-identical, both algorithms\\
 Decompression of board output & PC, 50 frames & MaxDiff 0, both algorithms\\
-Board run, re-derived dictionaries & KCU116 & \pending{to be run}\\
-On-chip decompression (\texttt{\_full}) & KCU116 & \pending{to be run}\\
+Compressed bytes against C-sim, re-derived dictionaries & KCU116, 50 frames & byte-identical; CR \num{4.21704}, \num{4.40345}\\
+On-chip decompression (\texttt{\_full}) & KCU116, 50 frames & MaxDiff 0, both algorithms; \SI{1.97}{} and \SI{15.4}{\milli\second} per frame\\
 DRHE matches Kiem's specification & rebuilt simulation & bit-identical output\\
 \bottomrule
 \end{longtable}

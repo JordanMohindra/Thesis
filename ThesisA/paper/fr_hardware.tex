@@ -30,8 +30,9 @@ still prefix-free, so a decoder can match candidates from the low end of its
 buffer with no ambiguity. Compressor and decompressor read the same
 sixteen-entry table. Each core was built with both dictionaries of
 Section~\ref{sec:dict}; the two builds differ only in the contents of this table,
-and have the same schedule and timing. The board measurements of
-Chapter~\ref{ch:results} were made with the original-dictionary builds.
+and have the same schedule and timing. Both were run on the board
+(Chapter~\ref{ch:results}); the compressors' cycle counts agree to within 13
+cycles per frame.
 
 \section{DRHE compressor}
 \label{sec:drheimpl}
@@ -289,7 +290,8 @@ expressions as the compressor so that its arithmetic matches bit for bit.
 
 \noindent
 The two stages are balanced at about \num{196608} clocks per frame, roughly
-\SI{2}{\milli\second} at \SI{100}{\mega\hertz}. HLS estimated \num{42846} LUTs; after
+\SI{2}{\milli\second} at \SI{100}{\mega\hertz}; on the board it takes
+\num{196881} (Section~\ref{sec:boardtiming}). HLS estimated \num{42846} LUTs; after
 placement and routing the core uses \num{14155}.
 
 Bit-for-bit agreement of the floating-point arithmetic is not optional for
@@ -306,7 +308,11 @@ The LPC decompressor reads the coefficient table into registers, then
 reconstructs each sample as its residual arrives, holding the last $2\nTx$
 reconstructed values of each (channel, bin) in a ring as the compressor does.
 It needs no frame buffer and no block RAM for data, and its only arithmetic is
-two fixed-point multiply--accumulates per value.
+two fixed-point multiply--accumulates per value. Its codeword matcher is the
+simple form: it tries the sixteen codewords in category order and stops at the
+first match, so its speed depends on the data. Section~\ref{sec:boardtiming}
+shows what that costs, and how the DRHE decoder's parallel matcher would
+remove it.
 
 \section{The board test system}
 \label{sec:system}

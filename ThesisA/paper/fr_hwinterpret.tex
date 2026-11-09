@@ -1341,10 +1341,18 @@ compressor and this one does not. The two can be set side by side
 but the difference between them says nothing about the compressors alone.
 
 \paragraph{Decompression.} The decoder side has its own frame time and
-latency. The DRHE decompressor's two serial stages are balanced at about
-\num{196608} cycles per frame (\SI{2}{\milli\second}, an HLS estimate,
-Section~\ref{sec:dechw}); \pending{board measurement of decompression time and
-latency from the \texttt{\_full} builds}.
+latency, measured on the board in the \texttt{\_full} builds with the same
+timer. The DRHE decompressor's two serial stages were designed for one value per
+clock, \num{196608} cycles per frame (Section~\ref{sec:dechw}); on the board it
+takes \num{196881} (\SI{1.97}{\milli\second}), within \SI{0.14}{\percent} of
+that. Its latency, from the last compressed word read to the last reconstructed
+word written, is \SI{339}{\micro\second}: because it decodes one value per clock
+while the compressed stream arrives faster, about a sixth of the frame is still
+to be rebuilt when the input ends. The LPC decompressor takes
+\SI{15.4}{\milli\second} per frame and \SI{2.84}{\milli\second} of latency,
+both set by its serial codeword search (Section~\ref{sec:boardtiming}). Both
+latencies are a decoder's own backlog, not a dependence on the whole frame: the
+decoders emit reconstructed data from the first codeword on.
 
 \subsection{When does latency become a problem?}
 \label{sec:hw_latproblem}
@@ -1739,10 +1747,9 @@ frame, would be needed for an absolute figure.
 including the padding of the last output word, measured on real data
 (Section~\ref{sec:metrics}). It is the reason the compressor exists. On the
 board, with the original dictionary, it is \num{3.7508} for DRHE and
-\num{3.6968} for LPC, identical to C-simulation; with the re-derived
-dictionaries the same hardware, which changes only the contents of its codeword
-table, gives \num{4.217} and \num{4.403} in C-simulation
-(Section~\ref{sec:verifres}).
+\num{3.6968} for LPC; with the re-derived dictionaries, which change only the
+contents of the codeword table, it is \num{4.217} and \num{4.403}. All four are
+identical to C-simulation (Section~\ref{sec:verifres}).
 
 \paragraph{Against the link.} The link sets the requirement. Kiem's sensor
 produces \SI{2.4}{Gbit/s} of raw ADC data. To fit an automotive Gigabit
@@ -1860,7 +1867,7 @@ Section~\ref{sec:hw_latency}\\
 Power (dyn.) & \HW{drhen}{pdyn}\,W & \HW{drheone}{pdyn}\,W & \HW{ablk}{pdyn}\,W & not reported & --- &
 Scales with switching resources; float design $\approx 2\times$ replica. &
 Table~\ref{tab:hw_power}\\
-Compr.\ ratio & 3.75 board; 4.22 C-sim & 3.310 & 3.319 (10 fr.) & 3.17 & no &
+Compr.\ ratio & 3.75; 4.22 (board) & 3.310 & 3.319 (10 fr.) & 3.17 & no &
 Different sensor and data scaling; float and fixed point differ by \SI{0.07}{\percent} on the same data. &
 Section~\ref{sec:hw_cr}\\
 \texttt{XCZU3CG} LUTs & \SI{50}{\percent} & \SI{50}{\percent} & \SI{24}{\percent} & \SI{65}{\percent} & yes &

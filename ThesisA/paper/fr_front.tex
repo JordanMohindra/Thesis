@@ -27,19 +27,21 @@ The compression ratio was broken down into its sources. Huffman coding of the
 16-bit range-FFT data alone achieves \num{3.48}; prediction adds a further
 \num{0.22}--\num{0.27}; and a Huffman dictionary re-derived for the prediction
 errors adds \num{0.47} for DRHE and \num{0.71} for LPC, giving \num{4.22} and
-\num{4.40} overall in simulation of the hardware code, with every frame
-reconstructed exactly.
+\num{4.40} overall, measured on the hardware, with every frame reconstructed
+exactly.
 
-Both compressors and their decompressors were written in C++ and synthesised
-with Vitis HLS and Vivado, and the compressors were run on an AMD KCU116
-(Kintex UltraScale+) board at \SI{100}{\mega\hertz}. On the board, with the original dictionary, all 50
-frames were compressed byte-identically to the simulation, and every frame,
-decompressed on the PC, matched the input exactly. DRHE
+Both compressors and their decompressors were written in C++, synthesised
+with Vitis HLS and Vivado, and run on an AMD KCU116 (Kintex UltraScale+) board
+at \SI{100}{\mega\hertz}. On the board all 50 frames were compressed
+byte-identically to the simulation, and the board's own decoders reconstructed
+every frame exactly. DRHE
 compresses a frame in \SI{0.61}{\milli\second} (\SI{5.1}{Gbit/s}) and streams
 its output with \SI{13}{\micro\second} of latency. LPC takes
 \SI{3.25}{\milli\second} and, because its coefficients depend on the whole
 frame, cannot output anything until the whole frame has arrived: its last
-output word follows its last input word by \SI{3.0}{\milli\second}. Encoder and decoder together use
+output word follows its last input word by \SI{3.0}{\milli\second}. The
+decoders take \SI{1.97}{\milli\second} (DRHE) and \SI{15.4}{\milli\second}
+(LPC) per frame. Encoder and decoder together use
 \SI{23}{\percent} (DRHE) and \SI{25}{\percent} (LPC) of the chip's logic. LPC
 compresses about \SI{4}{\percent} better; DRHE is recommended for a streaming
 sensor front end, because it needs no frame buffer and has a small fraction of
