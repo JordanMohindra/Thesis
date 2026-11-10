@@ -165,7 +165,7 @@ S1 = rows('poster_stage1.csv')
 RED = RGBColor(0xB0, 0x1E, 0x1E)
 
 # ================= ROW A: why compress (left) / background and aim (right) =================
-yA, hA = 9.53, 5.65
+yA, hA = 9.53, 6.0
 wA2 = 12.6                                   # why compress (left)
 wA1 = W - wA2 - GAP                          # background (right)
 xBG = X0                                     # background and aim (left)
@@ -191,7 +191,7 @@ text(xA2 + 0.35, yA + 1.05, wA2 - 0.7, 2.6, [
     'The link to the car\'s central computer (SoC) becomes the bottleneck: bandwidth, power and delay.',
     'So: **compress at the sensor**. Less data on the link, as long as the **targets survive** decoding.'],
     bullets=True, size=22, space=6)
-gy, gh = yA + 3.6, 1.45
+gy, gh = yA + 3.6, 1.6
 bw = 2.55
 xs = [xA2 + 0.35, xA2 + 0.35 + bw + 1.15, xA2 + 0.35 + 2 * (bw + 1.15)]
 labels = [('Radar', f'{FRAME_KB:.0f} KB / frame'), ('FPGA', 'compress'), ('SoC', 'decompress')]
@@ -205,8 +205,8 @@ text(xs[1] + bw + 0.575 - 0.85, gy + gh / 2 + 0.2, 1.7, 0.6, [{'t': f'{FRAME_KB 
 text(xs[2] - 0.2, gy + gh + 0.02, bw + 0.4, 0.45, [{'t': 'same data, bit for bit', 'italic': True, 'size': 22, 'align': PP_ALIGN.CENTER}])
 
 # ================= ROW B: method -> results =================
-ROWS = [4.0, 6.6, 7.1, 4.2, 4.2]            # height of each step row
-RGAP = 0.12
+ROWS = [4.3, 6.9, 5.2, 4.6, 4.2]            # height of each step row
+RGAP = 0.2
 yB = yA + hA + 0.5
 hB = 1.2 + sum(ROWS) + RGAP * (len(ROWS) - 1) + 0.3
 box(X0, yB, W, hB, fill=None, line=BLUE, lw=10, radius=0.025)
@@ -231,8 +231,7 @@ steps = [
     ('DRHE vs LPC',
      'Both are run on the **FPGA test set** (4 RX, 50 frames).\n\n'
      'The compression is split into three parts: **Huffman coding** alone, **+ prediction**, and **+ a dictionary re-derived** from the first 5 frames.\n\n'
-     '**The new dictionary adds more than the predictor.**\n\n'
-     'Below: how the **Huffman coder** turns each prediction error into bits, and why the dictionary matters.'),
+     '**The new dictionary adds more than the predictor.**'),
     ('Build it in hardware',
      'The MATLAB model is rewritten in **C++**, turned into hardware with **Vitis HLS**, and built with **Vivado** for the AMD **KCU116** board.\n\n'
      '**Encoder and decoder** both run on the chip.\n\n'
@@ -370,49 +369,14 @@ text(ix - 0.08, yy, iw, 0.4, [{'t': 'a₁, a₂ **fitted to the whole frame** �
 
 # ---- 3: DRHE vs LPC (three figures across the full width) ----
 y, hR = RY[2], ROWS[2]
-hF = 4.7                                     # figure height; the Huffman strip goes below
 figs3 = ['fig_residual.png', 'fig_cr_bars.png', 'fig_cr_frames.png']
 ws = []
 for f in figs3:
-    im = Image.open(FIG + f); ws.append(hF * im.width / im.height)
+    im = Image.open(FIG + f); ws.append(hR * im.width / im.height)
 g = (endX - figX - sum(ws)) / (len(figs3) - 1)
 x = figX
 for f, wf in zip(figs3, ws):
-    picture(f, x, y, h=hF); x += wf + g
-
-# ---- Huffman coding strip: worked example + dictionary table ----
-hy = y + hF + 0.12
-hh = hR - hF - 0.12
-box(figX, hy, endX - figX, hh, fill=PALE, radius=0.06)
-text(figX + 0.2, hy + 0.08, endX - figX - 0.4, 0.5, [
-    {'t': '**How the Huffman coder works:** each prediction error is sent as a **size code** (Huffman) **+ its value bits**.', 'size': 22}])
-# worked example: four boxes with arrows
-ex = [('Prediction error', 'e = −5'), ('Size category', 'S₄ = 3 bits'),
-      ('Huffman code for S₄', '4 bits'), ('Sent: 4 + 3 bits', '**7 bits** instead of 16')]
-ebw, ebh, egap = 2.45, 1.15, 0.42
-ey = hy + 0.62 + (hh - 0.62 - ebh) / 2
-for k, (t1, t2) in enumerate(ex):
-    exx = figX + 0.25 + k * (ebw + egap)
-    b = box(exx, ey, ebw, ebh, fill=YELLOW if k == 3 else WHITE, line=NAVY, lw=2.5, radius=0.12)
-    text(0, 0, 0, 0, [{'t': t1, 'size': 16, 'align': PP_ALIGN.CENTER, 'space': 2},
-                      {'t': t2, 'bold': k < 3, 'size': 19, 'align': PP_ALIGN.CENTER}], anchor=MSO_ANCHOR.MIDDLE, shape=b)
-    if k < 3:
-        arrow(exx + ebw + 0.06, ey + ebh / 2 - 0.17, egap - 0.12, 0.34)
-# dictionary table: share of DRHE errors and code length per size category
-HUF = list(csv.DictReader(open(FIG + 'poster_huffman.csv')))
-pct = [float(r['Pct_DRHE']) for r in HUF]
-lo = [int(r['Len_Original']) for r in HUF]
-ld = [int(r['Len_DRHE']) for r in HUF]
-cats = list(range(6))
-hdr = ['Size category S₄'] + [str(c) for c in cats] + ['6+']
-row_p = ['DRHE errors'] + [f'{pct[c]:.0f} %' for c in cats] + [f'{sum(pct[6:]):.1f} %']
-row_o = ['Original code'] + [str(lo[c]) for c in cats] + ['≥ 6']
-row_d = ['Re-derived code'] + [f'**{ld[c]}**' if ld[c] < lo[c] else str(ld[c]) for c in cats] + ['≥ 7']
-tx = figX + 0.25 + 4 * ebw + 3 * egap + 0.45
-make_table(tx, hy + 0.6, [2.9] + [(endX - tx - 2.9) / 7] * 7, 0.31, [hdr, row_p, row_o, row_d], size=17, head_size=17,
-           fills=[None, WHITE, WHITE, GREEN], aligns=[PP_ALIGN.LEFT] + [PP_ALIGN.CENTER] * 7)
-text(tx - 0.08, hy + 0.6 + 4 * 0.31 + 0.05, endX - tx + 0.1, 0.35, [
-    {'t': 'Code lengths in bits. Common sizes get the shortest codes: **2.70 → 2.24 bits** on average.', 'size': 16}])
+    picture(f, x, y, h=hR); x += wf + g
 
 # ---- 4: build it in hardware: photo + design flow ----
 y, hR = RY[3], ROWS[3]
@@ -431,11 +395,11 @@ for k, (t1, t2) in enumerate(flow):
                       {'t': t2, 'size': 18, 'align': PP_ALIGN.CENTER}], anchor=MSO_ANCHOR.MIDDLE, shape=b)
     if k < 3:
         arrow(fx + fw + 0.12, y + 0.3 + 0.675 - 0.25, fgap - 0.24, 0.5)
-text(cx + 0.22, y + 1.78, cW - 0.44, 0.55, [{'t': 'Why an FPGA? A proof of concept', 'bold': True, 'size': 26}])
-text(cx + 0.22, y + 2.33, cW - 0.44, hR - 2.4, [
+text(cx + 0.22, y + 1.95, cW - 0.44, 0.55, [{'t': 'Why an FPGA? A proof of concept', 'bold': True, 'size': 28}])
+text(cx + 0.22, y + 2.6, cW - 0.44, hR - 2.7, [
     'It shows the compressor works as **real hardware**, not just as MATLAB code, and measures what simulation cannot: **speed, delay and chip size**.',
     'In a production car the design would move to a **custom chip (ASIC)** or a **block inside the radar SoC**, which is cheaper and uses less power.'],
-    bullets=True, size=20, space=4)
+    bullets=True, size=22, space=6)
 
 # ---- 5: measure on the board: timing + resources + numbers ----
 y, hR = RY[4], ROWS[4]
