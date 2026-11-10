@@ -29,11 +29,9 @@ radar sensor has little memory to spare, and LPC's buffer grows with the frame
 bins and transmitters, but it is a fraction of a frame.
 
 \paragraph{Where LPC is attractive.} LPC's costs fall mainly on the compressor.
-Its decoder is the cheaper of the two in memory and arithmetic --- no data
-memory, eight DSP slices --- because the coefficients arrive ready-made. As
-built it is also the slowest stage measured, \SI{15.4}{\milli\second} per frame,
-but that comes from its serial codeword search, not from LPC, and the DRHE
-decoder's parallel matcher would bring it to about \SI{2}{\milli\second}
+Its decoder is the cheaper of the two in memory and arithmetic --- no block
+RAM, fixed-point multiply--accumulates only --- because the coefficients arrive
+ready-made, and it is as fast as DRHE's, one value per clock
 (Section~\ref{sec:boardtiming}). Where latency of a few milliseconds
 is acceptable and the sensor has memory to spare, LPC's \SI{4}{\percent} better
 ratio is available. A backward-adaptive LPC, fitting its coefficients to
@@ -72,13 +70,11 @@ buffer. LPC as built would take about \SI{69}{\milli\second} per
 frame, longer than the whole cycle, and would need an \SI{8.4}{\mega\byte} frame
 buffer against roughly \SI{4.4}{\mega\byte} of block and UltraRAM on this device.
 \item \textbf{The decoders} scale with the number of values, at about one per
-clock for DRHE and about eight for LPC as built. At 16 receive channels they
-would take about \SI{8}{\milli\second} and \SI{61}{\milli\second} per frame.
-A frame of Kiem's size holds 21 times as many values as the frames measured
-here, so the DRHE decoder would take about \SI{42}{\milli\second}, inside the
-\SI{50}{\milli\second} cycle, and the LPC decoder about
-\SI{330}{\milli\second}, which would need the parallel matcher or several
-decoders. A decoder sits at the central processor, where several copies or a
+clock for both. At 16 receive channels each would take about
+\SI{8}{\milli\second} per frame. A frame of Kiem's size holds 21 times as many
+values as the frames measured here, so either decoder would take about
+\SI{42}{\milli\second}, inside the \SI{50}{\milli\second} cycle but with little
+margin. A decoder sits at the central processor, where several copies or a
 wider design are easier to afford than at the sensor.
 \end{itemize}
 
@@ -175,7 +171,7 @@ compressor alone; BRAM in 36\,Kb blocks.}
 Lossless CR in hardware      & \num{3.17} & \num{3.75} & \num{3.70}\\
 CR, re-derived dictionary (board) & --- & \num{4.22} & \num{4.40}\\
 Hardware checked against simulation & FFT model only\textsuperscript{c} & byte-identical & byte-identical\\
-Decompressor                 & none & on chip, \SI{1.97}{\milli\second} & on chip, \SI{15.4}{\milli\second}\\
+Decompressor                 & none & on chip, \SI{1.97}{\milli\second} & on chip, \lpcDecTime\\
 Throughput                   & \SI{11.92}{Gibit/s} (theor.) & \SI{4.77}{Gibit/s} (meas.) & \SI{0.90}{Gibit/s} (meas.)\\
 End-to-end latency           & \SI{79.4}{\micro\second}\textsuperscript{b} & \SI{13.1}{\micro\second} & \SI{3006}{\micro\second}\\
 Compressor LUT / FF          & \num{45892} / \num{9243} & \num{35444} / \num{23528} & \num{33738} / \num{20165}\\

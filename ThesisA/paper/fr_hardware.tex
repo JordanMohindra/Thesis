@@ -22,7 +22,12 @@ bitstream.
 Both compressors share the bit packer. Codewords accumulate in a 512-bit
 register, least-significant-bit first, and a 256-bit word is written out
 whenever at least 256 bits are waiting, with one final partial word at the end
-of the frame. Flushing per frame rather than per ramp avoids wasting up to 255
+of the frame carrying TLAST. If the frame ends exactly on a word boundary there
+is no partial word, so an all-zero word is sent to carry TLAST; without it the
+DMA and the decoder would wait for an end of frame that never comes. No
+ColoRadar frame ends on a boundary --- the case was found by the synthetic
+edge-case frames of Section~\ref{sec:dechw}, and the fix leaves the output for
+all 50 ColoRadar frames byte-identical. Flushing per frame rather than per ramp avoids wasting up to 255
 bits per ramp, about \SI{2.9}{\percent} of the ratio. The Huffman codewords are
 stored bit-reversed relative to their usual most-significant-bit-first form,
 because the packer is least-significant-bit first; the reversed code set is
@@ -302,17 +307,44 @@ drifts by 1 to 6 least-significant bits on 8 of the 50 DRHE frames; the
 decoder built from the HLS source, which the FPGA core shares, is exact on all
 of them.
 
-\subsection{LPC}
+\subsection{LPC: the same two stages}
 
-The LPC decompressor reads the coefficient table into registers, then
-reconstructs each sample as its residual arrives, holding the last $2\nTx$
-reconstructed values of each (channel, bin) in a ring as the compressor does.
-It needs no frame buffer and no block RAM for data, and its only arithmetic is
-two fixed-point multiply--accumulates per value. Its codeword matcher is the
-simple form: it tries the sixteen codewords in category order and stops at the
-first match, so its speed depends on the data. Section~\ref{sec:boardtiming}
-shows what that costs, and how the DRHE decoder's parallel matcher would
-remove it.
+The LPC decompressor has the same structure as the DRHE decoder, a dataflow
+pair of stages joined by a stream:
+
+\begin{itemize}
+\item \textbf{Unpack} first reads the coefficient table, one 64-bit entry per
+clock, and passes it on. It then decodes one residual per clock with the DRHE
+decoder's matcher: a 29-bit window cut from two 256-bit input words, all sixteen
+codewords compared with it at once, the payload extracted, and the next input
+word read just in time, stopping at TLAST.
+\item \textbf{Rebuild} stores the coefficients and then reconstructs one complex
+sample per clock: two fixed-point multiply--accumulates for the real part and
+two for the imaginary part, the same rounding, and the same 16-bit wrap as the
+compressor. It holds the last $2\nTx$ reconstructed values of each (channel,
+bin) in a ring, as the compressor does. The rings are in distributed (LUT) RAM,
+split so that both past values are read and the new one written in the same
+clock.
+\end{itemize}
+
+\noindent
+Unpack is the slower stage, at one real value per clock, so a frame takes about
+\num{196608} clocks plus 512 for the coefficient table --- about
+\SI{2}{\milli\second}, the same as DRHE. Every loop is scheduled at
+$\mathrm{II} = 1$, and the decoder needs no frame buffer and no block RAM.
+After synthesis it uses \num{15359} LUTs (just over half of them as distributed
+RAM for the rings), \num{7212} flip-flops and 23 DSP slices.
+
+The first LPC decoder built was simpler: it tried the sixteen codewords one
+after another in category order and stopped at the first match. It was exact,
+but its speed depended on the data. On the board it took \SI{15.4}{\milli\second}
+per frame, 7.6 to 8.3 clocks per value, and \num{20034} LUTs after routing ---
+slower and larger than the parallel matcher, which therefore replaced it. In
+C-simulation the new decoder's output is bit-identical to the first one's on
+all 50 ColoRadar frames and on eight synthetic edge-case frames: all zeros,
+constant $+32767$ and $-32768$, alternating full scale, uniform random values,
+small noise, a random walk along the ramps, and small noise with full-scale
+spikes.
 
 \section{The board test system}
 \label{sec:system}
@@ -404,7 +436,8 @@ signal to the processor reset, and the DDR4 interface at \SI{2400}{MT/s}.
 \caption[The four board builds]{The four board builds, whole system (processor,
 DDR4 controller, DMAs and cores), post-route on the \texttt{XCKU5P} at
 \SI{100}{\mega\hertz}, with the re-derived dictionaries; the original-dictionary
-builds also meet timing. BRAM is in 36\,Kb blocks.}
+builds also meet timing. BRAM is in 36\,Kb blocks. \pending{LPC \texttt{\_full}
+row: estimate for the parallel decoder; replace with the post-route report}}
 \label{tab:builds}
 \small
 \begin{tabular}{@{}lrrrr@{}}
@@ -414,7 +447,7 @@ Build & LUT & BRAM & DSP & WNS (ns)\\
 DRHE, compress only    & \num{61011} (\SI{28}{\percent}) & 104.5 & 138 & $+0.243$\\
 LPC, compress only     & \num{59203} (\SI{27}{\percent}) & 162.5 & 164 & $+0.174$\\
 DRHE, \texttt{\_full}  & \num{81573} (\SI{38}{\percent}) & 144   & 184 & $+0.341$\\
-LPC, \texttt{\_full}   & \num{85707} (\SI{40}{\percent}) & 169.5 & 172 & $+0.331$\\
+LPC, \texttt{\_full}   & \tbc{$\approx$\num{81000}} (\tbc{\SI{37}{\percent}}) & \tbc{169.5} & \tbc{187} & \tbc{$>0$}\\
 \bottomrule
 \end{tabular}
 \end{table}

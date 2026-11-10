@@ -78,3 +78,8 @@
 \graphicspath{{figs/}{./}}
 \newcommand{\nTx}{n_{\mathrm{Tx}}}
 \newcommand{\pending}[1]{\textcolor{warm}{\textbf{[pending: #1]}}}
+% Expected values for the parallel LPC decoder (orange), to be replaced by the board measurement.
+\newcommand{\tbc}[1]{\textcolor{warm}{#1}}
+\newcommand{\lpcDecCycles}{\tbc{$\approx$\num{197400}}}
+\newcommand{\lpcDecTime}{\tbc{$\approx$\SI{1.97}{\milli\second}}}
+\newcommand{\lpcDecLat}{\tbc{$\approx$\SI{350}{\micro\second}}}

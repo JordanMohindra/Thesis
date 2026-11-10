@@ -831,7 +831,7 @@ FX16 detection cost & FN \SI{0.59}{\percent}, FP \SI{1.18}{\percent} & FN \SI{3.
 Noise floor & $-70.7$\,dBFS & $-105.4$\,dBFS & N & no & Different sensor, reference and integration (Section~\ref{sec:kc_det}).\\
 Hardware resources, clock and throughput & \num{45892} LUT, \num{9243} FF, 10 BRAM, 44 DSP; $\mathrm{II}=1$; \SI{100}{\mega\hertz}; \SI{11.92}{Gibit/s} (theoretical) & \num{35444} LUT, \num{23528} FF, 40 BRAM, 132 DSP; $\mathrm{II}=2$; \SI{100}{\mega\hertz}; \SI{5.12}{Gbit/s} measured & L & no & Every difference is accounted for against a replica of his design, metric by metric, in Table~\ref{tab:hw_ledger}; the main cause is the floating-point datapath.\\
 System latency & \SI{79.4}{\micro\second} & \SI{13.1}{\micro\second} measured on the board & L & same kind & Same definition (last DMA read to last DMA write), but his pipeline includes an FFT core in front of the compressor (Section~\ref{sec:hw_latency}).\\
-Decompressor & none in hardware & built for every design; on the board, every frame reconstructed exactly (\SI{1.97}{} and \SI{15.4}{\milli\second} per frame) & --- & --- & He listed a bit-accurate decompression model as future work (Section~\ref{sec:kc_open}).\\
+Decompressor & none in hardware & built for every design; on the board, every frame reconstructed exactly (\SI{1.97}{\milli\second} and \lpcDecTime{} per frame) & --- & --- & He listed a bit-accurate decompression model as future work (Section~\ref{sec:kc_open}).\\
 \bottomrule
 \end{tabular}
 \end{table}

@@ -1348,9 +1348,9 @@ takes \num{196881} (\SI{1.97}{\milli\second}), within \SI{0.14}{\percent} of
 that. Its latency, from the last compressed word read to the last reconstructed
 word written, is \SI{339}{\micro\second}: because it decodes one value per clock
 while the compressed stream arrives faster, about a sixth of the frame is still
-to be rebuilt when the input ends. The LPC decompressor takes
-\SI{15.4}{\milli\second} per frame and \SI{2.84}{\milli\second} of latency,
-both set by its serial codeword search (Section~\ref{sec:boardtiming}). Both
+to be rebuilt when the input ends. The LPC decompressor shares the same
+unpack stage and the same rate, \lpcDecTime{} per frame with \lpcDecLat{} of
+latency (Section~\ref{sec:boardtiming}). Both
 latencies are a decoder's own backlog, not a dependence on the whole frame: the
 decoders emit reconstructed data from the first codeword on.
 
@@ -1610,7 +1610,7 @@ Core & LUT & FF & BRAM\textsuperscript{a} & DSP & LUT & FF & BRAM\textsuperscrip
 DRHE compressor   & 16 & 5 & 8 & 7 & 50 & 17 & 19 & 37\\
 DRHE decompressor & 7 & 2 & 7 & 3 & 20 & 7 & 15 & 13\\
 LPC compressor    & 16 & 5 & 20 & 9 & 48 & 14 & 45 & 44\\
-LPC decompressor  & 9 & 2 & 0 & 0.4 & 28 & 6 & 0 & 2\\
+LPC decompressor  & \tbc{7} & 2 & 0 & \tbc{1.3} & \tbc{22} & \tbc{5} & 0 & \tbc{6}\\
 \midrule
 DRHE-1 (lag 1)    & 16 & 5 & 4 & 7 & 50 & 17 & 9 & 37\\
 Replica of Kiem   & 8 & 1 & 2 & 3 & 24 & 4 & 5 & 13\\
@@ -1623,9 +1623,9 @@ Kiem's IP \cite{kiem2025} & 21 & 2 & 2 & 2 & 65 & 7 & 5 & 12\\
 
 \paragraph{It fits the board with room to spare.} On the \texttt{XCKU5P} each
 compressor uses about a sixth of the logic, and encoder and decoder together
-under a quarter (\SI{23}{\percent} for DRHE, \SI{25}{\percent} for LPC). The
+under a quarter (\SI{23}{\percent} for both). The
 whole test system with both cores --- processor, DDR4 controller, two DMAs ---
-uses \SI{38}{\percent} and \SI{40}{\percent} of the LUTs (Table~\ref{tab:builds}).
+uses \SI{38}{\percent} and \tbc{\SI{37}{\percent}} of the LUTs (Table~\ref{tab:builds}).
 The scarcest resource is LPC's block RAM, at a fifth of the device for one
 four-channel compressor.
 

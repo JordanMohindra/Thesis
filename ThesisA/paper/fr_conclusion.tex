@@ -56,11 +56,10 @@ frame exactly. DRHE
 compresses a frame in \SI{0.61}{\milli\second} (\SI{5.1}{Gbit/s}) with
 \SI{13}{\micro\second} of latency; LPC in \SI{3.25}{\milli\second} with
 \SI{3.0}{\milli\second} of latency, because it must see the whole frame first.
-The decoders take \SI{1.97}{\milli\second} and \SI{15.4}{\milli\second}; the
-LPC decoder's time comes from a serial codeword search, not from the
-algorithm.
-Encoder and decoder together use \SI{23}{\percent} and \SI{25}{\percent} of the
-chip's logic.
+Both decoders reconstruct one value per clock, about \SI{2}{\milli\second} per
+frame (\SI{1.97}{\milli\second} and \lpcDecTime).
+Encoder and decoder together use about \SI{23}{\percent} of the chip's logic
+for either algorithm.
 
 \item \textbf{DRHE is the better choice for a streaming sensor.} The two
 algorithms are close on ratio and level on logic, but DRHE needs no frame
@@ -78,11 +77,8 @@ board's compressed output reconstructs exactly on the board.
 \section{Future work}
 \label{sec:futurework}
 
-\paragraph{Measure power, and speed up the LPC decoder.} Measure the board's
-power draw for each build, to give the energy cost of compression. Replace the
-LPC decoder's serial codeword search with the parallel matcher of the DRHE
-decoder, which should cut its \SI{15.4}{\milli\second} per frame to about
-\SI{2}{\milli\second}.
+\paragraph{Measure power.} Measure the board's power draw for each build, to
+give the energy cost of compression and decompression.
 
 \paragraph{Move DRHE to fixed-point arithmetic.} The floating-point datapath is
 the most expensive design decision and buys \SI{0.07}{\percent} of ratio.

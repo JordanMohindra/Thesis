@@ -40,9 +40,9 @@ its output with \SI{13}{\micro\second} of latency. LPC takes
 \SI{3.25}{\milli\second} and, because its coefficients depend on the whole
 frame, cannot output anything until the whole frame has arrived: its last
 output word follows its last input word by \SI{3.0}{\milli\second}. The
-decoders take \SI{1.97}{\milli\second} (DRHE) and \SI{15.4}{\milli\second}
-(LPC) per frame. Encoder and decoder together use
-\SI{23}{\percent} (DRHE) and \SI{25}{\percent} (LPC) of the chip's logic. LPC
+decoders each reconstruct one value per clock, about \SI{2}{\milli\second} per
+frame. Encoder and decoder together use about \SI{23}{\percent} of the chip's
+logic for either algorithm. LPC
 compresses about \SI{4}{\percent} better; DRHE is recommended for a streaming
 sensor front end, because it needs no frame buffer and has a small fraction of
 LPC's latency.

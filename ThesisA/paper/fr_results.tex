@@ -410,7 +410,9 @@ and Figure~\ref{fig:timing} draws it.
 input word read to the last output word written (Section~\ref{sec:metrics});
 for the decompressor, from the last compressed word read to the last
 reconstructed word written. Compressor figures are from the original-dictionary
-run; with the re-derived dictionaries they differ by at most 13 cycles.}
+run; with the re-derived dictionaries they differ by at most 13 cycles.
+\pending{LPC decompressor rows: expected values for the parallel decoder; replace
+with the board measurement}}
 \label{tab:timing}
 \small
 \begin{tabular}{@{}lrr@{}}
@@ -424,9 +426,9 @@ Input throughput                & \textbf{\SI{5.12}{Gbit/s}} & \SI{0.97}{Gbit/s}
 End-to-end latency              & \textbf{\SI{13.1}{\micro\second}} & \SI{3006}{\micro\second}\\
 \quad as a share of the frame time & \SI{2}{\percent} & \SI{92}{\percent}\\
 \midrule
-Decompressor cycles per frame   & \num{196881}  & \num{1536042}\\
-Decompression time per frame    & \textbf{\SI{1.97}{\milli\second}} & \SI{15.4}{\milli\second}\\
-Decompressor latency            & \textbf{\SI{339}{\micro\second}} & \SI{2838}{\micro\second}\\
+Decompressor cycles per frame   & \num{196881}  & \lpcDecCycles\\
+Decompression time per frame    & \SI{1.97}{\milli\second} & \lpcDecTime\\
+Decompressor latency            & \SI{339}{\micro\second} & \lpcDecLat\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -437,8 +439,8 @@ Decompressor latency            & \textbf{\SI{339}{\micro\second}} & \SI{2838}{\
 \caption[Time per frame on the FPGA]{Time to encode and decode one frame on the
 FPGA, measured on the board with the re-derived dictionaries, with each
 encoder's output delay. DRHE outputs as the data arrives; LPC must wait for the
-whole frame before it can output anything. The LPC decoder's time comes from its
-serial codeword search (Section~\ref{sec:boardtiming}).}
+whole frame before it can output anything. Both decoders decode one value per
+clock. \pending{redraw with the measured LPC decoder time}}
 \label{fig:timing}
 \end{figure}
 
@@ -467,22 +469,20 @@ channels at once. Its latency of \SI{339}{\micro\second} is the backlog this
 leaves: when the last compressed word has been read, about a sixth of the frame
 is still to be rebuilt.
 
-The LPC decoder takes \SI{15.4}{\milli\second} per frame, eight times as long,
-and its time depends on the data: \numrange{1501789}{1623838} cycles, or 7.6
-to 8.3 cycles per value. The cause is its codeword matcher. Where the DRHE
-unpack stage compares all sixteen codewords with the input at once, the LPC
-decoder tries them one after another in category order and stops at the first
-match, so the loop runs at no fixed rate; a value in a high category, which
-is rarer but costs more, takes more clocks to find. Nothing in LPC requires
-this --- its arithmetic is two multiply--accumulates per value --- and the
-parallel matcher of the DRHE decoder would bring it to about one value per
-clock, near \SI{2}{\milli\second} per frame. As built, it is the slowest part
-of either pipeline.
+The LPC decoder shares the DRHE decoder's unpack stage and runs at the same
+rate: \lpcDecCycles{} cycles per frame, or \lpcDecTime{}, with \lpcDecLat{} of
+latency, the same kind of backlog. Its time does not depend on the data,
+because every codeword is matched in one clock whatever its length. The first
+LPC decoder, which tried the codewords one at a time (Section~\ref{sec:dechw}),
+took \SI{15.4}{\milli\second} per frame and 7.6 to 8.3 cycles per value;
+matching all sixteen at once makes it about eight times faster with fewer
+LUTs. Nothing in LPC makes its decoder slower than DRHE's: once the coefficients
+are read, its arithmetic is two multiply--accumulates per value.
 
 Both are fast in absolute terms. The ColoRadar cascade records at
 \SI{5}{\hertz}, a frame every \SI{200}{\milli\second}, so DRHE's compressor uses
-\SI{0.3}{\percent} of the frame period and LPC's under \SI{2}{\percent}; the
-slowest stage of all, the LPC decoder, uses \SI{8}{\percent}. Section~\ref{sec:scaling} considers what happens
+\SI{0.3}{\percent} of the frame period, LPC's under \SI{2}{\percent}, and each
+decoder about \SI{1}{\percent}. Section~\ref{sec:scaling} considers what happens
 on larger frames.
 
 % -------------------------------------------------------------------
@@ -497,7 +497,8 @@ Figure~\ref{fig:resources} draws them as a share of the chip.
 \centering
 \caption[Resources per core]{Post-route resources of each core on the
 \texttt{XCKU5P} (\num{216960} LUT, \num{433920} FF, 480 BRAM, \num{1824} DSP).
-BRAM is in 36\,Kb blocks.}
+BRAM is in 36\,Kb blocks. \pending{LPC decompressor: post-synthesis figures for
+the parallel decoder; replace with the post-route hierarchical report}}
 \label{tab:resources}
 \small
 \begin{tabular}{@{}llrrrr@{}}
@@ -509,8 +510,8 @@ DRHE & compressor   & \num{35444} & \num{23528} & 40   & 132\\
      & \textbf{both} & \textbf{\num{49599}} (\SI{23}{\percent}) & \num{32773} & 72.5 & 178\\
 \midrule
 LPC  & compressor   & \num{33738} & \num{20165} & 98   & 158\\
-     & decompressor & \num{20034} & \num{8371}  & 0    & 8\\
-     & \textbf{both} & \textbf{\num{53772}} (\SI{25}{\percent}) & \num{28536} & 98 & 166\\
+     & decompressor & \tbc{\num{15359}} & \tbc{\num{7212}}  & 0    & \tbc{23}\\
+     & \textbf{both} & \textbf{\tbc{\num{49097}}} (\tbc{\SI{23}{\percent}}) & \tbc{\num{27377}} & 98 & \tbc{181}\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -525,13 +526,14 @@ compressor, the decompressor, and both together.}
 
 Encoder and decoder together use under a quarter of the chip's logic for both
 algorithms, and the whole test system --- processor, memory controller, DMAs and
-both cores --- uses \SI{38}{\percent} (DRHE) and \SI{40}{\percent} (LPC)
+both cores --- uses \SI{38}{\percent} (DRHE) and \tbc{\SI{37}{\percent}} (LPC)
 (Table~\ref{tab:builds}). The two compressors cost almost the same logic. They
 differ in memory: LPC's compressor needs 98 block RAMs, most of them its frame
 buffer, against DRHE's 40 for predictor state. The decoders invert this. The
-DRHE decoder carries its own floating-point predictor and its state, while the
-LPC decoder needs no data memory at all and only eight DSP slices, because the
-coefficients arrive ready-made in the bitstream.
+DRHE decoder carries its own floating-point predictor and its state in block
+RAM, while the LPC decoder needs no block RAM at all, because the coefficients
+arrive ready-made in the bitstream and its few past samples per (channel, bin)
+fit in distributed RAM.
 
 % -------------------------------------------------------------------
 \section{The two algorithms side by side}
@@ -553,9 +555,9 @@ Compression ratio, re-derived dictionary (board)  & \num{4.22} & \textbf{\num{4.
 Time per frame                                   & \textbf{\SI{0.61}{\milli\second}} & \SI{3.25}{\milli\second}\\
 End-to-end latency                               & \textbf{\SI{13.1}{\micro\second}} & \SI{3006}{\micro\second}\\
 First output available                           & \textbf{immediately} & after the whole frame\\
-Decompression time per frame                     & \textbf{\SI{1.97}{\milli\second}} & \SI{15.4}{\milli\second}\\
+Decompression time per frame                     & \SI{1.97}{\milli\second} & \lpcDecTime\\
 Compressor frame buffer                          & \textbf{none} & \SI{3.0}{\mebi bit}\\
-Encoder + decoder LUTs                           & \textbf{\SI{23}{\percent}} & \SI{25}{\percent}\\
+Encoder + decoder LUTs                           & \SI{23}{\percent} & \tbc{\SI{23}{\percent}}\\
 Encoder + decoder BRAM (36\,Kb blocks)          & \textbf{72.5} & 98\\
 Side information                                 & \textbf{none} & \SI{1.04}{\percent}\\
 \bottomrule
@@ -568,6 +570,4 @@ are close, and which one leads depends on the dictionary: DRHE by
 dictionaries matched to each. On logic they are level. On time, latency and
 memory DRHE is clearly ahead: it compresses a frame five times faster, needs no
 frame buffer, and its output lags its input by microseconds rather than
-milliseconds. Its decoder is also eight times faster as built, though that gap
-comes from the LPC decoder's serial codeword search rather than from the
-algorithm. Chapter~\ref{ch:discussion} weighs these against each other.
+milliseconds. Their decoders run at the same rate, one value per clock. Chapter~\ref{ch:discussion} weighs these against each other.
