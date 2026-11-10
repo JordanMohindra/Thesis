@@ -206,7 +206,7 @@ text(xs[2] - 0.2, gy + gh + 0.02, bw + 0.4, 0.45, [{'t': 'same data, bit for bit
 
 # ================= ROW B: method -> results =================
 ROWS = [4.3, 6.9, 5.2, 4.6, 4.2]            # height of each step row
-RGAP = 0.2
+RGAP = 0.14
 yB = yA + hA + 0.5
 hB = 1.2 + sum(ROWS) + RGAP * (len(ROWS) - 1) + 0.3
 box(X0, yB, W, hB, fill=None, line=BLUE, lw=10, radius=0.025)
@@ -421,18 +421,21 @@ make_table(cx, y, [3.95, 2.9, 2.9], hR / 7, [
 
 # ================= ROW C: conclusion (full width, short) =================
 yC = yB + hB + 0.45
-hC = 46.5 - yC
+hC = 46.6 - yC
 box(X0, yC, W, hC, fill=BLUE)
 heading(X0 + 0.35, yC + 0.2, 6, 'Conclusion')
 text(X1 - 14.4, yC + 0.32, 14.0, 0.45, [
     {'t': '[1] A. Kramer et al., ColoRadar: the direct 3D millimeter wave radar dataset, IJRR, 2022.', 'size': 14, 'align': PP_ALIGN.RIGHT}])
 colw = (W - 0.7 - 0.6) / 2
-cl = ['**Both DRHE and LPC are lossless on real radar data, on real hardware.**',
-      f'**LPC compresses most: {crL:.2f}×** (DRHE {crD:.2f}×). A **re-derived Huffman dictionary** helped **more than prediction** did.']
-cr_ = [f'**Delay:** DRHE\'s output lags its input by only **{latD_us:.0f} µs**; LPC\'s waits for the **whole frame ({latL_ms:.1f} ms)**. Decoding: **{decD_ms:.2f} ms** (DRHE), {decL_ms:.1f} ms (LPC).',
-       '**DRHE streams** with no frame buffer, so it **scales better to bigger frames**.']
-text(X0 + 0.35, yC + 0.88, colw, hC - 0.95, cl, bullets=True, size=22, space=4)
-text(X0 + 0.35 + colw + 0.6, yC + 0.88, colw, hC - 0.95, cr_, bullets=True, size=22, space=4)
+crS = S1['DRHE']['CR'], S1['LPC_Huffman']['CR']
+cl = ['**Compared on real radar data:** 8 methods on 50 ColoRadar frames. The **lossy** ones missed **10–29 % of targets**; float storage barely compressed.',
+      f'**Best trade-off: lossless prediction** from the **same transmitter**. DRHE and LPC reach **{float(crS[0]):.2f}× / {float(crS[1]):.2f}×** with **no extra missed targets**, and **{crD:.2f}× / {crL:.2f}×** with a re-derived Huffman dictionary.',
+      '**Built on an FPGA:** encoders and decoders match the simulation **bit for bit** on all 50 frames.']
+cr_ = [f'**DRHE suits the sensor:** it streams with **{latD_us:.0f} µs** of delay and no frame buffer. LPC compresses about 4 % more but must wait for the **whole frame ({latL_ms:.1f} ms)**.',
+       f'**Fast enough:** {encD_ms:.2f} ms to compress a frame (DRHE), {decD_ms:.2f} ms to decode it, using **under a quarter** of the chip.',
+       '**Next:** fixed-point DRHE to shrink it, all 16 receivers, and a streaming LPC.']
+text(X0 + 0.35, yC + 0.85, colw, hC - 0.9, cl, bullets=True, size=20, space=3)
+text(X0 + 0.35 + colw + 0.6, yC + 0.85, colw, hC - 0.9, cr_, bullets=True, size=20, space=3)
 
 prs.save(HERE + '/Thesis_Poster.pptx')
 print('saved', yC, hC)
