@@ -189,7 +189,7 @@ heading(xA2 + 0.35, yA + 0.25, wA2 - 0.7, 'Why compress radar data?')
 text(xA2 + 0.35, yA + 1.05, wA2 - 0.7, 2.6, [
     'Cascaded MIMO radars (here **12 transmitters × 16 receivers**) produce **3.1 MB of raw data in every frame**, frame after frame.',
     'The link to the car\'s central computer (SoC) becomes the bottleneck: bandwidth, power and delay.',
-    'So: **compress at the sensor, losslessly**. Less data on the link, **identical** data after decoding.'],
+    'So: **compress at the sensor**. Less data on the link, as long as the **targets survive** decoding.'],
     bullets=True, size=22, space=6)
 gy, gh = yA + 3.6, 1.45
 bw = 2.55
