@@ -168,8 +168,8 @@ RED = RGBColor(0xB0, 0x1E, 0x1E)
 yA, hA = 9.53, 5.65
 wA2 = 12.6                                   # why compress (left)
 wA1 = W - wA2 - GAP                          # background (right)
-xA2 = X0
-xBG = X0 + wA2 + GAP
+xBG = X0                                     # background and aim (left)
+xA2 = X0 + wA1 + GAP                         # why compress (right)
 
 box(xBG, yA, wA1, hA, fill=BLUE)
 heading(xBG + 0.35, yA + 0.25, wA1 - 0.7, 'Background and aim')
