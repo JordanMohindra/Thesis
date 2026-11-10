@@ -165,7 +165,7 @@ S1 = rows('poster_stage1.csv')
 RED = RGBColor(0xB0, 0x1E, 0x1E)
 
 # ================= ROW A: why compress (left) / background and aim (right) =================
-yA, hA = 9.53, 6.0
+yA, hA = 9.53, 5.65
 wA2 = 12.6                                   # why compress (left)
 wA1 = W - wA2 - GAP                          # background (right)
 xA2 = X0
@@ -191,7 +191,7 @@ text(xA2 + 0.35, yA + 1.05, wA2 - 0.7, 2.6, [
     'The link to the car\'s central computer (SoC) becomes the bottleneck: bandwidth, power and delay.',
     'So: **compress at the sensor, losslessly**. Less data on the link, **identical** data after decoding.'],
     bullets=True, size=22, space=6)
-gy, gh = yA + 3.6, 1.6
+gy, gh = yA + 3.6, 1.45
 bw = 2.55
 xs = [xA2 + 0.35, xA2 + 0.35 + bw + 1.15, xA2 + 0.35 + 2 * (bw + 1.15)]
 labels = [('Radar', f'{FRAME_KB:.0f} KB / frame'), ('FPGA', 'compress'), ('SoC', 'decompress')]
@@ -205,7 +205,7 @@ text(xs[1] + bw + 0.575 - 0.85, gy + gh / 2 + 0.2, 1.7, 0.6, [{'t': f'{FRAME_KB 
 text(xs[2] - 0.2, gy + gh + 0.02, bw + 0.4, 0.45, [{'t': 'same data, bit for bit', 'italic': True, 'size': 22, 'align': PP_ALIGN.CENTER}])
 
 # ================= ROW B: method -> results =================
-ROWS = [4.0, 6.6, 4.7, 3.8, 4.2]            # height of each step row
+ROWS = [4.0, 6.6, 7.1, 4.2, 4.2]            # height of each step row
 RGAP = 0.12
 yB = yA + hA + 0.5
 hB = 1.2 + sum(ROWS) + RGAP * (len(ROWS) - 1) + 0.3
@@ -231,10 +231,12 @@ steps = [
     ('DRHE vs LPC',
      'Both are run on the **FPGA test set** (4 RX, 50 frames).\n\n'
      'The compression is split into three parts: **Huffman coding** alone, **+ prediction**, and **+ a dictionary re-derived** from the first 5 frames.\n\n'
-     '**The new dictionary adds more than the predictor.**'),
+     '**The new dictionary adds more than the predictor.**\n\n'
+     'Below: how the **Huffman coder** turns each prediction error into bits, and why the dictionary matters.'),
     ('Build it in hardware',
      'The MATLAB model is rewritten in **C++**, turned into hardware with **Vitis HLS**, and built with **Vivado** for the AMD **KCU116** board.\n\n'
-     '**Encoder and decoder** both run on the chip.'),
+     '**Encoder and decoder** both run on the chip.\n\n'
+     'The **same C++** is simulated and built, so the board\'s output can be checked **bit for bit**.'),
     ('Measure on the board',
      'All 50 frames are streamed through the FPGA by **DMA**.\n\n'
      'Every output is checked **bit for bit** against the simulation, and the **time per frame**, **delay** and **chip use** are measured.'),
@@ -369,21 +371,55 @@ text(ix - 0.08, yy, iw, 0.4, [{'t': 'a₁, a₂ **fitted to the whole frame** �
 
 # ---- 3: DRHE vs LPC (three figures across the full width) ----
 y, hR = RY[2], ROWS[2]
+hF = 4.7                                     # figure height; the Huffman strip goes below
 figs3 = ['fig_residual.png', 'fig_cr_bars.png', 'fig_cr_frames.png']
 ws = []
 for f in figs3:
-    im = Image.open(FIG + f); ws.append(hR * im.width / im.height)
+    im = Image.open(FIG + f); ws.append(hF * im.width / im.height)
 g = (endX - figX - sum(ws)) / (len(figs3) - 1)
 x = figX
 for f, wf in zip(figs3, ws):
-    picture(f, x, y, h=hR); x += wf + g
+    picture(f, x, y, h=hF); x += wf + g
+
+# ---- Huffman coding strip: worked example + dictionary table ----
+hy = y + hF + 0.12
+hh = hR - hF - 0.12
+box(figX, hy, endX - figX, hh, fill=PALE, radius=0.06)
+text(figX + 0.2, hy + 0.08, endX - figX - 0.4, 0.5, [
+    {'t': '**How the Huffman coder works:** each prediction error is sent as a **size code** (Huffman) **+ its value bits**.', 'size': 22}])
+# worked example: four boxes with arrows
+ex = [('Prediction error', 'e = −5'), ('Size category', 'S₄ = 3 bits'),
+      ('Huffman code for S₄', '4 bits'), ('Sent: 4 + 3 bits', '**7 bits** instead of 16')]
+ebw, ebh, egap = 2.45, 1.15, 0.42
+ey = hy + 0.62 + (hh - 0.62 - ebh) / 2
+for k, (t1, t2) in enumerate(ex):
+    exx = figX + 0.25 + k * (ebw + egap)
+    b = box(exx, ey, ebw, ebh, fill=YELLOW if k == 3 else WHITE, line=NAVY, lw=2.5, radius=0.12)
+    text(0, 0, 0, 0, [{'t': t1, 'size': 16, 'align': PP_ALIGN.CENTER, 'space': 2},
+                      {'t': t2, 'bold': k < 3, 'size': 19, 'align': PP_ALIGN.CENTER}], anchor=MSO_ANCHOR.MIDDLE, shape=b)
+    if k < 3:
+        arrow(exx + ebw + 0.06, ey + ebh / 2 - 0.17, egap - 0.12, 0.34)
+# dictionary table: share of DRHE errors and code length per size category
+HUF = list(csv.DictReader(open(FIG + 'poster_huffman.csv')))
+pct = [float(r['Pct_DRHE']) for r in HUF]
+lo = [int(r['Len_Original']) for r in HUF]
+ld = [int(r['Len_DRHE']) for r in HUF]
+cats = list(range(6))
+hdr = ['Size category S₄'] + [str(c) for c in cats] + ['6+']
+row_p = ['DRHE errors'] + [f'{pct[c]:.0f} %' for c in cats] + [f'{sum(pct[6:]):.1f} %']
+row_o = ['Original code'] + [str(lo[c]) for c in cats] + ['≥ 6']
+row_d = ['Re-derived code'] + [f'**{ld[c]}**' if ld[c] < lo[c] else str(ld[c]) for c in cats] + ['≥ 7']
+tx = figX + 0.25 + 4 * ebw + 3 * egap + 0.45
+make_table(tx, hy + 0.6, [2.9] + [(endX - tx - 2.9) / 7] * 7, 0.31, [hdr, row_p, row_o, row_d], size=17, head_size=17,
+           fills=[None, WHITE, WHITE, GREEN], aligns=[PP_ALIGN.LEFT] + [PP_ALIGN.CENTER] * 7)
+text(tx - 0.08, hy + 0.6 + 4 * 0.31 + 0.05, endX - tx + 0.1, 0.35, [
+    {'t': 'Code lengths in bits. Common sizes get the shortest codes: **2.70 → 2.24 bits** on average.', 'size': 16}])
 
 # ---- 4: build it in hardware: photo + design flow ----
 y, hR = RY[3], ROWS[3]
 pw = 7.2
-pb = box(figX, y, pw, hR, fill=PALE, line=NAVY, lw=4, radius=0.06, dash=True)
-text(0, 0, 0, 0, [{'t': '[Photo: KCU116 FPGA board and laptop running the test]', 'italic': True, 'size': 22, 'align': PP_ALIGN.CENTER}],
-     anchor=MSO_ANCHOR.MIDDLE, shape=pb)
+ph = s.shapes.add_picture(FIG + 'photo_kcu116.jpg', Inches(figX), Inches(y), Inches(pw), Inches(hR))
+ph.line.color.rgb = NAVY; ph.line.width = Pt(3)
 cx = figX + pw + 0.4
 cW = endX - cx
 box(cx, y, cW, hR, fill=PALE, radius=0.06)
@@ -396,8 +432,11 @@ for k, (t1, t2) in enumerate(flow):
                       {'t': t2, 'size': 18, 'align': PP_ALIGN.CENTER}], anchor=MSO_ANCHOR.MIDDLE, shape=b)
     if k < 3:
         arrow(fx + fw + 0.12, y + 0.3 + 0.675 - 0.25, fgap - 0.24, 0.5)
-text(cx + 0.22, y + 1.85, cW - 0.44, hR - 1.95, [
-    {'t': 'The **same C++** that was simulated is built for the chip, so the board\'s output can be checked **bit for bit** against the simulation. Encoder and decoder each run as their own core, fed by DMA from the board\'s memory.', 'size': 22}])
+text(cx + 0.22, y + 1.78, cW - 0.44, 0.55, [{'t': 'Why an FPGA? A proof of concept', 'bold': True, 'size': 26}])
+text(cx + 0.22, y + 2.33, cW - 0.44, hR - 2.4, [
+    'It shows the compressor works as **real hardware**, not just as MATLAB code, and measures what simulation cannot: **speed, delay and chip size**.',
+    'In a production car the design would move to a **custom chip (ASIC)** or a **block inside the radar SoC**, which is cheaper and uses less power.'],
+    bullets=True, size=20, space=4)
 
 # ---- 5: measure on the board: timing + resources + numbers ----
 y, hR = RY[4], ROWS[4]
@@ -417,30 +456,20 @@ make_table(cx, y, [3.95, 2.9, 2.9], hR / 7, [
     ['Decode time / frame', ms_txt(decD), ms_txt(decL)],
 ], fills=[None, GREEN, None, PALE, None, PALE, None], aligns=[PP_ALIGN.LEFT, PP_ALIGN.CENTER, PP_ALIGN.CENTER])
 
-# ================= ROW C: why FPGA / conclusion =================
-yC = yB + hB + 0.5
-hC = 46.15 - yC
-wC1 = 12.6
-box(X0, yC, wC1, hC, fill=BLUE)
-heading(X0 + 0.35, yC + 0.25, wC1 - 0.7, 'Why an FPGA? A proof of concept')
-text(X0 + 0.35, yC + 1.05, wC1 - 0.7, hC - 1.2, [
-    'The FPGA is a **proof of concept**: it shows the compressor works as **real hardware**, not just as MATLAB code.',
-    'It measures what simulation cannot: **speed, delay and chip size**, with output **bit-exact** to the simulation.',
-    'In a production car the design would move to a **custom chip (ASIC)** or a **block inside the radar SoC**, which is cheaper and uses less power.'],
-    bullets=True, size=22, space=6)
-
-xC2 = X0 + wC1 + GAP
-wC2 = X1 - xC2
-box(xC2, yC, wC2, hC, fill=BLUE)
-heading(xC2 + 0.35, yC + 0.25, wC2 - 0.7, 'Conclusion')
-text(xC2 + 0.35, yC + 1.05, wC2 - 0.7, hC - 1.7, [
-    '**Both DRHE and LPC are lossless on real radar data, on real hardware.**',
-    f'**LPC compresses most: {crL:.2f}×** (DRHE {crD:.2f}×). A **re-derived Huffman dictionary** helped **more than prediction** did.',
-    f'**Delay:** DRHE\'s output lags its input by only **{latD_us:.0f} µs**; LPC\'s waits for the **whole frame ({latL_ms:.1f} ms)**. Decoding: **{decD_ms:.2f} ms** (DRHE), {decL_ms:.1f} ms (LPC).',
-    '**DRHE streams** with no frame buffer, so it **scales better to bigger frames**.'],
-    bullets=True, size=22, space=4)
-text(xC2 + 0.35, yC + hC - 0.75, wC2 - 0.7, 0.65, [
-    {'t': '[1] A. Kramer et al., ColoRadar: the direct 3D millimeter wave radar dataset, IJRR, 2022.', 'size': 14}])
+# ================= ROW C: conclusion (full width, short) =================
+yC = yB + hB + 0.45
+hC = 46.5 - yC
+box(X0, yC, W, hC, fill=BLUE)
+heading(X0 + 0.35, yC + 0.2, 6, 'Conclusion')
+text(X1 - 14.4, yC + 0.32, 14.0, 0.45, [
+    {'t': '[1] A. Kramer et al., ColoRadar: the direct 3D millimeter wave radar dataset, IJRR, 2022.', 'size': 14, 'align': PP_ALIGN.RIGHT}])
+colw = (W - 0.7 - 0.6) / 2
+cl = ['**Both DRHE and LPC are lossless on real radar data, on real hardware.**',
+      f'**LPC compresses most: {crL:.2f}×** (DRHE {crD:.2f}×). A **re-derived Huffman dictionary** helped **more than prediction** did.']
+cr_ = [f'**Delay:** DRHE\'s output lags its input by only **{latD_us:.0f} µs**; LPC\'s waits for the **whole frame ({latL_ms:.1f} ms)**. Decoding: **{decD_ms:.2f} ms** (DRHE), {decL_ms:.1f} ms (LPC).',
+       '**DRHE streams** with no frame buffer, so it **scales better to bigger frames**.']
+text(X0 + 0.35, yC + 0.88, colw, hC - 0.95, cl, bullets=True, size=22, space=4)
+text(X0 + 0.35 + colw + 0.6, yC + 0.88, colw, hC - 0.95, cr_, bullets=True, size=22, space=4)
 
 prs.save(HERE + '/Thesis_Poster.pptx')
 print('saved', yC, hC)
