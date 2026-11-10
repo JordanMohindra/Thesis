@@ -205,22 +205,13 @@ results relate to the ones here.
 \section{Thesis outline}
 \label{sec:structure}
 
-Chapter~\ref{ch:background} gives the necessary background: how an FMCW radar
-measures range and velocity, how MIMO and time-division multiplexing produce a
-virtual array, why the data is large, how lossless compression works, the
-sensor and dataset, number representation, FPGAs and high-level synthesis, and
-related work. Chapter~\ref{ch:kiem} describes the baseline, Kiem's thesis, in
-enough detail that every later comparison can be followed without it.
-Chapter~\ref{ch:methods} describes the eight compression methods, the entropy
-coder shared by the two predictive ones, the choice of prediction axis, the two
-predictors in detail, and the Huffman dictionary. Chapter~\ref{ch:evaluation}
-sets out how they are evaluated: the two-stage evaluation, the signal chain, the
-metrics and the verification ladder from MATLAB to the board.
-Chapter~\ref{ch:hardware} describes the hardware architectures of the encoders
-and decoders and the board test system. Chapter~\ref{ch:results} reports the
-results. Chapter~\ref{ch:hwinterpret} interprets the hardware numbers --- what
-each one means, how far to trust it, and why each differs from Kiem's design ---
-and Chapter~\ref{ch:vskiem} compares every one of Kiem's published results with
-this thesis's, using a reconstruction of his simulation.
-Chapter~\ref{ch:discussion} discusses what the results mean for a radar sensor,
-and Chapter~\ref{ch:conclusion} concludes and proposes future work.
+Chapter~\ref{ch:background} gives the background on FMCW and MIMO radar,
+lossless compression and FPGAs, and Chapter~\ref{ch:kiem} summarises Kiem's
+thesis. Chapter~\ref{ch:methods} describes the eight methods and the two
+predictive coders in detail, and Chapter~\ref{ch:evaluation} how they are
+evaluated and verified. Chapter~\ref{ch:hardware} describes the encoders,
+decoders and board test system, and Chapter~\ref{ch:results} reports the
+results. Chapters~\ref{ch:hwinterpret} and~\ref{ch:vskiem} compare the hardware
+and the compression results with Kiem's. Chapter~\ref{ch:discussion} discusses
+what the results mean for a radar sensor, and Chapter~\ref{ch:conclusion}
+concludes.

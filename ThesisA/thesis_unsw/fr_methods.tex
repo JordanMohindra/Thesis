@@ -2,11 +2,9 @@
 \chapter{Compression Methods}
 \label{ch:methods}
 
-This chapter describes the methods compared in this thesis. It starts with the
-eight candidates and what each one does, then specifies in detail the two that
-were taken to hardware: the entropy coder they share, the axis along which they
-predict, the two predictors themselves, and the Huffman dictionary that turns
-their prediction errors into bits.
+This chapter describes the eight candidate methods, then the two taken to
+hardware: their shared entropy coder, the axis along which they predict, the
+two predictors, and the Huffman dictionary.
 
 \section{The eight candidate methods}
 \label{sec:candidates}
@@ -55,66 +53,27 @@ The rest of this chapter concerns DRHE and LPC, which Section~\ref{sec:stage1}
 shows are the only two methods that compress by more than three without losing
 detections.
 
-\section{The shared entropy coder: turning residuals into bits}
+\section{The shared entropy coder}
 \label{sec:entropycoder}
 
-This section is deliberately detailed. The entropy coder is where the
-compression ratio is physically realised --- it is the only part of either
-design that actually emits bits --- so understanding exactly what it charges
-for is what makes the results of Chapter~\ref{ch:results} interpretable rather
-than merely quotable. Both predictive compressors in this thesis use exactly
-this coder.
-
-\subsection{What a residual is}
+\subsection{Residuals}
 \label{sec:whatresidual}
 
-Let $x[m]$ be the sample to be transmitted and let $P$ be some rule --- the
-\emph{predictor} --- that produces an estimate
-\begin{equation}
-\hat{x}[m] = P\bigl(x[m-L],\, x[m-2L],\, \ldots\bigr)
-\end{equation}
-from samples that have \emph{already been transmitted}. The encoder does not
-send $x[m]$. It sends the \emph{residual}
+A predictor $P$ estimates the sample $x[m]$ from samples that have already
+been transmitted, $\hat{x}[m] = P\bigl(x[m-L],\, x[m-2L],\, \ldots\bigr)$,
+and the encoder sends the \emph{residual}
 \begin{equation}
 \label{eq:residualdef}
 d[m] = x[m] - \hat{x}[m].
 \end{equation}
-
-The decoder, having already reconstructed $x[m-1], x[m-2], \ldots$, runs the
-identical rule $P$ on them, obtains the identical $\hat{x}[m]$, and recovers
-\begin{equation}
-x[m] = d[m] + \hat{x}[m].
-\end{equation}
-The lag $L$ is the distance back along the ramp axis to the samples used for
-prediction; Section~\ref{sec:predaxis} explains why it is $L = \nTx = 12$ on
-this radar rather than $1$.
-
-Two things follow, and both matter.
-
-\paragraph{Nothing is lost.}
-Equation~\eqref{eq:residualdef} is a \emph{re-expression}, not an
-approximation. Given $\hat{x}[m]$, the map $x \mapsto d$ is a bijection. The
-sequence $\{d[m]\}$ carries exactly the information the sequence $\{x[m]\}$
-carried --- no more, no less. This is why a predictive coder can be lossless at
-all.
-
-\paragraph{The predictor must be causal.}
-$P$ may only use samples the decoder already has, or side information sent
-ahead of them. A predictor that peeked at $x[m]$ itself would be
-unreproducible at the far end. It is also why Section~\ref{sec:closedloop}
-makes such a point of \emph{which} version of the past the encoder uses ---
-the originals or the reconstructions --- since those differ the moment anything
-is not exactly lossless.
-
-\subsection{Why a re-expression can be worth anything}
-
-If no information is lost and none is gained, why is the residual sequence any
-cheaper to write down?
-
-Because the \emph{distribution} has changed, and a well-chosen code charges by
-distribution. Table~\ref{tab:rawvsresid} shows this on real data: one range bin
-of one receive channel, sixteen consecutive ramps, taken from frame~0 of the
-ColoRadar capture, predicted twelve ramps back by DRHE.
+The decoder runs the identical rule on the samples it has already
+reconstructed and recovers $x[m] = d[m] + \hat{x}[m]$. Nothing is lost: given
+$\hat{x}[m]$ the map from $x$ to $d$ is a bijection. The lag $L$ is the
+distance back along the ramp axis; Section~\ref{sec:predaxis} explains why it
+is $\nTx = 12$ on this radar rather than 1. The residuals are cheaper to write
+down because their \emph{distribution} is narrower (Table~\ref{tab:rawvsresid}):
+on one range bin of ColoRadar the raw values swing over $[-73, +84]$, while the
+residuals never leave $[-4, +4]$.
 
 \begin{table}[t]
 \centering
@@ -134,51 +93,17 @@ $d$ (residual) & $3$ & $-3$ & $0$ & $-1$ & $1$ & $3$ & $-4$ & $3$ & $-1$ & $-2$ 
 \end{tabular}
 \end{table}
 
-The raw values swing over $[-73, +84]$; writing any of them needs eight bits.
-The residuals never leave $[-4, +4]$; four bits would do. Since the two rows
-are informationally equivalent, that factor of two is free --- provided the
-coder can be told about it.
+A fixed four-bit field cannot carry the occasional large residual, and a code
+that gives small values fewer bits must still let the decoder find where each
+value ends. Both compressors here do this as JPEG codes its DC coefficients:
+each value is sent as a short prefix-free codeword for its \emph{size},
+followed by the value itself in exactly that many raw bits. The prefix-free
+table then has sixteen entries rather than \num{65536}, can be fixed at design
+time, and is decoded with a sixteen-way comparison.
 
-And there is the catch. The bound $[-4,+4]$ holds for \emph{these} sixteen
-samples. Somewhere else in the frame a target appears, or the scene changes,
-and a residual of $400$ arrives. A fixed four-bit field cannot carry it. What
-is needed is a code that spends few bits on the common case, many on the rare
-one, and lets the decoder tell which is which.
+\subsection{The category $S_4$ and the APPEND bits}
 
-\subsection{The parsing problem}
-
-The naive approach fails immediately. Suppose the rule were ``small values get
-four bits, large values get twelve''. When the decoder reads four bits, it has
-no way to know whether it has just read a complete small value or the first
-third of a large one. Variable-length coding is not merely a matter of writing
-fewer bits; it is a matter of writing them so that the boundaries can be
-recovered.
-
-There are two standard answers:
-
-\begin{enumerate}
-\item \textbf{A prefix-free code over every possible value.} Assign every one
-of the \num{65536} possible 16-bit residuals its own codeword, no codeword
-being a prefix of another. This is optimal, and it is what a Huffman code over
-the raw alphabet would give --- but it needs a \num{65536}-entry table, and the
-table has to be derived from the data and transmitted alongside it.
-
-\item \textbf{Split the value into a size and a payload.} Send a small
-\emph{description of how big the value is}, coded with a prefix-free code over
-a handful of symbols, followed by the value itself in exactly that many raw
-bits. The decoder reads the size first, so it always knows how many bits to
-read next.
-\end{enumerate}
-
-Both compressors here take the second route, which is the same construction
-JPEG uses for DC coefficients. It is cheap in every respect that matters for
-hardware: the prefix-free table has sixteen entries rather than \num{65536}, it
-can be fixed at design time rather than derived per frame, and decoding a
-symbol is a sixteen-way comparison rather than a tree walk.
-
-\subsection{The category $S_4$}
-
-The ``size'' half of the split is the category
+The size is the category
 \begin{equation}
 \label{eq:s4}
 S_4(v) =
@@ -187,8 +112,7 @@ S_4(v) =
 \min\bigl(15,\ \lfloor \log_2 |v| \rfloor + 1\bigr) & v \neq 0,
 \end{cases}
 \end{equation}
-which is simply the number of bits needed to write $|v|$. Its ranges are given
-in Table~\ref{tab:catranges}.
+the number of bits needed to write $|v|$ (Table~\ref{tab:catranges}).
 
 \begin{table}[h]
 \centering
@@ -212,14 +136,7 @@ $\vdots$ & & & \\
 \end{tabular}
 \end{table}
 
-The design is tight by construction: category $k$ contains exactly $2^k$
-values, so $k$ payload bits identify one of them with nothing wasted and
-nothing left over. Section~\ref{sec:robust} deals with the one value for which
-``nothing left over'' becomes a problem.
-
-\subsection{The APPEND bits}
-
-The payload half is
+The payload is
 \begin{equation}
 \label{eq:append}
 A(v) =
@@ -228,46 +145,12 @@ v & v \geq 0,\\
 v + 2^{S_4(v)} - 1 & v < 0,
 \end{cases}
 \end{equation}
-written in $S_4(v)$ raw bits.
-
-The offset for negative values looks arbitrary but is doing something specific.
-Table~\ref{tab:cat3} enumerates category~3 in full.
-
-\begin{table}[h]
-\centering
-\caption[Category 3 enumerated]{Every codepoint of category 3. The negative
-values map to patterns with a clear most significant bit, the positive values
-to patterns with it set --- so the sign is recovered from that one bit without
-transmitting a sign bit.}
-\label{tab:cat3}
-\small
-\begin{tabular}{@{}rrlc@{}}
-\toprule
-$v$ & $A(v)$ & 3-bit pattern & MSB \\
-\midrule
-$-7$ & 0 & \texttt{000} & 0\\
-$-6$ & 1 & \texttt{001} & 0\\
-$-5$ & 2 & \texttt{010} & 0\\
-$-4$ & 3 & \texttt{011} & 0\\
-$+4$ & 4 & \texttt{100} & 1\\
-$+5$ & 5 & \texttt{101} & 1\\
-$+6$ & 6 & \texttt{110} & 1\\
-$+7$ & 7 & \texttt{111} & 1\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Because positive values in category $k$ span $[2^{k-1}, 2^k - 1]$ --- exactly
-the $k$-bit patterns with the top bit set --- and the offset maps the negatives
-onto $[0, 2^{k-1} - 1]$ --- exactly those with it clear --- the sign falls out
-of the payload for free. The decoder's rule is therefore
-\begin{equation}
-v = \begin{cases}
-A & \text{if the MSB of the $S_4$ payload bits is set},\\
-A - \bigl(2^{S_4} - 1\bigr) & \text{otherwise},
-\end{cases}
-\end{equation}
-which in hardware is one bit test and one subtract.
+written in $S_4(v)$ raw bits. Category $k$ holds exactly $2^k$ values, and the
+offset maps the negative values onto the $k$-bit patterns with the top bit
+clear and leaves the positive ones with it set, so the sign is recovered from
+one bit without being transmitted. For example, $v = -5$ has $S_4 = 3$ and
+$A = 2$, sent as the category's codeword followed by \texttt{010}.
+Section~\ref{sec:robust} deals with the one value, $-32768$, that has no code.
 
 \subsection{Cost, and the shape of the dictionary}
 \label{sec:huffman}
@@ -316,48 +199,14 @@ $S_4$ & $|v|$ range & $\ell$ & payload & \textbf{total} \\
 
 Three features of this curve deserve attention.
 
-\paragraph{Everything below 16 is nearly free.}
-A residual anywhere in $[-15, +15]$ costs between four and six bits. Against
-sixteen raw bits that is already a compression ratio between \num{2.7} and
-\num{4.0}, achieved without the predictor doing anything clever --- it only has
-to keep residuals small.
-
-\paragraph{There is a cliff at category 5.}
-Cost jumps from six bits to ten. A residual of \num{15} costs six bits; a
-residual of \num{16} costs ten. The coder is, by design, forgiving of small
-errors and severe about larger ones.
-
-\paragraph{Above category 8 the code loses.}
-A residual of \num{128} costs sixteen bits --- exactly what the raw value
-would have cost. Beyond that the coder actively expands. This is not a flaw:
-it is the inevitable consequence of assigning short codewords to some symbols,
-and it is why the \texttt{random-int16} edge case of
-Section~\ref{sec:edgecases} expands the data by \SI{67}{\percent}.
-
-The dictionary's shape encodes an assumption about the data --- that categories
-2, 3 and 4 dominate, since those get the two-bit codewords --- and it can never
-code a value in fewer than four bits. Section~\ref{sec:dict} shows that the
-prediction errors of this thesis are smaller than that, and derives
-dictionaries that match them.
-
-\subsection{Worked example 1: one value, in full}
-
-Take $v = -5$.
-
-\begin{enumerate}
-\item $|v| = 5$, and $\lfloor \log_2 5 \rfloor + 1 = 3$, so $S_4 = 3$.
-\item $v < 0$, so $A(v) = -5 + 2^3 - 1 = 2$, written in three bits as
-\texttt{010}.
-\item The original dictionary gives category 3 the codeword \texttt{00}, two
-bits.
-\item The emitted bits are \texttt{00}\,\texttt{010} --- five bits, against
-sixteen for the raw value.
-\end{enumerate}
-
-Decoding runs the same steps backwards. The decoder matches \texttt{00} against
-the dictionary, recovers $S_4 = 3$, reads the next three bits \texttt{010},
-sees the most significant is \texttt{0} so the value was negative, and computes
-$2 - (2^3 - 1) = -5$.
+A residual anywhere in $[-15, +15]$ costs four to six bits, a ratio of 2.7 to
+4.0 against sixteen raw bits. Cost then jumps from six bits to ten at category
+5, and above category 8 the code expands the data, which is why random 16-bit
+input grows by \SI{67}{\percent} (Section~\ref{sec:edgecases}). The dictionary
+gives its two-bit codewords to categories 2, 3 and 4, so it assumes residuals
+of magnitude 2 to 15, and it can never code a value in fewer than four bits.
+Section~\ref{sec:dict} derives dictionaries matched to this thesis's smaller
+prediction errors.
 
 \section{Predicting on a time-division MIMO radar}
 \label{sec:predaxis}
@@ -430,151 +279,17 @@ The right half is the same predictor twelve ramps back. Its residuals never
 exceed 4 in magnitude, they land in categories 0 through 3, and they cost
 \num{4.12} bits per value.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\textwidth]{fig_worked.pdf}
-\caption[The sixteen samples, plotted]{Table~\ref{tab:worked16} drawn. Above:
-residual magnitude on a logarithmic scale, with the $S_4$ category bands and
-their bit costs marked on the right; hollow markers are residuals of exactly
-zero. Below: the bits each sample costs, against the \num{16} bits it would
-have taken uncompressed. The lag-1 predictor spends \num{176} bits on this
-window; the same predictor on the correct axis spends \num{66}.}
-\label{fig:worked}
-\end{figure}
-
-\subsubsection*{Why the difference is so large}
-
-Table~\ref{tab:workedpolar} answers this directly, and it is worth studying
-because it is the mechanism behind the prediction gains reported in
-Chapter~\ref{ch:results}.
-DRHE (Section~\ref{sec:drhe}) predicts magnitude with a smoother and phase with
-a double integrator, both of which work when the quantity being predicted
-changes slowly and smoothly.
-
-\begin{table}[t]
-\centering
-\caption[Why the two lags differ]{The same window in polar coordinates. Against
-ramp $m-1$ the magnitude moves by up to \num{22} and the phase jumps
-unpredictably over the full $\pm\pi$ range. Against ramp $m-\nTx$ the
-magnitude moves by at most \num{4} and the phase increment is essentially zero
---- a stationary target, exactly what the double integrator is built for.}
-\label{tab:workedpolar}
-\small
-\setlength{\tabcolsep}{6pt}
-\begin{tabular}{@{}rr rr @{\hskip 12pt} rr @{\hskip 12pt} rr@{}}
-\toprule
-& & \multicolumn{2}{c}{sample}
-  & \multicolumn{2}{c}{change vs.\ $m-1$}
-  & \multicolumn{2}{c}{change vs.\ $m-\nTx$}\\
-\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}
-$m$ & TX & $|x|$ & $\angle x$ & $\Delta|x|$ & $\Delta\theta$ & $\Delta|x|$ & $\Delta\theta$\\
-\midrule
-168 & 0  & 74.1  & $-2.769$ & $-21.8$ & $-2.244$ & $-3.2$ & $\phantom{-}0.002$\\
-169 & 1  & 91.3  & $-2.177$ & $17.2$  & $0.592$  & $-0.0$ & $-0.040$\\
-170 & 2  & 101.0 & $-0.947$ & $9.8$   & $1.230$  & $-2.5$ & $\phantom{-}0.017$\\
-171 & 3  & 110.2 & $-1.625$ & $9.1$   & $-0.678$ & $3.0$  & $-0.008$\\
-172 & 4  & 107.0 & $-1.845$ & $-3.2$  & $-0.220$ & $-2.2$ & $\phantom{-}0.004$\\
-173 & 5  & 112.0 & $-1.705$ & $5.0$   & $0.140$  & $-0.3$ & $\phantom{-}0.018$\\
-174 & 6  & 97.0  & $0.917$  & $-15.0$ & $2.622$  & $-0.4$ & $\phantom{-}0.023$\\
-175 & 7  & 81.5  & $1.819$  & $-15.5$ & $0.902$  & $0.4$  & $-0.027$\\
-176 & 8  & 73.4  & $2.794$  & $-8.1$  & $0.975$  & $-0.1$ & $\phantom{-}0.043$\\
-177 & 9  & 75.0  & $-2.913$ & $1.6$   & $0.576$  & $2.4$  & $\phantom{-}0.021$\\
-178 & 10 & 95.3  & $-2.063$ & $20.3$  & $0.850$  & $0.9$  & $\phantom{-}0.005$\\
-179 & 11 & 97.8  & $-0.537$ & $2.5$   & $1.526$  & $1.9$  & $-0.013$\\
-180 & 0  & 77.5  & $-2.799$ & $-20.3$ & $-2.263$ & $3.4$  & $-0.031$\\
-181 & 1  & 92.6  & $-2.141$ & $15.2$  & $0.659$  & $1.4$  & $\phantom{-}0.036$\\
-182 & 2  & 102.6 & $-0.958$ & $10.0$  & $1.182$  & $1.6$  & $-0.011$\\
-183 & 3  & 106.1 & $-1.618$ & $3.5$   & $-0.659$ & $-4.0$ & $\phantom{-}0.007$\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Look at the $\Delta\theta$ columns. Against ramp $m-1$ the phase increment is
-$-2.244$, then $+0.592$, then $+1.230$, then $-0.678$ --- it swings over most
-of $[-\pi, \pi]$ with no pattern a two-tap filter could follow. Against ramp
-$m - \nTx$ it is $0.002$, $-0.040$, $0.017$, $-0.008$: essentially
-zero, frame after frame, because this is a stationary target and twelve ramps
-later the same antenna sees the same phase.
-
-The magnitude column tells the same story: $\pm 22$ against the immediate
-predecessor, $\pm 4$ against the same-transmitter predecessor.
-
-The reason is the one given in Section~\ref{sec:tdm}. Ramps 168 and 167 were
-transmitted by \emph{different antennas}, so the phase between them is set by
-where the target is in \emph{angle}, via
-Equation~\eqref{eq:steering} --- and the twelve transmitters are at twelve
-different positions, so that phase jumps around on a period-12 pattern. Ramps
-168 and 156 were transmitted by the \emph{same} antenna, so the phase between
-them is set by how fast the target is \emph{moving}, via
-Equation~\eqref{eq:dopplerphase} --- and it is not moving.
-
-\subsubsection*{The actual bits}
-
-It is worth seeing the bitstream itself. Coding the first six residuals of the
-lag-$\nTx$ column, using Equations~\eqref{eq:s4} and~\eqref{eq:append} and the
-dictionary of Appendix~\ref{app:huffman}:
-
-\begin{center}
-\small
-\begin{tabular}{@{}rrrlll r@{}}
-\toprule
-$d$ & $S_4$ & $A(d)$ & codeword & payload & emitted & bits\\
-\midrule
-$+3$ & 2 & 3 & \texttt{10}   & \texttt{11}  & \texttt{10\,11}   & 4\\
-$-3$ & 2 & 0 & \texttt{10}   & \texttt{00}  & \texttt{10\,00}   & 4\\
-$0$  & 0 & --- & \texttt{0101} & ---        & \texttt{0101}     & 4\\
-$-1$ & 1 & 0 & \texttt{001}  & \texttt{0}   & \texttt{001\,0}   & 4\\
-$+1$ & 1 & 1 & \texttt{001}  & \texttt{1}   & \texttt{001\,1}   & 4\\
-$+3$ & 2 & 3 & \texttt{10}   & \texttt{11}  & \texttt{10\,11}   & 4\\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\noindent
-which concatenates to the 24-bit stream
-\begin{center}
-\texttt{1011\,1000\,0101\,0010\,0011\,1011}
-\end{center}
-carrying six samples that would have occupied \num{96} bits raw. (The
-codewords are shown in their stored, bit-reversed form; Appendix~\ref{app:huffman}
-lists both forms.)
-
-The same six samples at lag 1 --- residuals $-136$, $+23$,
-$-22$, $-70$, $-53$, $+14$ --- fall into categories 8, 5, 5, 7, 6 and 4 and
-occupy $16 + 10 + 10 + 14 + 12 + 6 = \num{68}$ bits. Nearly three times as many,
-for identical information.
-
-
-\subsection{Decoding the same stream}
-\label{sec:decodeexample}
-
-Decoding is the mirror image, and seeing it done confirms that no side
-information beyond the fixed dictionary is needed. The decoder holds a bit
-buffer and consumes from the low end.
-
-\begin{enumerate}
-\item Buffer is \texttt{1011\,1000\ldots}. Match the low bits against the
-dictionary. The two-bit prefix \texttt{10} is category 2's codeword; no shorter
-or longer entry can also match, because the reversed code set is prefix-free.
-Consume two bits.
-\item Category 2 means two payload bits. Read \texttt{11}, so $A = 3$. The most
-significant of those two bits is set, so the value is positive: $d = +3$.
-Consume two bits.
-\item Add the prediction: the decoder has already reconstructed ramp
-$168 - \nTx = 156$ for this bin, runs the identical filters on it, obtains
-$\hat{x} = -72$, and outputs $x = 3 + (-72) = -69$ --- which is the value in
-Table~\ref{tab:worked16}.
-\item Buffer is now \texttt{1000\,0101\ldots}. Match \texttt{10} again:
-category 2. Read payload \texttt{00}, so $A = 0$, MSB clear, so
-$d = 0 - (2^2 - 1) = -3$. Prediction $-49$, output $-52$. Correct.
-\item Buffer is \texttt{0101\,0010\ldots}. Now \texttt{10} does \emph{not}
-match, because the low two bits are \texttt{01}, which is no entry's codeword.
-The four-bit prefix \texttt{0101} is category 0's codeword. Category 0 has no
-payload and means $d = 0$ exactly. Prediction $59$, output $59$. Correct.
-\end{enumerate}
-
-Step 5 is the one that shows why prefix-freeness is doing real work: the
-decoder never had to be told how long the next codeword would be.
+The difference comes from the phase. Against ramp $m-1$ the phase step
+swings over most of $[-\pi, \pi]$ ($-2.244$, $+0.592$, $+1.230$, \ldots) and
+the magnitude by up to 22; against ramp $m-\nTx$ the phase step is essentially
+zero ($0.002$, $-0.040$, $0.017$, \ldots) and the magnitude moves by at most 4.
+Ramps 168 and 167 came from different antennas, so the phase between them is
+set by the target's bearing (Equation~\eqref{eq:steering}); ramps 168 and 156
+came from the same antenna, so it is set by the target's velocity
+(Equation~\eqref{eq:dopplerphase}), and this target is stationary. Coded with
+the original dictionary, the first six lag-$\nTx$ residuals become the 24-bit
+stream \texttt{1011\,1000\,0101\,0010\,0011\,1011}, where the same six samples
+at lag~1 take 68 bits.
 
 \subsection{Where the bits go over a whole frame}
 \label{sec:bitbudget}
@@ -620,38 +335,13 @@ $S_4$ & cost & \% values & \% bits & \% values & \% bits & \% values & \% bits\\
 \end{tabular}
 \end{table}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.9\textwidth]{fig_bitbudget.pdf}
-\caption[Bit budget by category]{The ``\% bits'' columns of
-Table~\ref{tab:bitbudget} drawn. The lag-$\nTx$ predictor concentrates spending
-into the three four-bit categories; the lag-1 predictor pushes it out into
-categories 3 through 8, where each value costs two to four times as much.}
-\label{fig:bitbudget}
-\end{figure}
 
-Several things are visible here that the headline ratios hide.
-
-\paragraph{The expensive categories are rare but not negligible.}
-Under lag-1 prediction, categories 5 through 8 account for only
-\SI{5.53}{\percent} of values but \SI{13.84}{\percent} of bits. One value in
-eighteen is consuming one bit in seven. That asymmetry is exactly why the tail
-of the residual distribution matters so much, and why
-Section~\ref{sec:predaxisres} reports the 99th percentile of the error
-magnitude rather than the mean.
-
-\paragraph{Same-transmitter prediction works by emptying the tail.}
-Comparing the last two column pairs: the lag-$\nTx$ predictor moves
-\SI{86.19}{\percent} of values into categories 0--2, all of which cost four
-bits, and cuts categories 5--8 from \SI{5.53}{\percent} to
-\SI{1.00}{\percent} of values. It is not that individual residuals got a little
-smaller; it is that the expensive ones almost stopped occurring.
-
-\paragraph{The lag-1 predictor loses to doing nothing in a specific way.}
-Against the no-prediction column it \emph{gains} slightly in categories 0--2
-but loses heavily in 3, 4 and 8. It is redistributing values upward, not
-downward. A predictor that helps should hollow out the right-hand side of this
-table; this one fills it in.
+The lag-$\nTx$ predictor works by emptying the tail. It moves
+\SI{86.19}{\percent} of values into categories 0--2, which all cost four bits,
+and cuts categories 5--8 from \SI{5.53}{\percent} to \SI{1.00}{\percent} of
+values. The lag-1 predictor does the opposite: against no prediction it pushes
+values \emph{up} into categories 3, 4 and 8, which is how a predictor on the
+wrong axis loses to doing nothing.
 
 \subsection{Why not one model per transmitter?}
 
@@ -783,7 +473,6 @@ soon as the first sample arrives. For a compressor sitting between an FFT and a
 memory bus, that is exactly the right shape. Section~\ref{sec:choice}
 returns to this when weighing DRHE against LPC.
 
-
 \section{LPC: linear prediction with Yule--Walker coefficients}
 \label{sec:lpc}
 
@@ -890,7 +579,7 @@ range bin in earlier \emph{ramps} --- along slow time, after the range FFT,
 exactly where DRHE predicts --- and uses DRHE's own entropy coder. It was
 designed that way on purpose: by keeping DRHE's input, axis and coder and
 changing only the predictor, any difference in compression ratio can be
-attributed to the predictor alone. Section~\ref{sec:kc_lpc} returns to how the
+attributed to the predictor alone. Section~\ref{sec:kr_lpcraw} returns to how the
 two methods called LPC compare.
 
 \section{The Huffman dictionary}
@@ -961,11 +650,3 @@ Entropy back end & \multicolumn{2}{c}{identical: $S_4$ + APPEND + Huffman
 \bottomrule
 \end{tabular}
 \end{table}
-
-Table~\ref{tab:algcompare} summarises the two designs. The trade they present
-is clear before anything is measured: LPC fits its model to the data and so
-should predict at least as well as DRHE's fixed filters, but it pays for that
-with side information and, more importantly, by having to see the whole frame
-before it can emit anything. DRHE assumes a signal shape and pays for it in
-floating-point arithmetic, but it streams. Chapter~\ref{ch:results} measures
-how large each of these effects is.

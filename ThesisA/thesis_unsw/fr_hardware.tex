@@ -332,8 +332,8 @@ Unpack is the slower stage, at one real value per clock, so a frame takes about
 \num{196608} clocks plus 512 for the coefficient table --- about
 \SI{2}{\milli\second}, the same as DRHE. Every loop is scheduled at
 $\mathrm{II} = 1$, and the decoder needs no frame buffer and no block RAM.
-After synthesis it uses \num{15359} LUTs (just over half of them as distributed
-RAM for the rings), \num{7212} flip-flops and 23 DSP slices.
+After routing it uses \num{15212} LUTs (just over half of them as distributed
+RAM for the rings), \num{7207} flip-flops and 23 DSP slices.
 
 The first LPC decoder built was simpler: it tried the sixteen codewords one
 after another in category order and stopped at the first match. It was exact,
@@ -436,8 +436,7 @@ signal to the processor reset, and the DDR4 interface at \SI{2400}{MT/s}.
 \caption[The four board builds]{The four board builds, whole system (processor,
 DDR4 controller, DMAs and cores), post-route on the \texttt{XCKU5P} at
 \SI{100}{\mega\hertz}, with the re-derived dictionaries; the original-dictionary
-builds also meet timing. BRAM is in 36\,Kb blocks. \pending{LPC \texttt{\_full}
-row: estimate for the parallel decoder; replace with the post-route report}}
+builds also meet timing. BRAM is in 36\,Kb blocks.}
 \label{tab:builds}
 \small
 \begin{tabular}{@{}lrrrr@{}}
@@ -447,7 +446,7 @@ Build & LUT & BRAM & DSP & WNS (ns)\\
 DRHE, compress only    & \num{61011} (\SI{28}{\percent}) & 104.5 & 138 & $+0.243$\\
 LPC, compress only     & \num{59203} (\SI{27}{\percent}) & 162.5 & 164 & $+0.174$\\
 DRHE, \texttt{\_full}  & \num{81573} (\SI{38}{\percent}) & 144   & 184 & $+0.341$\\
-LPC, \texttt{\_full}   & \tbc{$\approx$\num{81000}} (\tbc{\SI{37}{\percent}}) & \tbc{169.5} & \tbc{187} & \tbc{$>0$}\\
+LPC, \texttt{\_full}   & \num{80986} (\SI{37}{\percent}) & 179.5 & 187 & $+0.220$\\
 \bottomrule
 \end{tabular}
 \end{table}

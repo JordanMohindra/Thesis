@@ -2,11 +2,6 @@
 \chapter{Discussion}
 \label{ch:discussion}
 
-This chapter weighs the two algorithms against each other for the application
-that motivates the thesis, considers how the results scale and what the
-compression ratio really measures, compares the hardware and the results with
-the baseline, and sets out the limits of what the evidence supports.
-
 \section{Which algorithm for a sensor front end?}
 \label{sec:choice}
 
@@ -149,104 +144,36 @@ applies to any slow-time coder carried over from a single-transmitter design to
 a time-multiplexed one, and the check is cheap: if the predictor does not beat
 the no-prediction baseline, it is predicting along the wrong axis.
 
-\section{Hardware cost against the baseline design}
+\section{Against the baseline}
 \label{sec:hwvskiem}
-
-Table~\ref{tab:hwvskiem} sets the hardware beside Kiem's. The designs differ in
-board, data and system, so the comparison is of methods rather than of chips.
-
-\begin{table}[htbp]
-\centering
-\caption[Hardware against the baseline]{This thesis's hardware against Kiem's
-\cite{kiem2025}. Different boards (Zynq \texttt{XCZU3CG} against Kintex
-\texttt{XCKU5P}, both UltraScale+), radars and data. Core resources are the
-compressor alone; BRAM in 36\,Kb blocks.}
-\label{tab:hwvskiem}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lrrr@{}}
-\toprule
-& Kiem & This work: DRHE & This work: LPC\\
-\midrule
-Lossless CR in hardware      & \num{3.17} & \num{3.75} & \num{3.70}\\
-CR, re-derived dictionary (board) & --- & \num{4.22} & \num{4.40}\\
-Hardware checked against simulation & FFT model only\textsuperscript{c} & byte-identical & byte-identical\\
-Decompressor                 & none & on chip, \SI{1.97}{\milli\second} & on chip, \lpcDecTime\\
-Throughput                   & \SI{11.92}{Gibit/s} (theor.) & \SI{4.77}{Gibit/s} (meas.) & \SI{0.90}{Gibit/s} (meas.)\\
-End-to-end latency           & \SI{79.4}{\micro\second}\textsuperscript{b} & \SI{13.1}{\micro\second} & \SI{3006}{\micro\second}\\
-Compressor LUT / FF          & \num{45892} / \num{9243} & \num{35444} / \num{23528} & \num{33738} / \num{20165}\\
-Compressor BRAM / DSP        & 10 / 44 & 40 / 132 & 98 / 158\\
-Arithmetic                   & fixed point, $\mathrm{II} = 1$ & floating point, $\mathrm{II} = 2$ & fixed point, $\mathrm{II} = 1$\\
-\bottomrule
-\multicolumn{4}{@{}l}{\footnotesize\textsuperscript{b}includes his FFT core.}\\
-\multicolumn{4}{@{}l}{\footnotesize\textsuperscript{c}a bit-accurate model of his FFT core explained the ratio gap; no decoder.}
-\end{tabular}
-\end{table}
-
-Chapter~\ref{ch:hwinterpret} accounts for every row of this table: how
-Kiem's throughput figure is a theoretical rate in binary units, why the two
-latencies measure the same kind of quantity over different pipelines, and ---
-through a rebuilt replica of his design and a ladder of single-change variants
---- which design decision causes each difference in resources. The short
-version is that the floating-point predictor of this thesis's DRHE is the
-largest cost, and buys only \SI{0.07}{\percent} of compression ratio over fixed
-point.
-
-\section{Comparison with the baseline's results}
 \label{sec:vskiem}
 
-Chapter~\ref{ch:vskiem} sets every one of Kiem's published results beside this
-thesis's. Its main conclusions are three. Kiem's simulation, rebuilt from his
-text, reaches his DRHE ratios (\num{3.25} with run-length coding, \num{3.24}
-without) at one noise level that his text leaves open, which suggests --- it
-cannot prove it, since his recordings are not public --- that his dictionary
-and his ratio reflect residuals of about 6 to 8 LSB. The DRHE implemented
-here is his specification to the bit, apart from the prediction lag, which on
-his single-transmitter radar is 1. And the LPC-Huffman method he excluded
-compresses poorly on his scene, as he expected, while the slow-time LPC of this
-thesis is a different design that compresses as well as DRHE. Kiem's DRHE
-therefore carries over to a twelve-transmitter cascade unchanged except for the
-lag; with a matched dictionary it compresses public cascade data by \num{4.2}
-(a different sensor and scene from his \num{3.17} in hardware and \num{3.25}
-in simulation, so not a like-for-like comparison), and it comes with a hardware decoder
-that reconstructs the board's output exactly on the board itself, which his
-system did not have.
+Kiem's DRHE carries over to a twelve-transmitter cascade unchanged except for
+the prediction lag. With his dictionary it compresses ColoRadar by 3.75 in
+hardware against his 3.17, and with a matched dictionary by 4.22, but these are
+different sensors and scenes, so the comparison is not like for like
+(Chapter~\ref{ch:vskiem}). In hardware this thesis adds what his system did
+not have: a decoder for every design, and byte-for-byte agreement between the
+board and simulation. Every hardware difference from his design has an
+identified cause (Chapter~\ref{ch:hwinterpret}); the largest is the
+floating-point predictor, which buys only \SI{0.07}{\percent} of ratio over
+fixed point.
 
 \section{Observations on verifying a compressor}
 \label{sec:lessons}
 
-Three observations from verifying these designs apply beyond them.
+\paragraph{Real data and adversarial tests find different problems.} Fifty
+real frames exercise the typical case exhaustively and the extreme case not at
+all: ColoRadar's prediction errors never leave category 10, so a third of the
+coder never runs. The eight-case synthetic suite exercises that third, and it
+found both the saturation of Section~\ref{sec:robust} and the missing
+end-of-frame word of Section~\ref{sec:interface}. It says nothing, however,
+about whether a predictor helps on real data.
 
-\paragraph{Dataset tests and adversarial tests find different problems.}
-Fifty frames of real radar data --- \num{157} million input bits --- exercise the
-typical case exhaustively and the extreme case not at all: ColoRadar's
-prediction errors never leave category 10 of the 16-category code, so a third of
-the coder is never executed. An eight-case synthetic suite exercises exactly
-that third, and it is what makes the designs lossless on \emph{any} input
-(Section~\ref{sec:robust}). Conversely, an edge-case suite says nothing about whether
-a predictor helps on real data: its cases are built to stress the coder, not to
-resemble a scene. A synthetic scene can be given transmitter structure, as
-Section~\ref{sec:kr_scaling} does, but how much prediction then gains depends on
-how the scene was made, and only real data settles it. Neither kind of test
-substitutes for the other.
-
-\paragraph{Lossless and correct are not the same as useful.}
-A compressor can be bit-exact at every level, compress by a ratio in the
-expected range, and still have a predictor that contributes nothing --- as
-lag-1 prediction on this radar shows (Section~\ref{sec:predaxisres}). No
-losslessness test can detect that, because the entropy coder carries on
-compressing whatever it is handed. What detects it is one extra measurement:
-the same coder with no predictor. It costs a few lines of code and belongs in
-every evaluation of a predictive compressor.
-
-\paragraph{Cycle models hold only for the design shape they were checked on.}
-Trip count times initiation interval, summed over loops, is a good model of a
-design with a few long loops; it is wrong for a design with many short loop
-invocations, where the pipeline fill paid on every entry dominates. LPC's
-per-bin pass is the second kind (Section~\ref{sec:lpcimpl}): the simple model
-misses about \num{65000} of its cycles. A model validated on one design gives no
-guarantee on another; cycle-accurate co-simulation and the board are what
-settle it.
+\paragraph{Lossless is not the same as useful.} A compressor can be bit-exact
+at every level and compress by a plausible ratio while its predictor
+contributes nothing, as lag-1 prediction on this radar shows
+(Section~\ref{sec:predaxisres}). Only the no-prediction baseline detects it.
 
 \section{Threats to validity}
 \label{sec:threats}
@@ -276,10 +203,8 @@ still be lossy.
 receive channels; Stage~2 and the hardware use four. The two stages' ratios are
 close (\num{3.75} and \num{3.751} for DRHE) but not identical by construction.
 
-\item \textbf{Power was not measured.} All four bitstreams were run on the
-board and every figure of compression, timing and correctness is measured, but
-the board's power draw was not, so the energy cost of compression is not
-reported.
+\item \textbf{Power was not measured}, so the energy cost of compression is
+not reported.
 
 \item \textbf{Co-simulation covers one frame.} The 50-frame results are from
 C-simulation and the board, which exercise identical logic; the cycle-accurate

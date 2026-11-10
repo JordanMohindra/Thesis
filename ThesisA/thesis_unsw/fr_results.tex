@@ -497,8 +497,7 @@ Figure~\ref{fig:resources} draws them as a share of the chip.
 \centering
 \caption[Resources per core]{Post-route resources of each core on the
 \texttt{XCKU5P} (\num{216960} LUT, \num{433920} FF, 480 BRAM, \num{1824} DSP).
-BRAM is in 36\,Kb blocks. \pending{LPC decompressor: post-synthesis figures for
-the parallel decoder; replace with the post-route hierarchical report}}
+BRAM is in 36\,Kb blocks.}
 \label{tab:resources}
 \small
 \begin{tabular}{@{}llrrrr@{}}
@@ -509,9 +508,9 @@ DRHE & compressor   & \num{35444} & \num{23528} & 40   & 132\\
      & decompressor & \num{14155} & \num{9245}  & 32.5 & 46\\
      & \textbf{both} & \textbf{\num{49599}} (\SI{23}{\percent}) & \num{32773} & 72.5 & 178\\
 \midrule
-LPC  & compressor   & \num{33738} & \num{20165} & 98   & 158\\
-     & decompressor & \tbc{\num{15359}} & \tbc{\num{7212}}  & 0    & \tbc{23}\\
-     & \textbf{both} & \textbf{\tbc{\num{49097}}} (\tbc{\SI{23}{\percent}}) & \tbc{\num{27377}} & 98 & \tbc{181}\\
+LPC  & compressor   & \num{33820} & \num{20083} & 108  & 158\\
+     & decompressor & \num{15212} & \num{7207}  & 0    & 23\\
+     & \textbf{both} & \textbf{\num{49032}} (\SI{23}{\percent}) & \num{27290} & 108 & 181\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -526,9 +525,9 @@ compressor, the decompressor, and both together.}
 
 Encoder and decoder together use under a quarter of the chip's logic for both
 algorithms, and the whole test system --- processor, memory controller, DMAs and
-both cores --- uses \SI{38}{\percent} (DRHE) and \tbc{\SI{37}{\percent}} (LPC)
+both cores --- uses \SI{38}{\percent} (DRHE) and \SI{37}{\percent} (LPC)
 (Table~\ref{tab:builds}). The two compressors cost almost the same logic. They
-differ in memory: LPC's compressor needs 98 block RAMs, most of them its frame
+differ in memory: LPC's compressor needs 108 block RAMs, 96 of them for its frame
 buffer, against DRHE's 40 for predictor state. The decoders invert this. The
 DRHE decoder carries its own floating-point predictor and its state in block
 RAM, while the LPC decoder needs no block RAM at all, because the coefficients
@@ -557,8 +556,8 @@ End-to-end latency                               & \textbf{\SI{13.1}{\micro\seco
 First output available                           & \textbf{immediately} & after the whole frame\\
 Decompression time per frame                     & \SI{1.97}{\milli\second} & \lpcDecTime\\
 Compressor frame buffer                          & \textbf{none} & \SI{3.0}{\mebi bit}\\
-Encoder + decoder LUTs                           & \SI{23}{\percent} & \tbc{\SI{23}{\percent}}\\
-Encoder + decoder BRAM (36\,Kb blocks)          & \textbf{72.5} & 98\\
+Encoder + decoder LUTs                           & \SI{23}{\percent} & \SI{23}{\percent}\\
+Encoder + decoder BRAM (36\,Kb blocks)          & \textbf{72.5} & 108\\
 Side information                                 & \textbf{none} & \SI{1.04}{\percent}\\
 \bottomrule
 \end{tabular}
