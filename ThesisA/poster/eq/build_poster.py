@@ -428,12 +428,12 @@ text(X1 - 14.4, yC + 0.32, 14.0, 0.45, [
     {'t': '[1] A. Kramer et al., ColoRadar: the direct 3D millimeter wave radar dataset, IJRR, 2022.', 'size': 14, 'align': PP_ALIGN.RIGHT}])
 colw = (W - 0.7 - 0.6) / 2
 crS = S1['DRHE']['CR'], S1['LPC_Huffman']['CR']
-cl = ['**Compared on real radar data:** 8 methods on 50 ColoRadar frames. The **lossy** ones missed **10–29 % of targets**; float storage barely compressed.',
-      f'**Best trade-off: lossless prediction** from the **same transmitter**. DRHE and LPC reach **{float(crS[0]):.2f}× / {float(crS[1]):.2f}×** with **no extra missed targets**, and **{crD:.2f}× / {crL:.2f}×** with a re-derived Huffman dictionary.',
-      '**Built on an FPGA:** encoders and decoders match the simulation **bit for bit** on all 50 frames.']
-cr_ = [f'**DRHE suits the sensor:** it streams with **{latD_us:.0f} µs** of delay and no frame buffer. LPC compresses about 4 % more but must wait for the **whole frame ({latL_ms:.1f} ms)**.',
-       f'**Fast enough:** {encD_ms:.2f} ms to compress a frame (DRHE), {decD_ms:.2f} ms to decode it, using **under a quarter** of the chip.',
-       '**Next:** fixed-point DRHE to shrink it, all 16 receivers, and a streaming LPC.']
+cl = ['Eight methods were compared on 50 frames of **real ColoRadar data**. The **lossy** ones missed **10–29 % of targets**, and float storage barely compressed.',
+      f'**Lossless prediction** from the same transmitter gives the **best trade-off**, with DRHE and LPC reaching **{float(crS[0]):.2f}× / {float(crS[1]):.2f}×** with **no extra missed targets**, and **{crD:.2f}× / {crL:.2f}×** with a re-derived Huffman dictionary.',
+      'Both encoders and decoders were **built on an FPGA** and match the simulation **bit for bit** on all 50 frames.']
+cr_ = [f'**DRHE suits the sensor** because it streams with **{latD_us:.0f} µs** of delay and no frame buffer; LPC compresses about 4 % more but must wait for the **whole frame ({latL_ms:.1f} ms)**.',
+       f'DRHE compresses a frame in **{encD_ms:.2f} ms** and decodes it in **{decD_ms:.2f} ms**, using **under a quarter** of the chip.',
+       'Future work could shrink DRHE with **fixed-point** arithmetic, cover **all 16 receivers**, and make LPC **stream**.']
 text(X0 + 0.35, yC + 0.85, colw, hC - 0.9, cl, bullets=True, size=20, space=3)
 text(X0 + 0.35 + colw + 0.6, yC + 0.85, colw, hC - 0.9, cr_, bullets=True, size=20, space=3)
 
