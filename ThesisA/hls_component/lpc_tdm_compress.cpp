@@ -238,9 +238,13 @@ void lpc_tdm_compress(
         }
     }
 
-    if (bit_count > 0) {
+    // Close the stream with TLAST. If the data ended exactly on a word
+    // boundary (bit_count == 0), the last data word has already gone out
+    // without TLAST, so one zero word carries it: the DMA and the
+    // decompressors stop on TLAST, and would otherwise wait for more data.
+    {
         axis_256_t out_pkt;
-        out_pkt.data = bit_buffer.range(255, 0);
+        out_pkt.data = bit_buffer.range(255, 0);   // all zero when bit_count == 0
         out_pkt.last = 1;
         out_pkt.keep = -1;
         out_stream.write(out_pkt);

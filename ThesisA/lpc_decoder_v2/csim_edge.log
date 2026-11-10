@@ -1,0 +1,97 @@
+
+****** vitis-run v2026.1 (64-bit)
+  **** SW Build 6511674 on 2026-06-16-13:14:00
+  **** Start of session at: Tue Nov 10 16:53:50 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+  **** HLS Build v2026.1 6493734
+INFO: [HLS 200-2005] Using work_dir D:/Thesis/ThesisA/lpc_decoder_v2/w_csim 
+INFO: [HLS 200-2176] Writing Vitis IDE component file D:/Thesis/ThesisA/lpc_decoder_v2/w_csim/vitis-comp.json
+INFO: [HLS 200-10] Creating and opening component 'D:/Thesis/ThesisA/lpc_decoder_v2/w_csim'.
+INFO: [HLS 200-2174] Applying component config ini file csim_equiv.cfg
+INFO: [HLS 200-1465] Applying config ini 'syn.file=lpc_tdm_decompress.cpp' from csim_equiv.cfg(5)
+INFO: [HLS 200-10] Adding design file 'D:/Thesis/ThesisA/lpc_decoder_v2/lpc_tdm_decompress.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.file=lpc_tdm_decompress_serial.cpp' from csim_equiv.cfg(6)
+INFO: [HLS 200-10] Adding design file 'D:/Thesis/ThesisA/lpc_decoder_v2/lpc_tdm_decompress_serial.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.file=../hls_component/lpc_tdm_compress.cpp' from csim_equiv.cfg(7)
+INFO: [HLS 200-10] Adding design file 'D:/Thesis/ThesisA/hls_component/lpc_tdm_compress.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.file=../hls_component/lpc_tdm.cpp' from csim_equiv.cfg(8)
+INFO: [HLS 200-10] Adding design file 'D:/Thesis/ThesisA/hls_component/lpc_tdm.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.cflags=-I../hls_component' from csim_equiv.cfg(9)
+INFO: [HLS 200-1465] Applying config ini 'tb.file=lpc_dec_equiv_tb.cpp' from csim_equiv.cfg(11)
+INFO: [HLS 200-10] Adding test bench file 'D:/Thesis/ThesisA/lpc_decoder_v2/lpc_dec_equiv_tb.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'tb.file=../hls_component/coloradar_multiframe.bin' from csim_equiv.cfg(12)
+INFO: [HLS 200-10] Adding test bench file 'D:/Thesis/ThesisA/hls_component/coloradar_multiframe.bin' to the project
+INFO: [HLS 200-1465] Applying config ini 'tb.cflags=-I../hls_component' from csim_equiv.cfg(13)
+INFO: [HLS 200-1465] Applying config ini 'syn.top=lpc_tdm_decompress' from csim_equiv.cfg(10)
+INFO: [HLS 200-1465] Applying config ini 'part=xcku5p-ffvb676-2-e' from csim_equiv.cfg(1)
+INFO: [HLS 200-1611] Setting target device to 'xcku5p-ffvb676-2-e'
+INFO: [HLS 200-1465] Applying config ini 'clock=100MHz' from csim_equiv.cfg(4)
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1465] Applying config ini 'csim.O=true' from csim_equiv.cfg(14)
+INFO: [HLS 200-1907] Replacing 'config_csim -O=1' with 'config_sim -O=1' in current solution file
+INFO: [HLS 200-2176] Writing Vitis IDE component file D:/Thesis/ThesisA/lpc_decoder_v2/w_csim/vitis-comp.json
+INFO: [SIM 211-2] *************** CSIM start ***************
+INFO: [HLS 200-2191] C-Simulation will use clang-16 as the compiler
+INFO: [HLS 200-2036] Building optimized C Simulation binaries
+   Compiling ../../../../../hls_component/lpc_tdm_compress.cpp in release mode
+   Generating csim.exe
+In file included from ../../../../../hls_component/lpc_tdm_compress.cpp:1:
+In file included from D:/Thesis/ThesisA/hls_component/lpc_tdm_compress.h:4:
+In file included from D:/Thesis/ThesisA/hls_component/lpc_tdm_common.h:30:
+In file included from D:/Thesis/ThesisA/hls_component/lpc_common.h:26:
+In file included from D:/Thesis/ThesisA/hls_component/drhe_common.h:4:
+In file included from D:/Xilinx/2026.1/Vitis/include\ap_fixed.h:9:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_common.h:668:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_private.h:68:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_half.h:26:
+In file included from D:/Xilinx/2026.1/Vitis/include/etc/hls_half_fpo.h:19:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_fpo.h:140:
+In file included from D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:150:
+D:/Xilinx/2026.1/Vitis/include\gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+    [compress]
+    [new decoder] 2433 words
+    [old decoder]
+  edge case 0 (all zeros): CR 5.05055  maxdiff vs input 0  new!=old words 0  OK
+    [compress]
+    [new decoder] 19377 words
+    [old decoder]
+  edge case 1 (all +32767): CR 0.634154  maxdiff vs input 0  new!=old words 0  OK
+    [compress]
+    [new decoder] 19377 words
+    [old decoder]
+  edge case 2 (alternating +32767/-32768): CR 0.634154  maxdiff vs input 1  new!=old words 0  OK
+    [compress]
+    [new decoder] 20229 words
+    [old decoder]
+  edge case 3 (uniform random int16): CR 0.607445  maxdiff vs input 1  new!=old words 0  OK
+    [compress]
+    [new decoder] 8236 words
+    [old decoder]
+  edge case 4 (small noise +-50): CR 1.49199  maxdiff vs input 0  new!=old words 0  OK
+    [compress]
+    [new decoder] 19377 words
+    [old decoder]
+  edge case 5 (all -32768): CR 0.634154  maxdiff vs input 1  new!=old words 0  OK
+    [compress]
+    [new decoder] 9123 words
+    [old decoder]
+  edge case 6 (random walk along ramps): CR 1.34693  maxdiff vs input 0  new!=old words 0  OK
+    [compress]
+    [new decoder] 11340 words
+    [old decoder]
+  edge case 7 (noise with -32768 spikes): CR 1.0836  maxdiff vs input 1  new!=old words 0  OK
+[RESULT] PASS - new decoder bit-identical to the old one on every frame
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 98304
+INFO: [SIM 211-1] CSim done with 0 errors.
+INFO: [SIM 211-3] *************** CSIM finish ***************
+INFO: [HLS 200-112] Total CPU user time: 1 seconds. Total CPU system time: 3 seconds. Total elapsed time: 56.363 seconds; peak allocated memory: 132.234 MB.
+INFO: [vitis-run 60-791] Total elapsed time: 0h 1m 1s
+EXIT=0 

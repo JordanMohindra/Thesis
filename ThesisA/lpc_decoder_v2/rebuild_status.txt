@@ -1,0 +1,13 @@
+START Tue 10/11/2026 17:03:21.94 
+syn3 EXIT=0 
+packaged lpc_tdm_compress 
+packaged lpc_tdm_decompress 
+[vivado] lpc_full Tue 10/11/2026 17:13:54.45 
+[resume] MicroBlaze OOC synth ran out of memory at jobs=4; resuming with jobs=2 Tue 10/11/2026 22:26:35.69 
+vivado done EXIT=1 Tue 10/11/2026 22:45:22.88 
+hier done Tue 10/11/2026 22:46:04.44 
+DONE Tue 10/11/2026 22:54:19.18 
+[resume] MicroBlaze OOC synth ran out of memory at jobs=4; second resume, LPC compressor synth alone (jobs=1) Wed 11/11/2026  0:31:31.05 
+vivado done EXIT=0 Wed 11/11/2026  1:34:10.44 
+hier done Wed 11/11/2026  1:36:21.49 
+DONE Wed 11/11/2026  1:39:27.00 

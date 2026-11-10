@@ -1,0 +1,273 @@
+
+****** vitis-run v2026.1 (64-bit)
+  **** SW Build 6511674 on 2026-06-16-13:14:00
+  **** Start of session at: Tue Nov 10 16:55:51 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+  **** HLS Build v2026.1 6493734
+INFO: [HLS 200-2005] Using work_dir D:/Thesis/ThesisA/lpc_decoder_v2/w_drhe_edge 
+INFO: [HLS 200-2176] Writing Vitis IDE component file D:/Thesis/ThesisA/lpc_decoder_v2/w_drhe_edge/vitis-comp.json
+INFO: [HLS 200-10] Creating and opening component 'D:/Thesis/ThesisA/lpc_decoder_v2/w_drhe_edge'.
+INFO: [HLS 200-2174] Applying component config ini file csim_drhe_edge.cfg
+INFO: [HLS 200-1465] Applying config ini 'syn.file=../hls_component/drhe_tdm_compress.cpp' from csim_drhe_edge.cfg(5)
+INFO: [HLS 200-10] Adding design file 'D:/Thesis/ThesisA/hls_component/drhe_tdm_compress.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.file=../hls_component/drhe_tdm_decompress.cpp' from csim_drhe_edge.cfg(6)
+INFO: [HLS 200-10] Adding design file 'D:/Thesis/ThesisA/hls_component/drhe_tdm_decompress.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.cflags=-I../hls_component' from csim_drhe_edge.cfg(7)
+INFO: [HLS 200-1465] Applying config ini 'tb.file=drhe_edge_tb.cpp' from csim_drhe_edge.cfg(9)
+INFO: [HLS 200-10] Adding test bench file 'D:/Thesis/ThesisA/lpc_decoder_v2/drhe_edge_tb.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'tb.file=../hls_component/coloradar_multiframe.bin' from csim_drhe_edge.cfg(10)
+INFO: [HLS 200-10] Adding test bench file 'D:/Thesis/ThesisA/hls_component/coloradar_multiframe.bin' to the project
+INFO: [HLS 200-1465] Applying config ini 'tb.cflags=-I../hls_component' from csim_drhe_edge.cfg(11)
+INFO: [HLS 200-1465] Applying config ini 'syn.top=drhe_tdm_decompress' from csim_drhe_edge.cfg(8)
+INFO: [HLS 200-1465] Applying config ini 'part=xcku5p-ffvb676-2-e' from csim_drhe_edge.cfg(1)
+INFO: [HLS 200-1611] Setting target device to 'xcku5p-ffvb676-2-e'
+INFO: [HLS 200-1465] Applying config ini 'clock=100MHz' from csim_drhe_edge.cfg(4)
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1465] Applying config ini 'csim.O=true' from csim_drhe_edge.cfg(12)
+INFO: [HLS 200-1907] Replacing 'config_csim -O=1' with 'config_sim -O=1' in current solution file
+INFO: [HLS 200-2176] Writing Vitis IDE component file D:/Thesis/ThesisA/lpc_decoder_v2/w_drhe_edge/vitis-comp.json
+INFO: [SIM 211-2] *************** CSIM start ***************
+INFO: [HLS 200-2191] C-Simulation will use clang-16 as the compiler
+INFO: [HLS 200-2036] Building optimized C Simulation binaries
+   Compiling ../../../../drhe_edge_tb.cpp in release mode
+   Compiling ../../../../../hls_component/drhe_tdm_decompress.cpp in release mode
+   Compiling ../../../../../hls_component/drhe_tdm_compress.cpp in release mode
+   Generating csim.exe
+In file included from ../../../../drhe_edge_tb.cpp:12:
+In file included from D:/Thesis/ThesisA/hls_component\drhe_tdm_compress.h:4:
+In file included from D:/Thesis/ThesisA/hls_component/drhe_tdm_common.h:28:
+In file included from D:/Thesis/ThesisA/hls_component/drhe_common.h:4:
+In file included from D:/Xilinx/2026.1/Vitis/include\ap_fixed.h:9:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_common.h:668:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_private.h:68:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_half.h:26:
+In file included from D:/Xilinx/2026.1/Vitis/include/etc/hls_half_fpo.h:19:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_fpo.h:140:
+In file included from D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:150:
+D:/Xilinx/2026.1/Vitis/include\gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../../hls_component/drhe_tdm_decompress.cpp:1:
+In file included from D:/Thesis/ThesisA/hls_component/drhe_tdm_decompress.h:4:
+In file included from D:/Thesis/ThesisA/hls_component/drhe_tdm_common.h:28:
+In file included from D:/Thesis/ThesisA/hls_component/drhe_common.h:4:
+In file included from D:/Xilinx/2026.1/Vitis/include\ap_fixed.h:9:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_common.h:668:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_private.h:68:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_half.h:26:
+In file included from D:/Xilinx/2026.1/Vitis/include/etc/hls_half_fpo.h:19:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_fpo.h:140:
+In file included from D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:150:
+D:/Xilinx/2026.1/Vitis/include\gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../../hls_component/drhe_tdm_compress.cpp:1:
+In file included from D:/Thesis/ThesisA/hls_component/drhe_tdm_compress.h:4:
+In file included from D:/Thesis/ThesisA/hls_component/drhe_tdm_common.h:28:
+In file included from D:/Thesis/ThesisA/hls_component/drhe_common.h:4:
+In file included from D:/Xilinx/2026.1/Vitis/include\ap_fixed.h:9:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_common.h:668:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_private.h:68:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_half.h:26:
+In file included from D:/Xilinx/2026.1/Vitis/include/etc/hls_half_fpo.h:19:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_fpo.h:140:
+In file included from D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:150:
+D:/Xilinx/2026.1/Vitis/include\gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+    [compress]
+    [new decoder] 2795 words
+  coloradar frame 0: CR 4.39642  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2812 words
+  coloradar frame 1: CR 4.36984  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2843 words
+  coloradar frame 2: CR 4.32219  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2886 words
+  coloradar frame 3: CR 4.2578  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2919 words
+  coloradar frame 4: CR 4.20966  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2878 words
+  coloradar frame 5: CR 4.26963  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2822 words
+  coloradar frame 6: CR 4.35436  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2799 words
+  coloradar frame 7: CR 4.39014  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2796 words
+  coloradar frame 8: CR 4.39485  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2814 words
+  coloradar frame 9: CR 4.36674  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2838 words
+  coloradar frame 10: CR 4.32981  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2885 words
+  coloradar frame 11: CR 4.25927  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2946 words
+  coloradar frame 12: CR 4.17108  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2935 words
+  coloradar frame 13: CR 4.18671  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2861 words
+  coloradar frame 14: CR 4.295  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2793 words
+  coloradar frame 15: CR 4.39957  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2790 words
+  coloradar frame 16: CR 4.4043  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2840 words
+  coloradar frame 17: CR 4.32676  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2983 words
+  coloradar frame 18: CR 4.11934  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 3000 words
+  coloradar frame 19: CR 4.096  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2952 words
+  coloradar frame 20: CR 4.1626  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2950 words
+  coloradar frame 21: CR 4.16542  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2888 words
+  coloradar frame 22: CR 4.25485  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2840 words
+  coloradar frame 23: CR 4.32676  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2759 words
+  coloradar frame 24: CR 4.45379  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2826 words
+  coloradar frame 25: CR 4.3482  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2815 words
+  coloradar frame 26: CR 4.36519  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2788 words
+  coloradar frame 27: CR 4.40746  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2833 words
+  coloradar frame 28: CR 4.33745  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2800 words
+  coloradar frame 29: CR 4.38857  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2792 words
+  coloradar frame 30: CR 4.40115  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2836 words
+  coloradar frame 31: CR 4.33286  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2816 words
+  coloradar frame 32: CR 4.36364  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2816 words
+  coloradar frame 33: CR 4.36364  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2955 words
+  coloradar frame 34: CR 4.15838  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2905 words
+  coloradar frame 35: CR 4.22995  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2883 words
+  coloradar frame 36: CR 4.26223  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 3030 words
+  coloradar frame 37: CR 4.05545  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 3106 words
+  coloradar frame 38: CR 3.95621  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2894 words
+  coloradar frame 39: CR 4.24603  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2962 words
+  coloradar frame 40: CR 4.14855  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2956 words
+  coloradar frame 41: CR 4.15697  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 2963 words
+  coloradar frame 42: CR 4.14715  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 3081 words
+  coloradar frame 43: CR 3.98832  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 3107 words
+  coloradar frame 44: CR 3.95494  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 3128 words
+  coloradar frame 45: CR 3.92839  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 3146 words
+  coloradar frame 46: CR 3.90591  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 3215 words
+  coloradar frame 47: CR 3.82208  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 3275 words
+  coloradar frame 48: CR 3.75206  maxdiff 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 3463 words
+  coloradar frame 49: CR 3.54837  maxdiff 0  TLAST errors 0  OK
+[RESULT] ColoRadar mean CR 4.21704
+    [compress]
+    [new decoder] 2305 words
+  edge case 0 (all zeros): CR 5.33102  maxdiff vs input 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 15697 words
+  edge case 1 (all +32767): CR 0.782825  maxdiff vs input 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 15517 words
+  edge case 2 (alternating +32767/-32768): CR 0.791906  maxdiff vs input 1  TLAST errors 0  OK
+    [compress]
+    [new decoder] 20732 words
+  edge case 3 (uniform random int16): CR 0.592707  maxdiff vs input 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 8394 words
+  edge case 4 (small noise +-50): CR 1.4639  maxdiff vs input 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 15337 words
+  edge case 5 (all -32768): CR 0.8012  maxdiff vs input 1  TLAST errors 0  OK
+    [compress]
+    [new decoder] 8903 words
+  edge case 6 (random walk along ramps): CR 1.38021  maxdiff vs input 0  TLAST errors 0  OK
+    [compress]
+    [new decoder] 12230 words
+  edge case 7 (noise with -32768 spikes): CR 1.00474  maxdiff vs input 1  TLAST errors 0  OK
+[RESULT] PASS - DRHE edge cases decoded, input fully consumed
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 98304
+INFO: [SIM 211-1] CSim done with 0 errors.
+INFO: [SIM 211-3] *************** CSIM finish ***************
+INFO: [HLS 200-112] Total CPU user time: 1 seconds. Total CPU system time: 3 seconds. Total elapsed time: 109.037 seconds; peak allocated memory: 132.656 MB.
+INFO: [vitis-run 60-791] Total elapsed time: 0h 1m 55s
+EXIT=0 
