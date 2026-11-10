@@ -292,11 +292,10 @@ make_table(cx, y, [3.1, 5.7, 1.9], hR / 5, [
 jx = cx + 10.7 + 0.35
 jw = endX - jx
 box(jx, y, jw, hR, fill=PALE, radius=0.06)
-text(jx + 0.2, y + 0.15, jw - 0.4, 0.55, [{'t': 'Each method is judged on:', 'bold': True, 'size': 24}])
-ew, eh = (v * 0.8 for v in EQS['sizes']['cr'])
-eq('cr', jx + (jw - ew) / 2, y + 0.8, k=0.8)
-text(jx + 0.2, y + 0.9 + eh, jw - 0.4, hR - 1.0 - eh, [
-    {'t': '**Missed targets:** targets found in the original data but **not** after compression.', 'size': 20}])
+text(jx + 0.2, y + 0.2, jw - 0.4, hR - 0.4, [
+    {'t': '**Compression ratio:** input size ÷ compressed size. Higher = smaller data.', 'size': 23, 'space': 18},
+    {'t': '**Missed targets:** targets found in the original data but **not** after compression.', 'size': 23}],
+    anchor=MSO_ANCHOR.MIDDLE)
 
 # ---- 2: screen all methods: figure | table of methods | what are DRHE and LPC ----
 y, hR = RY[1], ROWS[1]
