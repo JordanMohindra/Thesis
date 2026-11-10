@@ -180,7 +180,7 @@ text(xBG + 0.35, yA + 1.05, wA1 - 0.7, 3.4, [
     'And only **real hardware** shows whether a method is **fast and small enough** to run at the sensor.'],
     bullets=True, size=23, space=6)
 aim = box(xBG + 0.35, yA + hA - 1.55, wA1 - 0.7, 1.25, fill=YELLOW, radius=0.12)
-text(0, 0, 0, 0, [{'t': '**Aim:** compare compression methods side by side on **real radar data**, pick the best **lossless** ones, '
+text(0, 0, 0, 0, [{'t': '**Aim:** compare compression methods side by side on **real radar data**, find the best **trade-off between compression and lost targets**, '
                        'and build the **encoder and decoder on an FPGA**.', 'size': 26}], anchor=MSO_ANCHOR.MIDDLE, shape=aim)
 aim.text_frame.margin_left = aim.text_frame.margin_right = Inches(0.3)
 
