@@ -342,7 +342,7 @@ for i, (key, name, idea, sel) in enumerate(methods, start=1):
     cell(i, 2, f'{cr_:.2f}', bold=sel, fill=fill, align=PP_ALIGN.CENTER)
     cell(i, 3, f'{fn:.1f} %', bold=sel or lossy, fill=fill, color=RED if lossy else BLACK, align=PP_ALIGN.CENTER)
 text(tX - 0.08, y + tH + 0.08, tW + 0.16, hR - tH - 0.08, [
-    {'t': '**Green = selected:** high CR **and** no extra missed targets. The 3.8 % comes from 16-bit rounding, not compression.', 'size': 17}])
+    {'t': '**Green = selected:** high CR **and** no extra missed targets. The 3.8\u00a0% comes from 16-bit rounding, not compression.', 'size': 17}])
 
 bX = tX + tW + 0.3
 bW = endX - bX
