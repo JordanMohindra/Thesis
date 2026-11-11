@@ -410,9 +410,7 @@ and Figure~\ref{fig:timing} draws it.
 input word read to the last output word written (Section~\ref{sec:metrics});
 for the decompressor, from the last compressed word read to the last
 reconstructed word written. Compressor figures are from the original-dictionary
-run; with the re-derived dictionaries they differ by at most 13 cycles.
-\pending{LPC decompressor rows: expected values for the parallel decoder; replace
-with the board measurement}}
+run; with the re-derived dictionaries they differ by at most 13 cycles.}
 \label{tab:timing}
 \small
 \begin{tabular}{@{}lrr@{}}
@@ -440,7 +438,7 @@ Decompressor latency            & \SI{339}{\micro\second} & \lpcDecLat\\
 FPGA, measured on the board with the re-derived dictionaries, with each
 encoder's output delay. DRHE outputs as the data arrives; LPC must wait for the
 whole frame before it can output anything. Both decoders decode one value per
-clock. \pending{redraw with the measured LPC decoder time}}
+clock.}
 \label{fig:timing}
 \end{figure}
 
@@ -470,8 +468,9 @@ leaves: when the last compressed word has been read, about a sixth of the frame
 is still to be rebuilt.
 
 The LPC decoder shares the DRHE decoder's unpack stage and runs at the same
-rate: \lpcDecCycles{} cycles per frame, or \lpcDecTime{}, with \lpcDecLat{} of
-latency, the same kind of backlog. Its time does not depend on the data,
+rate: \lpcDecCycles{} cycles per frame on average (range
+\numrange{197340}{197411}), or \lpcDecTime{}, with \lpcDecLat{} of latency
+(\SIrange{291}{408}{\micro\second}), the same kind of backlog. Its time does not depend on the data,
 because every codeword is matched in one clock whatever its length. The first
 LPC decoder, which tried the codewords one at a time (Section~\ref{sec:dechw}),
 took \SI{15.4}{\milli\second} per frame and 7.6 to 8.3 cycles per value;

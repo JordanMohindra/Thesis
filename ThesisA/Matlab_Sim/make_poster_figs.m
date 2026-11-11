@@ -259,7 +259,7 @@ for a = {'drhe', 'lpc'}
 end
 set(gca, 'YTick', yTop - (3:-1:0), 'YTickLabel', fliplr(rows)); ylim([yTop - 3.6, yTop + 0.95])
 tmax = max([ms(hw.drhe.enc_cycles), ms(hw.lpc.enc_cycles), ms(hw.drhe.dec_cycles), ms(hw.lpc.dec_cycles)], [], 'omitnan');
-xlim([0, max(ms(hw.lpc.enc_cycles) * 1.5, tmax * 1.35)]); grid on; box on
+xlim([0, max(ms(hw.lpc.enc_cycles) * 2.3, tmax * 1.35)]); grid on; box on
 xlabel('Time to process one frame (ms)'); title('Time per frame on the FPGA')
 save_fig(f, P.outDir, 'fig_timing.png');
 
@@ -282,7 +282,7 @@ for a = 1:2
         'VerticalAlignment', 'bottom', 'FontWeight', 'bold', 'FontSize', 8);
     title(names{a}); if a == 1, ylabel('% of the chip used'); end
     if a == 2
-        lg = legend(b, {'LUT (logic)', 'BRAM (memory)', 'DSP (multiply)'}, 'Orientation', 'horizontal', 'FontSize', 6.5);
+        lg = legend(b, {'LUT (logic)', 'BRAM (memory)', 'DSP (multiply)'}, 'Orientation', 'horizontal', 'FontSize', 6);
         lg.Layout.Tile = 'south';
     end
 end

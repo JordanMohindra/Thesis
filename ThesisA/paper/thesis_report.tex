@@ -57,11 +57,11 @@
 \newcommand{\nTx}{n_{\mathrm{Tx}}}
 % results still to be measured on the board are marked like this
 \newcommand{\pending}[1]{\textcolor{warm}{\textbf{[pending: #1]}}}
-% Expected values for the parallel LPC decoder (orange), to be replaced by the board measurement.
-\newcommand{\tbc}[1]{\textcolor{warm}{#1}}
-\newcommand{\lpcDecCycles}{\tbc{$\approx$\num{197400}}}
-\newcommand{\lpcDecTime}{\tbc{$\approx$\SI{1.97}{\milli\second}}}
-\newcommand{\lpcDecLat}{\tbc{$\approx$\SI{350}{\micro\second}}}
+% Board-measured figures for the parallel LPC decoder (lpc_full, 50 frames).
+\newcommand{\tbc}[1]{#1}
+\newcommand{\lpcDecCycles}{\num{197366}}
+\newcommand{\lpcDecTime}{\SI{1.97}{\milli\second}}
+\newcommand{\lpcDecLat}{\SI{365}{\micro\second}}
 
 \begin{document}
 

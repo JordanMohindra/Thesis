@@ -415,7 +415,8 @@ make_table(cx, y, [3.95, 2.9, 2.9], hR / 7, [
     ['Compression ratio', f'{crD:.2f}×', f'**{crL:.2f}×**'],
     ['Encode time / frame', f'**{encD_ms:.2f} ms**', f'{encL_ms:.2f} ms'],
     ['Output starts', '**as data arrives**', 'after whole frame'],
-    ['Chip logic (LUTs)', f'**{lutD:.0f} %**', f'{lutL:.0f} %'],
+    ['Chip logic (LUTs)', *((f'{lutD:.0f} %', f'{lutL:.0f} %') if round(lutD) == round(lutL) else
+                           ((f'**{lutD:.0f} %**', f'{lutL:.0f} %') if lutD < lutL else (f'{lutD:.0f} %', f'**{lutL:.0f} %**')))],
     ['Decode time / frame', ms_txt(decD), ms_txt(decL)],
 ], fills=[None, GREEN, None, PALE, None, PALE, None], aligns=[PP_ALIGN.LEFT, PP_ALIGN.CENTER, PP_ALIGN.CENTER])
 
