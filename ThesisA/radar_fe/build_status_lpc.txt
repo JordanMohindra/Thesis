@@ -1,0 +1,4 @@
+[vivado] lpc_fe_full jobs=1 Wed 11/11/2026 20:17:20.67 
+vivado OK Wed 11/11/2026 22:42:50.85 
+hier done 22:46:01.95 
+DONE Wed 11/11/2026 22:49:05.57 
