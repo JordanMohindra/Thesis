@@ -10,8 +10,8 @@ import os, sys, shutil, glob
 import vitis
 
 tag = sys.argv[1] if len(sys.argv) > 1 else "drhe"
-if tag not in ("drhe", "lpc", "drhe_full", "lpc_full"):
-    sys.exit(f"unknown bitstream {tag}: use drhe, lpc, drhe_full or lpc_full")
+if tag not in ("drhe", "lpc", "drhe_full", "lpc_full", "drhe_fe_full", "lpc_fe_full"):
+    sys.exit(f"unknown bitstream {tag}: use drhe, lpc, drhe_full, lpc_full, drhe_fe_full or lpc_fe_full")
 here = os.path.dirname(os.path.abspath(__file__))
 root = os.path.normpath(os.path.join(here, ".."))
 xsa = os.path.join(root, "out", f"kcu116_{tag}.xsa")
