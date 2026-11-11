@@ -1,0 +1,47 @@
+INFO: [Common 17-3922] A valid Vivado Design Suite BASIC license has been detected. Your current license is active and will expire on 14-sep-2027.
+#-----------------------------------------------------------
+# Vivado v2026.1 (64-bit)
+# SW Build 6511674 on Tue Jun 16 11:02:23 MDT 2026
+# IP Build 6504888 on Tue Jun 09 09:05:25 MDT 2026
+# SharedData Build 6501428 on Mon Jun 08 17:34:18 MDT 2026
+# Start of session at: Wed Nov 11 16:46:16 2026
+# Process ID         : 31716
+# Current directory  : D:/Thesis/ThesisA/radar_fe/w_ip/hls/impl/ip
+# Command line       : vivado.exe -notrace -mode batch -source run_ippack.tcl
+# Log file           : D:/Thesis/ThesisA/radar_fe/w_ip/hls/impl/ip/vivado.log
+# Journal file       : D:/Thesis/ThesisA/radar_fe/w_ip/hls/impl/ip\vivado.jou
+# Running On         : DESKTOP-6IQQE7O
+# Platform           : Windows 11
+# Operating System   : 26200
+# Processor Detail   : Intel(R) Core(TM) i5-10400F CPU @ 2.90GHz
+# CPU Frequency      : 2904 MHz
+# CPU Physical cores : 6
+# CPU Logical cores  : 12
+# Host memory        : 17101 MB
+# Swap memory        : 20334 MB
+# Total Virtual      : 37436 MB
+# Available Virtual  : 9854 MB
+#-----------------------------------------------------------
+source run_ippack.tcl -notrace
+INFO: calling package_hls_ip ip_types=vitis sysgen json_file=D:/Thesis/ThesisA/radar_fe/w_ip/hls/hls_data.json outdir=D:/Thesis/ThesisA/radar_fe/w_ip/hls/impl/ip srcdir=D:/Thesis/ThesisA/radar_fe/w_ip/hls ippack_options_dict= ippack_options_dict=
+INFO: Copied 1 ipmisc file(s) to D:/Thesis/ThesisA/radar_fe/w_ip/hls/impl/ip/misc
+INFO: Copied 75 verilog file(s) to D:/Thesis/ThesisA/radar_fe/w_ip/hls/impl/ip/hdl/verilog
+INFO: Copied 65 vhdl file(s) to D:/Thesis/ThesisA/radar_fe/w_ip/hls/impl/ip/hdl/vhdl
+INFO: Copied 10 swdriver file(s) to D:/Thesis/ThesisA/radar_fe/w_ip/hls/impl/ip/drivers
+ipx::create_core: Time (s): cpu = 00:00:11 ; elapsed = 00:00:15 . Memory (MB): peak = 583.590 ; gain = 270.316
+INFO: Import ports from HDL: D:/Thesis/ThesisA/radar_fe/w_ip/hls/impl/ip/hdl/vhdl/radar_fe.vhd (radar_fe)
+INFO: Add axi4lite interface s_axi_control
+INFO: Add clock interface ap_clk
+INFO: Add reset interface ap_rst_n
+INFO: Add interrupt interface interrupt
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'D:/Xilinx/2026.1/Vivado/data/ip'.
+INFO: Add axi4stream interface in_stream
+INFO: Add axi4stream interface out_stream
+INFO: Calling post_process_vitis to specialize IP
+INFO: Calling post_process_sysgen to specialize IP
+Generating sysgen info xml from json file
+INFO: Created IP D:/Thesis/ThesisA/radar_fe/w_ip/hls/impl/ip/component.xml
+INFO: Created IP archive D:/Thesis/ThesisA/radar_fe/w_ip/hls/impl/ip/xilinx_com_hls_radar_fe_1_0.zip
+INFO: [Common 17-206] Exiting Vivado at Wed Nov 11 16:47:27 2026...

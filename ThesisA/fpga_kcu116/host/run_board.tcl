@@ -1,9 +1,12 @@
 # =============================================================================
 #  run_board.tcl  -  xsdb script: program the KCU116, load frames, run, dump
 #
-#  xsdb run_board.tcl <drhe|lpc|drhe_full|lpc_full> [nframes=50] [ndump]
+#  xsdb run_board.tcl <drhe|lpc|drhe_full|lpc_full|drhe_fe_full|lpc_fe_full> [nframes=50] [ndump]
 #     drhe, lpc           : compressor only (decompress on the PC afterwards)
 #     drhe_full, lpc_full : compressor + on-chip decompressor
+#     *_fe_full           : on-chip range FFT (radar_fe) in front of the compressor:
+#                           loads raw ADC frames (../out/raw_frames_<n>.bin) and
+#                           dumps the FX16 frames the front end produced
 #     ndump defaults to 5 when the bitstream has an on-chip decompressor and to
 #     nframes when it does not (then every compressed frame is checked on the PC).
 #
@@ -22,29 +25,32 @@ set here [file dirname [file normalize [info script]]]
 set root [file normalize $here/..]
 set bit    $root/out/kcu116_$tag.bit
 set elf    $root/out/radar_app_$tag.elf
-set frames $root/out/frames_$nframes.bin
 set outdir $root/results/$tag
-foreach f [list $bit $elf $frames] {
-    if {![file exists $f]} { error "missing $f" }
-}
-# does this bitstream have the decompressor? (written by vivado/build_kcu116.tcl)
+# does this bitstream have the decompressor / the front end? (written by vivado/build_kcu116.tcl)
 set decomp [string match *_full $tag]
+set fe     [string match *_fe* $tag]
 set algo [lindex [split $tag _] 0]
 set info $root/out/kcu116_$tag.info
 if {[file exists $info]} {
     set fh [open $info]; set txt [read $fh]; close $fh
     regexp {decomp (\d)} $txt -> decomp
     regexp {algo (\w+)} $txt -> algo
+    regexp {\nfe (\d)} $txt -> fe
+}
+set frames [expr {$fe ? "$root/out/raw_frames_$nframes.bin" : "$root/out/frames_$nframes.bin"}]
+foreach f [list $bit $elf $frames] {
+    if {![file exists $f]} { error "missing $f" }
 }
 set ndump [expr {[llength $argv] > 2 ? [lindex $argv 2] : ($decomp ? 5 : $nframes)}]
 if {$ndump > $nframes} { set ndump $nframes }
-puts "bitstream $tag ($algo), $nframes frames, on-chip decompressor: $decomp, dumping $ndump compressed frames"
+puts "bitstream $tag ($algo), $nframes frames, on-chip decompressor: $decomp, on-chip range FFT: $fe, dumping $ndump compressed frames"
 file mkdir $outdir
 
 # addresses - must match sw/src/board_map.h
 set IN_BASE       0x90000000
 set COMP_OUT_BASE 0xA0000000
 set COMP_SLOT     0x00100000
+set FX_BASE       0xB4000000
 set RESULT_BASE   0xBF000000
 set MBOX_BASE     0xBF100000
 
@@ -72,7 +78,7 @@ puts [format "   loaded in %.1f s (%.0f KB/s)" $dt [expr {[file size $frames] / 
 mwr [expr {$MBOX_BASE + 0}] $nframes        ;# MBOX_NFRAMES
 mwr [expr {$MBOX_BASE + 4}] 0               ;# MBOX_STATUS
 mwr [expr {$MBOX_BASE + 8}] 0               ;# MBOX_DONE_CNT
-mwr [expr {$MBOX_BASE + 20}] $decomp        ;# MBOX_FLAGS bit0 = decompressor present
+mwr [expr {$MBOX_BASE + 20}] [expr {$decomp | ($fe << 1)}]   ;# MBOX_FLAGS bit0 = decompressor, bit1 = front end
 
 puts "== run (watch the UART terminal)"
 con
@@ -97,7 +103,13 @@ for {set f 0} {$f < $ndump} {incr f} {
     mrd -bin -file $outdir/comp_$f.bin $addr [expr {($nbytes + 3) / 4}]
     puts "   frame $f: $nbytes compressed bytes -> comp_$f.bin"
 }
+if {$fe} {
+    # every FX16 frame the front end produced, for comparison with the C simulation
+    set t0 [clock milliseconds]
+    mrd -bin -file $outdir/fx16_frames.bin $FX_BASE [expr {$nframes * 98304}]
+    puts [format "   FX16 frames from the front end -> fx16_frames.bin (%.1f s)" [expr {([clock milliseconds] - $t0) / 1000.0}]]
+}
 set fp [open $outdir/run_info.txt w]
-puts $fp "algo $algo\ntag $tag\nrec_words 16\nnframes $nframes\nndump $ndump\ndecomp $decomp\nbit $bit\nelf $elf\ndate [clock format [clock seconds]]"
+puts $fp "algo $algo\ntag $tag\nrec_words 16\nnframes $nframes\nndump $ndump\ndecomp $decomp\nfe $fe\nbit $bit\nelf $elf\ndate [clock format [clock seconds]]"
 close $fp
 puts "== done. Now run:  python compare_results.py $tag"

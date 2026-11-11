@@ -1,6 +1,11 @@
 """compare_results.py - check a board run against the C-simulation golden output.
 
-    python compare_results.py <drhe|lpc|drhe_full|lpc_full>
+    python compare_results.py <drhe|lpc|drhe_full|lpc_full|drhe_fe_full|lpc_fe_full>
+
+_fe builds (on-chip range FFT): the golden compressed streams are
+../golden/golden_<algo>_fe_compressed.bin (compressor C-sim on the front end's
+C-sim output), and the FX16 frames the board's front end produced
+(fx16_frames.bin) are checked against ../golden/golden_fe_fx16_sha256.txt.
 
 Reads  ../results/<tag>/results.bin, comp_<f>.bin   (from run_board.tcl)
        ../golden/golden_<algo>_tdm_compressed.bin    (from hls/export_ips.bat)
@@ -22,7 +27,8 @@ root = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
 rdir = os.path.join(root, "results", tag)
 FRAME_BYTES = 128 * 192 * 4 * 4
 ERR = {0x01: "comp timeout", 0x02: "decomp timeout", 0x04: "dma_c error", 0x08: "dma_d error",
-       0x10: "recon length", 0x20: "decomp left words unread"}
+       0x10: "recon length", 0x20: "decomp left words unread", 0x40: "front end / dma_f"}
+RAW_FRAME_BYTES = 256 * 192 * 4 * 4
 
 info = {}
 ip = os.path.join(rdir, "run_info.txt")
@@ -32,6 +38,7 @@ if os.path.exists(ip):
         info[k] = v
 algo = info.get("algo", tag.split("_")[0])      # base algorithm: golden file and decoder
 has_decomp = info.get("decomp", "1") == "1"
+has_fe = info.get("fe", "0") == "1"
 pcd = {}
 pp = os.path.join(rdir, "pc_decompress.txt")
 if os.path.exists(pp):
@@ -48,7 +55,7 @@ recs = [r[:8] for r in recs_full]
 dlat = [r[8] for r in recs_full] if rec_words >= 9 else []
 
 golden = []
-gpath = os.path.join(root, "golden", f"golden_{algo}_tdm_compressed.bin")
+gpath = os.path.join(root, "golden", f"golden_{algo}_fe_compressed.bin" if has_fe else f"golden_{algo}_tdm_compressed.bin")
 if os.path.exists(gpath):
     g = open(gpath, "rb").read()
     nF = struct.unpack_from("<I", g, 0)[0]; off = 4
@@ -101,6 +108,20 @@ for (f, nbytes, cc, dc, maxd, nmis, st, lat) in recs:
           + ("FAIL: " if bad else "ok  ") + ("; ".join(notes) if notes else ""))
 
 n = len(recs)
+if has_fe:
+    import hashlib
+    hp = os.path.join(root, "golden", "golden_fe_fx16_sha256.txt")
+    fp = os.path.join(rdir, "fx16_frames.bin")
+    if os.path.exists(hp) and os.path.exists(fp):
+        want = [l.split()[1] for l in open(hp) if l.strip()]
+        fx = open(fp, "rb").read()
+        same = [hashlib.sha256(fx[i * FRAME_BYTES:(i + 1) * FRAME_BYTES]).hexdigest() == want[i]
+                for i in range(min(n, len(want), len(fx) // FRAME_BYTES))]
+        print(f"\nfront-end FX16 output: {sum(same)} of {len(same)} frames identical to the C simulation"
+              + ("" if all(same) else "  (DIFFER: " + ", ".join(str(i) for i, s in enumerate(same) if not s) + ")"))
+        ok_all &= all(same) and len(same) == n
+    else:
+        print("\n(front-end FX16 check skipped: fx16_frames.bin or golden_fe_fx16_sha256.txt missing)")
 print(f"\nframes: {n}")
 print(f"mean per-frame CR (board) : {sum(crs) / n:.5f}")
 if gcrs:
@@ -111,6 +132,9 @@ if cyc:
     bps = FRAME_BYTES * 8 / (sum(cyc) / len(cyc) / 100e6)
     print(f"compressor throughput     : {bps / 1e9:.2f} Gbit/s input  (= {bps / 2**30:.2f} Gibit/s, the unit Kiem's 11.92 uses)")
     print(f"time per frame            : {sum(cyc) / len(cyc) / 100:.1f} us  -> {100e6 / (sum(cyc) / len(cyc)):.0f} frames/s")
+    if has_fe:
+        rb = RAW_FRAME_BYTES * 8 / (sum(cyc) / len(cyc) / 100e6)
+        print(f"raw ADC input rate        : {rb / 1e9:.2f} Gbit/s  (front end + compressor, {RAW_FRAME_BYTES} raw bytes per frame)")
 lats = [lat_of(r) for r in recs if lat_of(r) is not None]
 if lats:
     print(f"end-to-end latency        : min {min(lats)}  mean {sum(lats) / len(lats):.0f}  max {max(lats)} cycles"

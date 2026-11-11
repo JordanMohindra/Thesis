@@ -1,0 +1,130 @@
+
+****** vitis-run v2026.1 (64-bit)
+  **** SW Build 6511674 on 2026-06-16-13:14:00
+  **** Start of session at: Wed Nov 11 16:12:42 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+  **** HLS Build v2026.1 6493734
+INFO: [HLS 200-2005] Using work_dir D:/Thesis/ThesisA/radar_fe/w_csim 
+INFO: [HLS 200-2176] Writing Vitis IDE component file D:/Thesis/ThesisA/radar_fe/w_csim/vitis-comp.json
+INFO: [HLS 200-10] Creating and opening component 'D:/Thesis/ThesisA/radar_fe/w_csim'.
+INFO: [HLS 200-2174] Applying component config ini file csim_fe.cfg
+INFO: [HLS 200-1465] Applying config ini 'syn.file=radar_fe.cpp' from csim_fe.cfg(5)
+INFO: [HLS 200-10] Adding design file 'D:/Thesis/ThesisA/radar_fe/radar_fe.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'tb.file=radar_fe_tb.cpp' from csim_fe.cfg(7)
+INFO: [HLS 200-10] Adding test bench file 'D:/Thesis/ThesisA/radar_fe/radar_fe_tb.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'tb.file=raw_adc_multiframe.bin' from csim_fe.cfg(8)
+INFO: [HLS 200-10] Adding test bench file 'D:/Thesis/ThesisA/radar_fe/raw_adc_multiframe.bin' to the project
+INFO: [HLS 200-1465] Applying config ini 'tb.file=coloradar_multiframe_matlab.bin' from csim_fe.cfg(9)
+INFO: [HLS 200-10] Adding test bench file 'D:/Thesis/ThesisA/radar_fe/coloradar_multiframe_matlab.bin' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.top=radar_fe' from csim_fe.cfg(6)
+INFO: [HLS 200-1465] Applying config ini 'part=xcku5p-ffvb676-2-e' from csim_fe.cfg(1)
+INFO: [HLS 200-1611] Setting target device to 'xcku5p-ffvb676-2-e'
+INFO: [HLS 200-1465] Applying config ini 'clock=100MHz' from csim_fe.cfg(4)
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1465] Applying config ini 'csim.O=true' from csim_fe.cfg(10)
+INFO: [HLS 200-1907] Replacing 'config_csim -O=1' with 'config_sim -O=1' in current solution file
+INFO: [HLS 200-2176] Writing Vitis IDE component file D:/Thesis/ThesisA/radar_fe/w_csim/vitis-comp.json
+INFO: [SIM 211-2] *************** CSIM start ***************
+INFO: [HLS 200-2191] C-Simulation will use clang-16 as the compiler
+INFO: [HLS 200-2036] Building optimized C Simulation binaries
+   Compiling ../../../../radar_fe_tb.cpp in release mode
+   Compiling ../../../../radar_fe.cpp in release mode
+   Generating csim.exe
+In file included from ../../../../radar_fe_tb.cpp:12:
+In file included from ../../../../radar_fe.h:3:
+In file included from ../../../../radar_fe_types.h:4:
+In file included from D:/Xilinx/2026.1/Vitis/include\ap_int.h:10:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_common.h:668:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_private.h:68:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_half.h:26:
+In file included from D:/Xilinx/2026.1/Vitis/include/etc/hls_half_fpo.h:19:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_fpo.h:140:
+In file included from D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:150:
+D:/Xilinx/2026.1/Vitis/include\gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../radar_fe.cpp:19:
+In file included from ../../../../radar_fe.h:3:
+In file included from ../../../../radar_fe_types.h:4:
+In file included from D:/Xilinx/2026.1/Vitis/include\ap_int.h:10:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_common.h:668:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_private.h:68:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_half.h:26:
+In file included from D:/Xilinx/2026.1/Vitis/include/etc/hls_half_fpo.h:19:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_fpo.h:140:
+In file included from D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:150:
+D:/Xilinx/2026.1/Vitis/include\gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+raw: 50 frames x 256 samples x 192 ramps x 4 RX
+ref: 50 frames x 128 bins x 192 ramps x 4 RX
+frame  0:     40 of 196608 codes differ from MATLAB, max |diff| 1
+frame  1:     33 of 196608 codes differ from MATLAB, max |diff| 1
+frame  2:     36 of 196608 codes differ from MATLAB, max |diff| 1
+frame  3:     34 of 196608 codes differ from MATLAB, max |diff| 1
+frame  4:     38 of 196608 codes differ from MATLAB, max |diff| 1
+frame  5:     32 of 196608 codes differ from MATLAB, max |diff| 1
+frame  6:     28 of 196608 codes differ from MATLAB, max |diff| 1
+frame  7:     29 of 196608 codes differ from MATLAB, max |diff| 1
+frame  8:     31 of 196608 codes differ from MATLAB, max |diff| 1
+frame  9:     45 of 196608 codes differ from MATLAB, max |diff| 1
+frame 10:     32 of 196608 codes differ from MATLAB, max |diff| 1
+frame 11:     42 of 196608 codes differ from MATLAB, max |diff| 1
+frame 12:     35 of 196608 codes differ from MATLAB, max |diff| 1
+frame 13:     29 of 196608 codes differ from MATLAB, max |diff| 1
+frame 14:     33 of 196608 codes differ from MATLAB, max |diff| 1
+frame 15:     41 of 196608 codes differ from MATLAB, max |diff| 1
+frame 16:     31 of 196608 codes differ from MATLAB, max |diff| 1
+frame 17:     36 of 196608 codes differ from MATLAB, max |diff| 1
+frame 18:     39 of 196608 codes differ from MATLAB, max |diff| 1
+frame 19:     58 of 196608 codes differ from MATLAB, max |diff| 1
+frame 20:     37 of 196608 codes differ from MATLAB, max |diff| 1
+frame 21:     44 of 196608 codes differ from MATLAB, max |diff| 1
+frame 22:     24 of 196608 codes differ from MATLAB, max |diff| 1
+frame 23:     29 of 196608 codes differ from MATLAB, max |diff| 1
+frame 24:     37 of 196608 codes differ from MATLAB, max |diff| 1
+frame 25:     39 of 196608 codes differ from MATLAB, max |diff| 1
+frame 26:     28 of 196608 codes differ from MATLAB, max |diff| 1
+frame 27:     21 of 196608 codes differ from MATLAB, max |diff| 1
+frame 28:     22 of 196608 codes differ from MATLAB, max |diff| 1
+frame 29:     28 of 196608 codes differ from MATLAB, max |diff| 1
+frame 30:     14 of 196608 codes differ from MATLAB, max |diff| 1
+frame 31:     22 of 196608 codes differ from MATLAB, max |diff| 1
+frame 32:     31 of 196608 codes differ from MATLAB, max |diff| 1
+frame 33:     20 of 196608 codes differ from MATLAB, max |diff| 1
+frame 34:     38 of 196608 codes differ from MATLAB, max |diff| 1
+frame 35:     32 of 196608 codes differ from MATLAB, max |diff| 1
+frame 36:     23 of 196608 codes differ from MATLAB, max |diff| 1
+frame 37:     21 of 196608 codes differ from MATLAB, max |diff| 1
+frame 38:     25 of 196608 codes differ from MATLAB, max |diff| 1
+frame 39:     15 of 196608 codes differ from MATLAB, max |diff| 1
+frame 40:     21 of 196608 codes differ from MATLAB, max |diff| 1
+frame 41:     25 of 196608 codes differ from MATLAB, max |diff| 1
+frame 42:     31 of 196608 codes differ from MATLAB, max |diff| 1
+frame 43:     28 of 196608 codes differ from MATLAB, max |diff| 1
+frame 44:     22 of 196608 codes differ from MATLAB, max |diff| 1
+frame 45:     20 of 196608 codes differ from MATLAB, max |diff| 1
+frame 46:     28 of 196608 codes differ from MATLAB, max |diff| 1
+frame 47:     27 of 196608 codes differ from MATLAB, max |diff| 1
+frame 48:     22 of 196608 codes differ from MATLAB, max |diff| 1
+frame 49:     26 of 196608 codes differ from MATLAB, max |diff| 1
+
+TOTAL: 1522 of 9830400 codes differ from MATLAB (0.0155 %), max |diff| 1
+diff histogram  <=-2: 0  -1: 777  0: 9828878  +1: 745  >=+2: 0
+wrote coloradar_multiframe_fe.bin (50 frames)
+[RESULT] PASS - front end matches MATLAB to within 1 LSB
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 49152
+INFO: [SIM 211-1] CSim done with 0 errors.
+INFO: [SIM 211-3] *************** CSIM finish ***************
+INFO: [HLS 200-112] Total CPU user time: 1 seconds. Total CPU system time: 3 seconds. Total elapsed time: 224.235 seconds; peak allocated memory: 137.531 MB.
+INFO: [vitis-run 60-791] Total elapsed time: 0h 4m 8s

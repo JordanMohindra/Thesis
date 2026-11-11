@@ -1,0 +1,6 @@
+
+Family       : kintexuplus
+Device       : xcku5p
+Package      : -ffvb676
+Speed Grade  : -2-e
+Clock Period : 10

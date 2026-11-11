@@ -79,6 +79,12 @@ static void dma_init(uint32_t base)
     REG(base, DMA_MM2S_CR) = DMA_CR_RS;
     REG(base, DMA_S2MM_CR) = DMA_CR_RS;
 }
+static void dma_init_s2mm(uint32_t base)                   /* S2MM-only DMA (dma_f) */
+{
+    REG(base, DMA_S2MM_CR) = DMA_CR_RESET;
+    while (REG(base, DMA_S2MM_CR) & DMA_CR_RESET) { }
+    REG(base, DMA_S2MM_CR) = DMA_CR_RS;
+}
 static void dma_clear_ioc(uint32_t base)
 {
     REG(base, DMA_MM2S_SR) = DMA_SR_IOC;
@@ -174,12 +180,23 @@ int main(void)
     }
 
     const int has_decomp = (mbox[MBOX_FLAGS] & FLAG_HAS_DECOMP) != 0;
+    const int has_fe     = (mbox[MBOX_FLAGS] & FLAG_HAS_FE) != 0;
+    const uint32_t in_bytes = has_fe ? RAW_FRAME_BYTES : FRAME_BYTES;
     puts_(has_decomp ? " on-chip decompressor: yes\n" : " compress only - the PC decompresses (host/pc_decompress.bat)\n");
+    puts_(has_fe ? " on-chip range FFT: yes - frames are raw ADC (256 samples x 192 ramps x 4 RX)\n"
+                 : " frames are FX16 range-FFT data from MATLAB\n");
     int ok = core_check(COMP_BASE, "compressor  ");
     if (has_decomp) ok &= core_check(DECOMP_BASE, "decompressor");
+    if (has_fe) {
+        REG(FE_BASE, FE_ARG_NRAMPS) = N_RAMPS;
+        int fok = REG(FE_BASE, FE_ARG_NRAMPS) == N_RAMPS && (REG(FE_BASE, AP_CTRL) & AP_IDLE);
+        puts_(fok ? "  front end   : registers OK, idle\n" : "  front end   : REGISTER CHECK FAILED\n");
+        ok &= fok;
+    }
     if (!ok) { mbox[MBOX_STATUS] = STATUS_DONE; led(0xF0); for (;;) { } }
     dma_init(DMA_C_BASE);
     if (has_decomp) dma_init(DMA_D_BASE);
+    if (has_fe) dma_init_s2mm(DMA_F_BASE);
 
     puts_("\nframe   comp bytes      CR   comp cyc  latency  decomp cyc  maxdiff  dec lat  status\n");
 
@@ -187,16 +204,28 @@ int main(void)
     uint32_t worst_diff = 0, n_bad = 0, sum_cr_x10000 = 0;
 
     for (uint32_t f = 0; f < nframes; f++) {
-        uint32_t in_addr  = IN_BASE + f * FRAME_BYTES;
+        uint32_t in_addr  = IN_BASE + f * in_bytes;
         uint32_t c_addr   = COMP_OUT_BASE + f * COMP_SLOT;
         uint32_t r_addr   = RECON_BASE + f * FRAME_BYTES;
+        uint32_t x_addr   = FX_BASE + f * FRAME_BYTES;          /* _fe: compressor input copy */
+        uint32_t ref_addr = has_fe ? x_addr : in_addr;          /* what the decoder must reproduce */
         uint32_t st = 0, t0, t1 = 0, t2 = 0, t3 = 0, t_in_done = 0, t_d_in = 0;
-        uint32_t comp_bytes = 0, recon_bytes = 0;
+        uint32_t comp_bytes = 0, recon_bytes = 0, fx_bytes = 0;
         int e;
 
         led(0x80u | (f & 0x3Fu));
 
         /* ---------------- compress ---------------- */
+        /* _fe: raw ADC -> radar_fe -> compressor; the FX16 stream is also
+         * copied to x_addr by dma_f. Consumers are armed before the producer. */
+        if (has_fe) {
+            REG(DMA_F_BASE, DMA_S2MM_SR)     = DMA_SR_IOC;
+            REG(DMA_F_BASE, DMA_S2MM_DA)     = x_addr;
+            REG(DMA_F_BASE, DMA_S2MM_DA_MSB) = 0;
+            REG(DMA_F_BASE, DMA_S2MM_LEN)    = FRAME_BYTES;
+            REG(FE_BASE, FE_ARG_NRAMPS)      = N_RAMPS;
+            REG(FE_BASE, AP_CTRL)            = AP_START;
+        }
         dma_clear_ioc(DMA_C_BASE);
         core_set_args(COMP_BASE);
         REG(DMA_C_BASE, DMA_S2MM_DA)     = c_addr;          /* arm receive  */
@@ -206,13 +235,20 @@ int main(void)
         t0 = now();
         REG(DMA_C_BASE, DMA_MM2S_SA)     = in_addr;         /* send frame   */
         REG(DMA_C_BASE, DMA_MM2S_SA_MSB) = 0;
-        REG(DMA_C_BASE, DMA_MM2S_LEN)    = FRAME_BYTES;
+        REG(DMA_C_BASE, DMA_MM2S_LEN)    = in_bytes;
         t_in_done = t0;
         e = wait_both(DMA_C_BASE, t0, TIMEOUT_CYC, &t_in_done, &t1);
         if (e) st |= (e == 1) ? ERR_COMP_TIMEOUT : ERR_DMA_C;
         if (wait_idle(COMP_BASE, TIMEOUT_CYC)) st |= ERR_COMP_TIMEOUT;
         comp_bytes = REG(DMA_C_BASE, DMA_S2MM_LEN);
         if (st) dma_init(DMA_C_BASE);
+        if (has_fe) {
+            if (wait_ioc(DMA_F_BASE, DMA_S2MM_SR, t0, TIMEOUT_CYC, 0)) st |= ERR_FE;
+            if (wait_idle(FE_BASE, TIMEOUT_CYC)) st |= ERR_FE;
+            fx_bytes = REG(DMA_F_BASE, DMA_S2MM_LEN);
+            if (fx_bytes != FRAME_BYTES) st |= ERR_FE;
+            if (st & ERR_FE) dma_init_s2mm(DMA_F_BASE);
+        }
 
         /* ---------------- decompress ---------------- */
         if (has_decomp && !st && comp_bytes > 0) {
@@ -245,8 +281,8 @@ int main(void)
 
         /* ---------------- compare ---------------- */
         uint32_t maxd = has_decomp ? 0 : MAXDIFF_NA, nmis = 0;
-        if (has_decomp && !(st & (ERR_COMP_TIMEOUT | ERR_DMA_C))) {
-            volatile const uint32_t *a = (volatile const uint32_t *)(uintptr_t)in_addr;
+        if (has_decomp && !(st & (ERR_COMP_TIMEOUT | ERR_DMA_C | ERR_FE))) {
+            volatile const uint32_t *a = (volatile const uint32_t *)(uintptr_t)ref_addr;
             volatile const uint32_t *b = (volatile const uint32_t *)(uintptr_t)r_addr;
             for (uint32_t i = 0; i < FRAME_BYTES / 4u; i++) {
                 uint32_t x = a[i], y = b[i];
@@ -268,7 +304,8 @@ int main(void)
         res[f].status        = st;
         res[f].latency_cycles = t1 - t_in_done;   /* latency: last input read -> last output written */
         res[f].decomp_latency_cycles = has_decomp ? t3 - t_d_in : 0;
-        for (int w = 0; w < 7; w++) res[f].reserved[w] = 0;
+        res[f].fx_bytes = fx_bytes;
+        for (int w = 0; w < 6; w++) res[f].reserved[w] = 0;
 
         uint32_t cr = comp_bytes ? (uint32_t)(((uint64_t)FRAME_BYTES * 10000u + comp_bytes / 2u) / comp_bytes) : 0;
         putu_w(f, 5); putu_w(comp_bytes, 13); puts_("  "); put_fixed4(cr);

@@ -13,6 +13,9 @@
 #define DMA_D_BASE      0x41E10000u   /* feeds the decompressor          */
 #define COMP_BASE       0x44A00000u   /* <algo>_tdm_compress  s_axi_control */
 #define DECOMP_BASE     0x44A10000u   /* <algo>_tdm_decompress s_axi_control */
+#define DMA_F_BASE      0x41E20000u   /* _fe builds: S2MM copy of the front end's FX16 output */
+#define FE_BASE         0x44A20000u   /* _fe builds: radar_fe s_axi_control */
+#define FE_ARG_NRAMPS   0x10
 
 /* ---- DDR4 (1 GB at 0x8000_0000) --------------------------------------
  * The bottom of DDR is left free in case the linker places code there.   */
@@ -21,6 +24,7 @@
 #define COMP_OUT_BASE   0xA0000000u   /* compressed frame f at + f*COMP_SLOT */
 #define COMP_SLOT       0x00100000u   /* 1 MiB per frame (worst case ~655 KB) */
 #define RECON_BASE      0xB0000000u   /* reconstructed frames, back to back */
+#define FX_BASE         0xB4000000u   /* _fe builds: FX16 frames from the front end */
 #define RESULT_BASE     0xBF000000u   /* per-frame result records           */
 #define MBOX_BASE       0xBF100000u   /* host <-> MicroBlaze mailbox        */
 
@@ -31,10 +35,11 @@
 #define MBOX_VERSION    4
 #define MBOX_FLAGS      5   /* written by host: bit0 = decompressor present */
 #define FLAG_HAS_DECOMP 0x1u
+#define FLAG_HAS_FE     0x2u   /* bit1 = on-chip range-FFT front end: frames are raw ADC */
 #define MAXDIFF_NA      0xFFFFFFFFu  /* max_diff when there is no on-chip decompressor */
 #define STATUS_RUNNING  0xB007B007u
 #define STATUS_DONE     0xD0D0D0D0u
-#define FW_VERSION      0x00010100u   /* 1.1: decode latency, 64-byte records */
+#define FW_VERSION      0x00010200u   /* 1.2: optional range-FFT front end */
 
 /* one result record per frame, 16 words = 64 bytes (RESULT_WORDS) */
 typedef struct {
@@ -48,7 +53,8 @@ typedef struct {
     uint32_t latency_cycles;  /* encoder: last input word read (MM2S IOC) -> last output
                                  word written (S2MM IOC); Kiem's end-to-end latency */
     uint32_t decomp_latency_cycles; /* decoder: the same measurement on dma_d */
-    uint32_t reserved[7];
+    uint32_t fx_bytes;        /* _fe builds: FX16 bytes the front end produced (dma_f) */
+    uint32_t reserved[6];
 } result_t;
 #define RESULT_WORDS 16
 
@@ -58,6 +64,7 @@ typedef struct {
 #define ERR_DMA_D           0x08u
 #define ERR_RECON_LEN       0x10u
 #define ERR_MM2S_LEFTOVER   0x20u
+#define ERR_FE              0x40u   /* front end timeout, dma_f error or short FX16 frame */
 
 /* ---- frame geometry (ColoRadar, 4 RX to hardware) -------------------- */
 #define N_SAMPLES   128
@@ -65,6 +72,8 @@ typedef struct {
 #define N_RX        4
 #define N_TX        12
 #define FRAME_BYTES (N_SAMPLES * N_RAMPS * N_RX * 4u)   /* 393,216 */
+#define N_ADC       256                                /* ADC samples per ramp (front end input) */
+#define RAW_FRAME_BYTES (N_ADC * N_RAMPS * N_RX * 4u)    /* 786,432 */
 #define MAX_FRAMES  50
 
 /* ---- AXI DMA (simple mode) register offsets --------------------------- */

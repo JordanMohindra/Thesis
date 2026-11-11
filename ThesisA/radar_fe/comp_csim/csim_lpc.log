@@ -1,0 +1,186 @@
+
+****** vitis-run v2026.1 (64-bit)
+  **** SW Build 6511674 on 2026-06-16-13:14:00
+  **** Start of session at: Wed Nov 11 16:19:37 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+  **** HLS Build v2026.1 6493734
+INFO: [HLS 200-2005] Using work_dir D:/Thesis/ThesisA/radar_fe/comp_csim/w_lpc 
+INFO: [HLS 200-2176] Writing Vitis IDE component file D:/Thesis/ThesisA/radar_fe/comp_csim/w_lpc/vitis-comp.json
+INFO: [HLS 200-10] Creating and opening component 'D:/Thesis/ThesisA/radar_fe/comp_csim/w_lpc'.
+INFO: [HLS 200-2174] Applying component config ini file csim_lpc.cfg
+INFO: [HLS 200-1465] Applying config ini 'syn.file=D:/Thesis/ThesisA/hls_component/lpc_tdm_compress.cpp' from csim_lpc.cfg(5)
+INFO: [HLS 200-10] Adding design file 'D:/Thesis/ThesisA/hls_component/lpc_tdm_compress.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.file=D:/Thesis/ThesisA/hls_component/lpc_tdm_decompress.cpp' from csim_lpc.cfg(6)
+INFO: [HLS 200-10] Adding design file 'D:/Thesis/ThesisA/hls_component/lpc_tdm_decompress.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.file=D:/Thesis/ThesisA/hls_component/lpc_tdm.cpp' from csim_lpc.cfg(7)
+INFO: [HLS 200-10] Adding design file 'D:/Thesis/ThesisA/hls_component/lpc_tdm.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'tb.file=D:/Thesis/ThesisA/hls_component/lpc_tdm_tb.cpp' from csim_lpc.cfg(9)
+INFO: [HLS 200-10] Adding test bench file 'D:/Thesis/ThesisA/hls_component/lpc_tdm_tb.cpp' to the project
+INFO: [HLS 200-1465] Applying config ini 'tb.file=coloradar_multiframe.bin' from csim_lpc.cfg(10)
+INFO: [HLS 200-10] Adding test bench file 'D:/Thesis/ThesisA/radar_fe/comp_csim/coloradar_multiframe.bin' to the project
+INFO: [HLS 200-1465] Applying config ini 'syn.top=lpc_tdm_compress' from csim_lpc.cfg(8)
+INFO: [HLS 200-1465] Applying config ini 'part=xcku5p-ffvb676-2-e' from csim_lpc.cfg(1)
+INFO: [HLS 200-1611] Setting target device to 'xcku5p-ffvb676-2-e'
+INFO: [HLS 200-1465] Applying config ini 'clock=100MHz' from csim_lpc.cfg(4)
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-1465] Applying config ini 'csim.O=true' from csim_lpc.cfg(11)
+INFO: [HLS 200-1907] Replacing 'config_csim -O=1' with 'config_sim -O=1' in current solution file
+INFO: [HLS 200-2176] Writing Vitis IDE component file D:/Thesis/ThesisA/radar_fe/comp_csim/w_lpc/vitis-comp.json
+INFO: [SIM 211-2] *************** CSIM start ***************
+INFO: [HLS 200-2191] C-Simulation will use clang-16 as the compiler
+INFO: [HLS 200-2036] Building optimized C Simulation binaries
+   Compiling ../../../../../../hls_component/lpc_tdm_tb.cpp in release mode
+   Compiling ../../../../../../hls_component/lpc_tdm.cpp in release mode
+   Compiling ../../../../../../hls_component/lpc_tdm_decompress.cpp in release mode
+   Compiling ../../../../../../hls_component/lpc_tdm_compress.cpp in release mode
+   Generating csim.exe
+In file included from ../../../../../../hls_component/lpc_tdm_tb.cpp:9:
+In file included from ../../../../../../hls_component/lpc_tdm_compress.h:4:
+In file included from ../../../../../../hls_component/lpc_tdm_common.h:30:
+In file included from ../../../../../../hls_component/lpc_common.h:26:
+In file included from ../../../../../../hls_component/drhe_common.h:4:
+In file included from D:/Xilinx/2026.1/Vitis/include\ap_fixed.h:9:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_common.h:668:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_private.h:68:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_half.h:26:
+In file included from D:/Xilinx/2026.1/Vitis/include/etc/hls_half_fpo.h:19:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_fpo.h:140:
+In file included from D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:150:
+D:/Xilinx/2026.1/Vitis/include\gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../../../hls_component/lpc_tdm.cpp:1:
+In file included from ../../../../../../hls_component/lpc_tdm_common.h:30:
+In file included from ../../../../../../hls_component/lpc_common.h:26:
+In file included from ../../../../../../hls_component/drhe_common.h:4:
+In file included from D:/Xilinx/2026.1/Vitis/include\ap_fixed.h:9:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_common.h:668:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_private.h:68:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_half.h:26:
+In file included from D:/Xilinx/2026.1/Vitis/include/etc/hls_half_fpo.h:19:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_fpo.h:140:
+In file included from D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:150:
+D:/Xilinx/2026.1/Vitis/include\gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../../../hls_component/lpc_tdm_decompress.cpp:1:
+In file included from ../../../../../../hls_component/lpc_tdm_decompress.h:4:
+In file included from ../../../../../../hls_component/lpc_tdm_common.h:30:
+In file included from ../../../../../../hls_component/lpc_common.h:26:
+In file included from ../../../../../../hls_component/drhe_common.h:4:
+In file included from D:/Xilinx/2026.1/Vitis/include\ap_fixed.h:9:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_common.h:668:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_private.h:68:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_half.h:26:
+In file included from D:/Xilinx/2026.1/Vitis/include/etc/hls_half_fpo.h:19:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_fpo.h:140:
+In file included from D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:150:
+D:/Xilinx/2026.1/Vitis/include\gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+In file included from ../../../../../../hls_component/lpc_tdm_compress.cpp:1:
+In file included from ../../../../../../hls_component/lpc_tdm_compress.h:4:
+In file included from ../../../../../../hls_component/lpc_tdm_common.h:30:
+In file included from ../../../../../../hls_component/lpc_common.h:26:
+In file included from ../../../../../../hls_component/drhe_common.h:4:
+In file included from D:/Xilinx/2026.1/Vitis/include\ap_fixed.h:9:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_common.h:668:
+In file included from D:/Xilinx/2026.1/Vitis/include\etc/ap_private.h:68:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_half.h:26:
+In file included from D:/Xilinx/2026.1/Vitis/include/etc/hls_half_fpo.h:19:
+In file included from D:/Xilinx/2026.1/Vitis/include\hls_fpo.h:140:
+In file included from D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:150:
+D:/Xilinx/2026.1/Vitis/include\gmp.h:58:9: warning: '__GMP_LIBGMP_DLL' macro redefined [-Wmacro-redefined]
+#define __GMP_LIBGMP_DLL  0
+        ^
+D:/Xilinx/2026.1/Vitis/include/floating_point_v7_1_bitacc_cmodel.h:142:9: note: previous definition is here
+#define __GMP_LIBGMP_DLL 1
+        ^
+1 warning generated.
+==========================================================
+ LPC-TDM Compression & Decompression Testbench            
+ Prediction lags = nTx and 2*nTx (true slow-time axis)         
+ Target FPGA: AMD Kintex UltraScale+ (xcku5p-ffvb676-2-e) 
+==========================================================
+[INFO] Loaded header: 50 frames x 192 ramps x 128 samples x 4 RX channels;  nTx = 12
+  Frame 0: CR=4.78691x  MaxDiff=0  Bits=3145728->657152  [LOSSLESS]
+  Frame 1: CR=4.76095x  MaxDiff=0  Bits=3145728->660736  [LOSSLESS]
+  Frame 2: CR=4.70805x  MaxDiff=0  Bits=3145728->668160  [LOSSLESS]
+  Frame 3: CR=4.63698x  MaxDiff=0  Bits=3145728->678400  [LOSSLESS]
+  Frame 4: CR=4.58166x  MaxDiff=0  Bits=3145728->686592  [LOSSLESS]
+  Frame 5: CR=4.64224x  MaxDiff=0  Bits=3145728->677632  [LOSSLESS]
+  Frame 6: CR=4.74074x  MaxDiff=0  Bits=3145728->663552  [LOSSLESS]
+  Frame 7: CR=4.79251x  MaxDiff=0  Bits=3145728->656384  [LOSSLESS]
+  Frame 8: CR=4.78878x  MaxDiff=0  Bits=3145728->656896  [LOSSLESS]
+  Frame 9: CR=4.75542x  MaxDiff=0  Bits=3145728->661504  [LOSSLESS]
+  Frame 10: CR=4.71346x  MaxDiff=0  Bits=3145728->667392  [LOSSLESS]
+  Frame 11: CR=4.64575x  MaxDiff=0  Bits=3145728->677120  [LOSSLESS]
+  Frame 12: CR=4.54438x  MaxDiff=0  Bits=3145728->692224  [LOSSLESS]
+  Frame 13: CR=4.54774x  MaxDiff=0  Bits=3145728->691712  [LOSSLESS]
+  Frame 14: CR=4.67758x  MaxDiff=0  Bits=3145728->672512  [LOSSLESS]
+  Frame 15: CR=4.7591x  MaxDiff=0  Bits=3145728->660992  [LOSSLESS]
+  Frame 16: CR=4.73709x  MaxDiff=0  Bits=3145728->664064  [LOSSLESS]
+  Frame 17: CR=4.47813x  MaxDiff=0  Bits=3145728->702464  [LOSSLESS]
+  Frame 18: CR=4.14575x  MaxDiff=0  Bits=3145728->758784  [LOSSLESS]
+  Frame 19: CR=4.16119x  MaxDiff=0  Bits=3145728->755968  [LOSSLESS]
+  Frame 20: CR=4.18386x  MaxDiff=0  Bits=3145728->751872  [LOSSLESS]
+  Frame 21: CR=4.19243x  MaxDiff=0  Bits=3145728->750336  [LOSSLESS]
+  Frame 22: CR=4.27409x  MaxDiff=0  Bits=3145728->736000  [LOSSLESS]
+  Frame 23: CR=4.4361x  MaxDiff=0  Bits=3145728->709120  [LOSSLESS]
+  Frame 24: CR=4.56973x  MaxDiff=0  Bits=3145728->688384  [LOSSLESS]
+  Frame 25: CR=4.46512x  MaxDiff=0  Bits=3145728->704512  [LOSSLESS]
+  Frame 26: CR=4.54606x  MaxDiff=0  Bits=3145728->691968  [LOSSLESS]
+  Frame 27: CR=4.57995x  MaxDiff=0  Bits=3145728->686848  [LOSSLESS]
+  Frame 28: CR=4.47813x  MaxDiff=0  Bits=3145728->702464  [LOSSLESS]
+  Frame 29: CR=4.52264x  MaxDiff=0  Bits=3145728->695552  [LOSSLESS]
+  Frame 30: CR=4.53097x  MaxDiff=0  Bits=3145728->694272  [LOSSLESS]
+  Frame 31: CR=4.45056x  MaxDiff=0  Bits=3145728->706816  [LOSSLESS]
+  Frame 32: CR=4.51101x  MaxDiff=0  Bits=3145728->697344  [LOSSLESS]
+  Frame 33: CR=4.47324x  MaxDiff=0  Bits=3145728->703232  [LOSSLESS]
+  Frame 34: CR=4.19386x  MaxDiff=0  Bits=3145728->750080  [LOSSLESS]
+  Frame 35: CR=4.28601x  MaxDiff=0  Bits=3145728->733952  [LOSSLESS]
+  Frame 36: CR=4.38544x  MaxDiff=0  Bits=3145728->717312  [LOSSLESS]
+  Frame 37: CR=4.11245x  MaxDiff=0  Bits=3145728->764928  [LOSSLESS]
+  Frame 38: CR=4.06753x  MaxDiff=0  Bits=3145728->773376  [LOSSLESS]
+  Frame 39: CR=4.41538x  MaxDiff=0  Bits=3145728->712448  [LOSSLESS]
+  Frame 40: CR=4.22558x  MaxDiff=0  Bits=3145728->744448  [LOSSLESS]
+  Frame 41: CR=4.21544x  MaxDiff=0  Bits=3145728->746240  [LOSSLESS]
+  Frame 42: CR=4.26075x  MaxDiff=0  Bits=3145728->738304  [LOSSLESS]
+  Frame 43: CR=4.07427x  MaxDiff=0  Bits=3145728->772096  [LOSSLESS]
+  Frame 44: CR=4.02094x  MaxDiff=0  Bits=3145728->782336  [LOSSLESS]
+  Frame 45: CR=4.00522x  MaxDiff=0  Bits=3145728->785408  [LOSSLESS]
+  Frame 46: CR=3.95113x  MaxDiff=0  Bits=3145728->796160  [LOSSLESS]
+  Frame 47: CR=3.84721x  MaxDiff=0  Bits=3145728->817664  [LOSSLESS]
+  Frame 48: CR=3.76355x  MaxDiff=0  Bits=3145728->835840  [LOSSLESS]
+  Frame 49: CR=3.52597x  MaxDiff=0  Bits=3145728->892160  [LOSSLESS]
+[INFO] Golden compressed streams written to golden_lpc_tdm_compressed.bin
+
+==========================================================
+ GLOBAL VERIFICATION RESULTS (50 frames)
+==========================================================
+ Max LSB Difference    : 0
+ Mean Squared Error    : 0
+ Signal-to-Noise Ratio : INFINITE (Lossless)
+ Average CR (per-frame): 4.40338x
+ Overall CR (aggregate): 4.38225x
+==========================================================
+[SUCCESS] All 50 frames: LOSSLESS reconstruction!
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 98304
+INFO: [SIM 211-1] CSim done with 0 errors.
+INFO: [SIM 211-3] *************** CSIM finish ***************
+INFO: [HLS 200-112] Total CPU user time: 2 seconds. Total CPU system time: 3 seconds. Total elapsed time: 170.015 seconds; peak allocated memory: 132.836 MB.
+INFO: [vitis-run 60-791] Total elapsed time: 0h 2m 54s

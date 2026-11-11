@@ -40,10 +40,18 @@ set jobs    [expr {[llength $argv] > 2 ? [lindex $argv 2] : 3}]
 #   ~182k LUTs (8 values decoded per clock) to ~43k (1 value per clock).
 set decomp  [expr {[llength $argv] > 3 ? [lindex $argv 3] : 0}]
 if {$decomp eq "auto"} { set decomp 0 }
+# 0 (default): the compressor takes FX16 range-FFT frames from DDR (computed in MATLAB).
+# 1: an on-chip range-FFT front end (radar_fe: DC removal, Hann window, 256-point FFT,
+#   FX16 quantisation) sits between the DMA and the compressor, so the DMA streams
+#   raw ADC frames; an AXI4-Stream broadcaster also copies the front end's FX16
+#   output to DDR through dma_f (S2MM only) so the board can check the decoder
+#   against exactly what the compressor received. Outputs out/kcu116_<algo>_fe[_full].*
+set fe      [expr {[llength $argv] > 4 ? [lindex $argv 4] : 0}]
 if {$algo ni {drhe lpc}} { error "first argument must be drhe or lpc, got '$algo'" }
-# outputs are named by tag: <algo> (compress only) or <algo>_full (with on-chip decompressor)
+# outputs are named by tag: <algo>[_fe][_full]
 set tag $algo
-if {$decomp} { set tag ${algo}_full }
+if {$fe}     { set tag ${tag}_fe }
+if {$decomp} { set tag ${tag}_full }
 
 set here     [file dirname [file normalize [info script]]]
 set root     [file normalize $here/..]
@@ -53,7 +61,7 @@ set proj_dir [file normalize $root/build/vivado_$tag]
 file mkdir $out_dir
 if {[string first " " $proj_dir] >= 0} { error "Project path contains a space: $proj_dir. Copy fpga_kcu116 to a path without spaces (e.g. D:/Thesis/ThesisA/fpga_kcu116)." }
 
-puts "=== KCU116 build: algo=$algo tag=$tag ddr=$ddr_if jobs=$jobs decompressor=$decomp ==="
+puts "=== KCU116 build: algo=$algo tag=$tag ddr=$ddr_if jobs=$jobs decompressor=$decomp front_end=$fe ==="
 
 # ---------------------------------------------------------------- project ----
 create_project kcu116_$tag $proj_dir -part xcku5p-ffvb676-2-e -force
@@ -72,6 +80,7 @@ proc find_ip {name} {
 }
 set comp_vlnv   [find_ip ${algo}_tdm_compress]
 if {$decomp} { set decomp_vlnv [find_ip ${algo}_tdm_decompress] }
+if {$fe}     { set fe_vlnv     [find_ip radar_fe] }
 
 # ------------------------------------------------------------ block design ---
 create_bd_design system
@@ -168,7 +177,23 @@ proc make_dma {name mm2s_w s2mm_w} {
 }
 make_dma dma_c 128 256
 create_bd_cell -type ip -vlnv $comp_vlnv   comp
-connect_bd_intf_net [get_bd_intf_pins dma_c/M_AXIS_MM2S] [get_bd_intf_pins comp/in_stream]
+if {$fe} {
+    # dma_c MM2S (raw ADC) -> radar_fe -> broadcaster -> comp, and -> dma_f S2MM (FX16 copy)
+    create_bd_cell -type ip -vlnv $fe_vlnv fe
+    set bc [create_bd_cell -type ip -vlnv xilinx.com:ip:axis_broadcaster bc]
+    set_property -dict [list CONFIG.NUM_MI 2 CONFIG.S_TDATA_NUM_BYTES 16 CONFIG.M_TDATA_NUM_BYTES 16 \
+        CONFIG.M00_TDATA_REMAP {tdata[127:0]} CONFIG.M01_TDATA_REMAP {tdata[127:0]}] $bc
+    set df [create_bd_cell -type ip -vlnv xilinx.com:ip:axi_dma dma_f]
+    set_property -dict [list CONFIG.c_include_sg 0 CONFIG.c_sg_length_width 26 CONFIG.c_addr_width 32 \
+        CONFIG.c_include_mm2s 0 CONFIG.c_m_axi_s2mm_data_width 128 CONFIG.c_s_axis_s2mm_tdata_width 128 \
+        CONFIG.c_s2mm_burst_size 64] $df
+    connect_bd_intf_net [get_bd_intf_pins dma_c/M_AXIS_MM2S] [get_bd_intf_pins fe/in_stream]
+    connect_bd_intf_net [get_bd_intf_pins fe/out_stream]     [get_bd_intf_pins bc/S_AXIS]
+    connect_bd_intf_net [get_bd_intf_pins bc/M00_AXIS]       [get_bd_intf_pins comp/in_stream]
+    connect_bd_intf_net [get_bd_intf_pins bc/M01_AXIS]       [get_bd_intf_pins dma_f/S_AXIS_S2MM]
+} else {
+    connect_bd_intf_net [get_bd_intf_pins dma_c/M_AXIS_MM2S] [get_bd_intf_pins comp/in_stream]
+}
 connect_bd_intf_net [get_bd_intf_pins comp/out_stream]   [get_bd_intf_pins dma_c/S_AXIS_S2MM]
 if {$decomp} {
     make_dma dma_d 256 128
@@ -179,7 +204,9 @@ if {$decomp} {
 
 # ---- interconnect -----------------------------------------------------------
 set sc [create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect sc_0]
-set_property -dict [list CONFIG.NUM_SI [expr {$decomp ? 5 : 3}] CONFIG.NUM_MI [expr {$decomp ? 8 : 6}] CONFIG.NUM_CLKS 2] $sc
+set n_si [expr {3 + ($decomp ? 2 : 0) + ($fe ? 1 : 0)}]
+set n_mi [expr {6 + ($decomp ? 2 : 0) + ($fe ? 2 : 0)}]
+set_property -dict [list CONFIG.NUM_SI $n_si CONFIG.NUM_MI $n_mi CONFIG.NUM_CLKS 2] $sc
 connect_bd_intf_net [get_bd_intf_pins microblaze_0/M_AXI_DP] [get_bd_intf_pins sc_0/S00_AXI]
 connect_bd_intf_net [get_bd_intf_pins dma_c/M_AXI_MM2S]      [get_bd_intf_pins sc_0/S01_AXI]
 connect_bd_intf_net [get_bd_intf_pins dma_c/M_AXI_S2MM]      [get_bd_intf_pins sc_0/S02_AXI]
@@ -197,6 +224,14 @@ if {$decomp} {
     connect_bd_intf_net [get_bd_intf_pins sc_0/M06_AXI] [get_bd_intf_pins dma_d/S_AXI_LITE]
     connect_bd_intf_net [get_bd_intf_pins sc_0/M07_AXI] [get_bd_intf_pins decomp/s_axi_control]
 }
+if {$fe} {
+    set si_f [format S%02d_AXI [expr {$n_si - 1}]]
+    set mi_f [format M%02d_AXI [expr {$n_mi - 2}]]
+    set mi_e [format M%02d_AXI [expr {$n_mi - 1}]]
+    connect_bd_intf_net [get_bd_intf_pins dma_f/M_AXI_S2MM] [get_bd_intf_pins sc_0/$si_f]
+    connect_bd_intf_net [get_bd_intf_pins sc_0/$mi_f] [get_bd_intf_pins dma_f/S_AXI_LITE]
+    connect_bd_intf_net [get_bd_intf_pins sc_0/$mi_e] [get_bd_intf_pins fe/s_axi_control]
+}
 
 connect_bd_net $clk    [get_bd_pins sc_0/aclk]
 connect_bd_net $ui_clk [get_bd_pins sc_0/aclk1]
@@ -210,6 +245,10 @@ if {$decomp} {
     lappend clk_pins dma_d/s_axi_lite_aclk dma_d/m_axi_mm2s_aclk dma_d/m_axi_s2mm_aclk decomp/ap_clk
     lappend rst_pins dma_d/axi_resetn decomp/ap_rst_n
 }
+if {$fe} {
+    lappend clk_pins dma_f/s_axi_lite_aclk dma_f/m_axi_s2mm_aclk fe/ap_clk bc/aclk
+    lappend rst_pins dma_f/axi_resetn fe/ap_rst_n bc/aresetn
+}
 foreach p $clk_pins { connect_bd_net $clk [get_bd_pins $p] }
 foreach p $rst_pins { connect_bd_net [get_bd_pins rst_100/peripheral_aresetn] [get_bd_pins $p] }
 
@@ -222,6 +261,7 @@ assign_bd_address -offset 0x00000000 -range 128K -target_address_space $ispace [
 set ddr_seg [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK]
 set dma_spaces {dma_c/Data_MM2S dma_c/Data_S2MM}
 if {$decomp} { lappend dma_spaces dma_d/Data_MM2S dma_d/Data_S2MM }
+if {$fe}     { lappend dma_spaces dma_f/Data_S2MM }
 foreach sp [concat [list $dspace] [lmap x $dma_spaces {get_bd_addr_spaces $x}]] {
     assign_bd_address -offset 0x80000000 -range 1G -target_address_space $sp $ddr_seg -force
 }
@@ -235,10 +275,15 @@ if {$decomp} {
     assign_bd_address -offset 0x41E10000 -range 64K -target_address_space $dspace [seg_of dma_d/S_AXI_LITE]     -force
     assign_bd_address -offset 0x44A10000 -range 64K -target_address_space $dspace [seg_of decomp/s_axi_control] -force
 }
+if {$fe} {
+    assign_bd_address -offset 0x41E20000 -range 64K -target_address_space $dspace [seg_of dma_f/S_AXI_LITE]     -force
+    assign_bd_address -offset 0x44A20000 -range 64K -target_address_space $dspace [seg_of fe/s_axi_control]     -force
+}
 
 # the DMAs only ever address DDR: exclude every control-register segment from them
 set ctrl_intfs {gpio_led/S_AXI uart_0/S_AXI timer_0/S_AXI dma_c/S_AXI_LITE comp/s_axi_control}
 if {$decomp} { lappend ctrl_intfs dma_d/S_AXI_LITE decomp/s_axi_control }
+if {$fe}     { lappend ctrl_intfs dma_f/S_AXI_LITE fe/s_axi_control }
 foreach sp $dma_spaces {
     foreach intf $ctrl_intfs {
         catch { exclude_bd_addr_seg -target_address_space [get_bd_addr_spaces $sp] [seg_of $intf] }
@@ -284,6 +329,6 @@ set bit [lindex [glob -nocomplain $proj_dir/kcu116_$tag.runs/impl_1/*.bit] 0]
 file copy -force $bit $out_dir/kcu116_${tag}.bit
 write_hw_platform -fixed -include_bit -force $out_dir/kcu116_${tag}.xsa
 set fp [open $out_dir/kcu116_${tag}.info w]
-puts $fp "algo $algo\ntag $tag\ndecomp $decomp\nddr $ddr_if\nwns $wns"
+puts $fp "algo $algo\ntag $tag\ndecomp $decomp\nfe $fe\nddr $ddr_if\nwns $wns"
 close $fp
 puts "=== DONE: $out_dir/kcu116_${tag}.bit and .xsa (WNS $wns ns) ==="
