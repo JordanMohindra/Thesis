@@ -1,0 +1,57 @@
+bitstream lpc_fe_full (lpc), 50 frames, on-chip decompressor: 1, on-chip range FFT: 1, dumping 5 compressed frames
+== connect
+attempting to launch hw_server
+
+****** Xilinx hw_server v2026.1
+  **** Build date : May 29 2026 at 14:55:19
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+INFO: hw_server application started
+INFO: Use Ctrl-C to exit hw_server application
+
+
+
+****** Xilinx hw_server v2026.1
+
+  **** Build date : May 29 2026 at 14:55:19
+
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+
+    ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+
+
+INFO: hw_server application started
+
+INFO: Use Ctrl-C to exit hw_server application
+
+
+
+
+INFO: To connect to this hw_server instance use url: TCP:127.0.0.1:3121
+
+
+
+  1  xcku5p
+     2  MicroBlaze Debug Module at USER2
+        3  MicroBlaze #0 (Running)
+     4  Legacy Debug Hub
+== program FPGA with C:/Users/mohin/Thesis/ThesisA/fpga_kcu116/out/kcu116_lpc_fe_full.bit
+== MicroBlaze: reset + download C:/Users/mohin/Thesis/ThesisA/fpga_kcu116/out/radar_app_lpc_fe_full.elf
+== loading 50 frames (39321600 bytes) into DDR at 0x90000000 - this is slow over JTAG
+   loaded in 162.5 s (236 KB/s)
+== run (watch the UART terminal)
+   status 0xB007B007  frames done 16 / 50
+   status 0xB007B007  frames done 32 / 50
+   status 0xB007B007  frames done 49 / 50
+   status 0xD0D0D0D0  frames done 50 / 50
+== dumping results
+   frame 0: 82144 compressed bytes -> comp_0.bin
+   frame 1: 82592 compressed bytes -> comp_1.bin
+   frame 2: 83520 compressed bytes -> comp_2.bin
+   frame 3: 84800 compressed bytes -> comp_3.bin
+   frame 4: 85824 compressed bytes -> comp_4.bin
+   FX16 frames from the front end -> fx16_frames.bin (77.8 s)
+== done. Now run:  python compare_results.py lpc_fe_full
+BOARD_DONE 

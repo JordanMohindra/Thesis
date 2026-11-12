@@ -1,0 +1,10 @@
+algo drhe
+tag drhe_fe_full
+rec_words 16
+nframes 50
+ndump 5
+decomp 1
+fe 1
+bit C:/Users/mohin/Thesis/ThesisA/fpga_kcu116/out/kcu116_drhe_fe_full.bit
+elf C:/Users/mohin/Thesis/ThesisA/fpga_kcu116/out/radar_app_drhe_fe_full.elf
+date Thu Nov 12 12:19:29 +1100 2026
