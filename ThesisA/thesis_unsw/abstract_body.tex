@@ -29,7 +29,10 @@ Both compressors and their decompressors were written in C++, synthesised
 with Vitis HLS and Vivado, and run on an AMD KCU116 (Kintex UltraScale+) board
 at \SI{100}{\mega\hertz}. On the board all 50 frames were compressed
 byte-identically to the simulation, and the board's own decoders reconstructed
-every frame exactly. DRHE
+every frame exactly. With a range-FFT front end also on the FPGA, the board
+starts from raw ADC samples; its 16-bit codes differ from MATLAB's in
+\SI{0.016}{\percent} of values, by one step, so the ratios are unchanged to four
+significant figures. DRHE
 compresses a frame in \SI{0.61}{\milli\second} (\SI{5.1}{Gbit/s}) and streams
 its output with \SI{13}{\micro\second} of latency. LPC takes
 \SI{3.25}{\milli\second} and, because its coefficients depend on the whole

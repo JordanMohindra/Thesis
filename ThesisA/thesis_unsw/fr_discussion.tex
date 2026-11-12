@@ -195,6 +195,12 @@ ramps in recorded order, it has no angle FFT, detections are matched cell by
 cell with no positional tolerance, and the threshold is not swept. The
 absolute rates of the lossy schemes should therefore be read as relative.
 
+\item \textbf{The method study uses MATLAB's range FFT.} Its FX16 codes come
+from a double-precision FFT. The range FFT on the FPGA gives the same codes
+except for \SI{0.016}{\percent} that differ by one step, which changes the
+ratios in the fifth significant figure and the detection totals by three of
+\num{11148} (Section~\ref{sec:feresults}).
+
 \item \textbf{BAQ is a block-floating-point stand-in.} A better-tuned,
 statistics-driven BAQ could lose fewer detections at the same ratio; it would
 still be lossy.

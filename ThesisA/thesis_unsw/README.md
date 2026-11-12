@@ -10,7 +10,7 @@ cross-references settle). Output: `thesis.pdf`.
   automatically). Check it against the current form on Moodle, then sign.
 - `cover.tex` (+ `abstract_body.tex`), `acknowledgements.tex`, `abbreviations.tex`
 - `fr_*.tex` - the chapters. The main body (Chapter 1 to Chapter 11) is about
-  84 pages, inside the template's 100-page limit.
+  88 pages, inside the template's 100-page limit.
 - `figs/` - the figures. Data plots are all MATLAB: `fig_bits.pdf` and
   `fig_kr_sweep.pdf` from `figsrc_matlab/thesis_figs.m`, the PNGs from
   `../Matlab_Sim/make_poster_figs.m`. Block diagrams are TikZ in the chapter files.

@@ -346,6 +346,46 @@ constant $+32767$ and $-32768$, alternating full scale, uniform random values,
 small noise, a random walk along the ramps, and small noise with full-scale
 spikes.
 
+\section{Range FFT on chip}
+\label{sec:fehw}
+
+The compressors take FX16 range-FFT codes, and the method study takes those
+codes from MATLAB (Section~\ref{sec:refchain}). To check that no result depends
+on that, and to let the board start from raw ADC samples as a sensor would, the
+MATLAB chain was also written in Vitis HLS as a range-FFT front end. For each
+ramp of 256 complex samples on each of the four channels it applies the
+symmetric Hann window, a 256-point FFT, removes the ramp mean, keeps bins 0 to
+127 and rounds to FX16 exactly as Equation~\eqref{eq:scale} does, saturating
+at the \texttt{int16} limits.
+
+\paragraph{Structure.} The core is a dataflow pipeline of ten processes: the
+window, eight radix-2 decimation-in-frequency stages, each holding one ramp of
+the four channels, and an output stage that undoes the bit-reversed order of the
+bins and scales. All four channels are transformed in parallel, so one 128-bit
+beat of raw samples enters per step; the core takes about 1.5 clocks per beat,
+\num{75175} cycles per frame in RTL co-simulation.
+
+\paragraph{The ramp mean.} MATLAB subtracts each ramp's mean before the
+window, but a streaming core knows the mean only once the last sample of the
+ramp has arrived. Since the FFT is linear, the core instead accumulates the
+mean $\mu$ while the ramp streams in and subtracts $\mu\,W[k]$ from each bin
+$X[k]$ at the output, where $W$ is the FFT of the quantised window, held in a
+table. This adds a multiply--subtract per bin and no buffering.
+
+\paragraph{Arithmetic.} The datapath is fixed point: 36-bit values with 26
+integer bits through the FFT, an 18-bit window and 18-bit twiddle factors.
+The final scaling by $1/63.75$ rounds half away from zero, as MATLAB's
+\texttt{round} does. Fixed-point twiddles cannot match double precision
+exactly, so a value that lies within a hair of a rounding boundary can round
+the other way; Section~\ref{sec:feresults} measures how often.
+
+\paragraph{In the system.} The front end sits between the input DMA and the
+compressor. An AXI4-Stream broadcaster also sends its output to a third DMA,
+\texttt{dma\_f}, which writes the FX16 codes to DDR4 so that the host can
+check them against simulation. Post-route the front end uses \num{14511} LUTs,
+\num{17142} flip-flops, 64.5 block RAMs and 296 DSP slices, most of them in the
+butterflies' complex multipliers. These builds are called \texttt{\_fe\_full}.
+
 \section{The board test system}
 \label{sec:system}
 
@@ -397,7 +437,9 @@ compressed frame through the decompressor and writes the reconstruction back,
 so the board compresses, decompresses and checks every frame by itself. A UART,
 a hardware timer and LEDs complete the system, all on one AXI interconnect at
 \SI{100}{\mega\hertz}. Each algorithm therefore has two bitstreams: a
-compress-only build and a \texttt{\_full} build with the decompressor.
+compress-only build and a \texttt{\_full} build with the decompressor, and a
+third, \texttt{\_fe\_full}, adds the range-FFT front end of
+Section~\ref{sec:fehw}.
 
 \paragraph{Firmware.} For each frame the MicroBlaze configures the core's frame
 dimensions, starts the DMA transfers, and reads a hardware timer at the start,
@@ -422,18 +464,18 @@ cycles and latency.
 \label{sec:timing}
 
 Each core is exported from Vitis HLS as an IP block and placed in a Vivado block
-design with the system above; a script builds each of the four bitstreams. HLS
+design with the system above; a script builds each of the six bitstreams. HLS
 estimated both compressors below the \SI{100}{\mega\hertz} target. Its estimate
 is the tool's own model of operator delays against a budget that reserves
 about a quarter of the period for clock uncertainty, not a timing analysis of a
-real circuit, and once placed and routed all four systems meet
+real circuit, and once placed and routed all six systems meet
 \SI{100}{\mega\hertz} with positive slack (Table~\ref{tab:builds}). Two system
 details were needed for that: a false path from the DDR4 calibration-complete
 signal to the processor reset, and the DDR4 interface at \SI{2400}{MT/s}.
 
 \begin{table}[t]
 \centering
-\caption[The four board builds]{The four board builds, whole system (processor,
+\caption[The six board builds]{The six board builds, whole system (processor,
 DDR4 controller, DMAs and cores), post-route on the \texttt{XCKU5P} at
 \SI{100}{\mega\hertz}, with the re-derived dictionaries; the original-dictionary
 builds also meet timing. BRAM is in 36\,Kb blocks.}
@@ -447,6 +489,8 @@ DRHE, compress only    & \num{61011} (\SI{28}{\percent}) & 104.5 & 138 & $+0.243
 LPC, compress only     & \num{59203} (\SI{27}{\percent}) & 162.5 & 164 & $+0.174$\\
 DRHE, \texttt{\_full}  & \num{81573} (\SI{38}{\percent}) & 144   & 184 & $+0.341$\\
 LPC, \texttt{\_full}   & \num{80986} (\SI{37}{\percent}) & 179.5 & 187 & $+0.220$\\
+DRHE, \texttt{\_fe\_full} & \num{101383} (\SI{47}{\percent}) & 211 & 480 & $+0.340$\\
+LPC, \texttt{\_fe\_full}  & \num{100709} (\SI{46}{\percent}) & 246.5 & 483 & $+0.374$\\
 \bottomrule
 \end{tabular}
 \end{table}

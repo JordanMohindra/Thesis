@@ -269,8 +269,10 @@ input word it still has its solve and emit passes to run:
 \SI{3.0}{\milli\second}, however the frame is fed. That is a factor of 230 on
 the board and about a thousand in a sensor-paced system. Kiem's
 \SI{79.4}{\micro\second} uses the same definition but includes the range FFT
-of the last ramp and its DMA transfers, so it measures a longer chain; both
-figures are tens of microseconds and negligible against the frame. The
+of the last ramp and its DMA transfers. Measured over the same chain, with the
+range FFT on chip (Section~\ref{sec:feresults}), this thesis's DRHE takes
+\SI{21.3}{\micro\second}; both are tens of microseconds and negligible against
+the frame. The
 decoders' latencies, \SI{339}{\micro\second} and \lpcDecLat, are their own
 backlog when the compressed input ends, not a dependence on the whole frame.
 
@@ -420,7 +422,7 @@ II & 2 & 1 & 1 & yes & One extra write per cycle to clear the state.\\
 Depth & 58 & \HW{ablk}{hDepth} & 23 & yes & Closed loop (26 cycles), then float operator latency.\\
 $F_{\max}$ & 100 met & \HW{ablk}{fmax} & 100 met & partly & All meet \SI{100}{\mega\hertz}; Kiem on speed grade $-1$.\\
 Throughput & 5.12 meas. & \HW{ablk}{thrmeas} & 12.8 theor. & theor.\ only & $\mathrm{II}=2$ against $\mathrm{II}=1$.\\
-Added latency & \SI{13.1}{\micro\second} & --- & \SI{79.4}{\micro\second} & partly & Same definition; his chain includes an FFT core.\\
+Added latency & \SI{13.1}{\micro\second}; \SI{21.3}{\micro\second} with FFT & --- & \SI{79.4}{\micro\second} & with FFT & Same definition; his chain, like the \SI{21.3}{\micro\second} figure, includes the range FFT.\\
 Compression ratio & 3.75, 4.22 & --- & 3.17 & no & Different sensor and data scaling (Chapter~\ref{ch:vskiem}).\\
 \bottomrule
 \end{tabular}

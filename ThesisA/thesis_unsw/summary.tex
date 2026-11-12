@@ -34,8 +34,8 @@ dataset (twelve-transmitter Texas Instruments cascade). The two lossless
 predictive coders, DRHE and a slow-time LPC, were adapted to time-division MIMO
 by predicting from the same transmitter, given Huffman dictionaries re-derived
 for their prediction errors, written in C++ for Vitis HLS with matching
-decoders, and built into a test system on an AMD KCU116 board, where their
-output was verified bit-exact against simulation.}
+decoders and a range-FFT front end, and built into a test system on an AMD
+KCU116 board, where their output was verified bit-exact against simulation.}
 \vspace{3mm}
 
 D.\quad\textbf{Contributions} (at most one per line, most important first)\\
@@ -44,7 +44,7 @@ Bit-exact lossless radar compression on an FPGA: 4.22$\times$ (DRHE), 4.40$\time
 Same-transmitter prediction lag for time-division MIMO radar\\ \hline
 Comparison of eight compression methods on real cascade radar data\\ \hline
 Breakdown of the compression ratio; Huffman dictionaries matched to the errors\\ \hline
-Hardware encoders and decoders measured on the board (time, latency, resources)\\ \hline
+Hardware encoders, decoders and range FFT measured on the board (time, latency, resources)\\ \hline
 Reconstruction of, and comparison with, the baseline design\\ \hline
 \end{tabular}
 \vspace{3mm}
@@ -53,7 +53,7 @@ E.\quad\textbf{Suggestions for future work}\\
 \begin{tabular}{|p{\dimexpr\textwidth-2\tabcolsep-2\arrayrulewidth\relax}|}\hline
 Fixed-point DRHE datapath to cut logic and DSP use\\ \hline
 Streaming (backward-adaptive) LPC without a frame buffer\\ \hline
-All sixteen receive channels, a range-FFT core on chip, and power measurement\\ \hline
+All sixteen receive channels and power measurement\\ \hline
 \end{tabular}
 \vspace{5mm}
 

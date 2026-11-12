@@ -194,7 +194,9 @@ on, and reverse the ranking of the two algorithms.
 implemented in Vitis HLS and Vivado and run in a board test system on an AMD
 KCU116. Compressed output is byte-identical to the simulation on all 50 frames
 with both dictionaries, the hardware decoders reconstruct every frame exactly,
-and throughput, latency and resources are measured for both halves.
+and throughput, latency and resources are measured for both halves. A range-FFT
+front end on the FPGA lets the board start from raw ADC samples and shows that
+the MATLAB front end used for the study is a faithful stand-in.
 
 \item \textbf{A comparison with the baseline} (Chapters~\ref{ch:hwinterpret} and~\ref{ch:vskiem}),
 including a reconstruction of Kiem's simulation from his text, which reaches

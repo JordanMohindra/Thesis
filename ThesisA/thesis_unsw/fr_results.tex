@@ -386,15 +386,19 @@ the board compresses each frame, decompresses it with the hardware decoder and
 compares the reconstruction with the original word by word. Both decoders
 reconstruct all 50 frames exactly, and the compressed streams are again
 byte-identical to the C-simulation.
+\item \textbf{Board, from raw ADC samples}: in the \texttt{\_fe\_full} builds
+the range FFT also runs on the FPGA. Its FX16 codes are identical to its
+C-simulation on all 50 frames, both compressed streams are byte-identical to
+the C-simulation of the compressors on those codes, and both decoders again
+reconstruct every frame exactly (Section~\ref{sec:feresults}).
 \end{itemize}
 
 \noindent
 Agreement at the board level is the strongest result here: the bytes produced
 by the FPGA are the bytes the simulation predicted, and the board's own decoder
 turns them back into the input exactly. Every compression ratio reported for the
-hardware is therefore a measured figure, and every link of the chain --- sensor
-data in, compressed stream, reconstructed data out --- has been run on the
-FPGA.
+hardware is therefore a measured figure, and every link of the chain --- raw ADC samples in, range FFT, compressed
+stream, reconstructed data out --- has been run on the FPGA.
 
 % -------------------------------------------------------------------
 \section{Speed and latency on the board}
@@ -532,6 +536,87 @@ DRHE decoder carries its own floating-point predictor and its state in block
 RAM, while the LPC decoder needs no block RAM at all, because the coefficients
 arrive ready-made in the bitstream and its few past samples per (channel, bin)
 fit in distributed RAM.
+
+% -------------------------------------------------------------------
+\section{Starting from raw ADC samples}
+\label{sec:feresults}
+
+With the range FFT on chip (Section~\ref{sec:fehw}) the board is given the raw
+ADC samples of each frame, \SI{786432}{\byte}, and does everything else itself.
+Table~\ref{tab:fe} sets these builds beside the ones fed MATLAB's codes.
+
+\begin{table}[htbp]
+\centering
+\caption[Measured with the range FFT on chip]{Board measurements, 50 frames,
+with the FX16 codes from MATLAB (as in the rest of this chapter) and from the
+range FFT on the FPGA. Input rate is FX16 codes for the first and raw ADC
+samples for the second; latency is from the last input word read to the last
+compressed word written.}
+\label{tab:fe}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+& \multicolumn{2}{c}{\textbf{DRHE}} & \multicolumn{2}{c}{\textbf{LPC}}\\
+\cmidrule(lr){2-3}\cmidrule(l){4-5}
+FFT in & MATLAB & FPGA & MATLAB & FPGA\\
+\midrule
+Compression ratio     & \num{4.21704} & \num{4.21696} & \num{4.40345} & \num{4.40338}\\
+Cycles per frame      & \num{61472}   & \num{75626}   & \num{325366}  & \num{375957}\\
+Time per frame        & \SI{0.61}{\milli\second} & \SI{0.76}{\milli\second} & \SI{3.25}{\milli\second} & \SI{3.76}{\milli\second}\\
+Input rate            & \SI{5.12}{Gbit/s} & \SI{8.32}{Gbit/s} & \SI{0.97}{Gbit/s} & \SI{1.67}{Gbit/s}\\
+End-to-end latency    & \SI{13.1}{\micro\second} & \SI{21.3}{\micro\second} & \SI{3006}{\micro\second} & \SI{3024}{\micro\second}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{The codes.} Against MATLAB's codes, \num{1522} of the
+\num{9830400} values of the 50 frames differ, \SI{0.016}{\percent}, each by
+exactly one step: values that lie almost on a rounding boundary, where the
+fixed-point FFT and MATLAB's double precision fall on opposite sides. The
+compression ratios change in the fifth significant figure.
+
+\paragraph{The detections.} Table~\ref{tab:fedet} runs both sets of codes
+through the detection chain of Section~\ref{sec:detectionmetrics}, on the four
+channels the hardware compresses. The rounding error of both is
+\SI{0.2887}{LSB} RMS, exactly the $1/\sqrt{12}$ of ideal rounding, so the
+fixed-point FFT adds no error of its own. The detection maps are identical in
+44 of the 50 frames, and the totals differ by two missed targets and one false
+detection out of \num{11148}. The losses of FX16 itself are those of
+Section~\ref{sec:quant}: the quietest cells are only about one step in size, so
+rounding raises the noise floor by \SI{0.26}{\decibel} and the detection
+threshold with it. MATLAB's range FFT is therefore a faithful stand-in for the
+hardware throughout this thesis.
+
+\begin{table}[htbp]
+\centering
+\caption[Detection loss with the range FFT on chip]{Detections of the two
+sets of FX16 codes against the double-precision reference, 50 frames, four
+receive channels (\num{11148} reference detections). FP\% is a false discovery
+rate (Section~\ref{sec:detectionmetrics}).}
+\label{tab:fedet}
+\small
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Codes & FN (\%) & FP (\%) & NF (dBFS) & SNR (dB) & error (LSB RMS)\\
+\midrule
+Reference (double)  & ---  & ---  & $-106.06$ & 36.56 & ---\\
+FX16, MATLAB        & 4.19 & 1.81 & $-105.81$ & 36.40 & 0.2887\\
+FX16, FPGA          & 4.17 & 1.80 & $-105.81$ & 36.40 & 0.2887\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Speed.} The front end takes about 1.5 clocks per input beat and
+now sets the pace: DRHE's time per frame rises by \SI{23}{\percent} to
+\SI{0.76}{\milli\second}, which is still \SI{8.3}{Gbit/s} of raw ADC data. Its
+latency rises by \SI{8}{\micro\second}, the front end's own pipeline. For LPC
+the front end lengthens only the ingest pass, which waits for the data anyway;
+the \SI{3.0}{\milli\second} after the last input word is essentially unchanged.
+
+\paragraph{Cost.} The front end is about the size of a decoder in logic
+(\SI{7}{\percent} of the chip's LUTs) but uses 296 DSP slices, more than either
+compressor. With it the whole system uses \SI{47}{\percent} (DRHE) and
+\SI{46}{\percent} (LPC) of the LUTs (Table~\ref{tab:builds}).
 
 % -------------------------------------------------------------------
 \section{The two algorithms side by side}

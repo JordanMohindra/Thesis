@@ -14,7 +14,8 @@ twelve-transmitter, sixteen-receiver Texas Instruments cascade. Two lossless
 predictive coders --- Doppler Redundancy Hybrid Encoding and a second-order
 linear predictive coder --- were specified, implemented in C++ for Vitis HLS
 with matching decompressors, and built with Vivado into a test system on an AMD
-KCU116 board. They were verified bit for bit from MATLAB through C-simulation
+KCU116 board, with a range-FFT front end so that the board can start from raw
+ADC samples. They were verified bit for bit from MATLAB through C-simulation
 and RTL co-simulation to the board, where the compressors' output matched the
 simulation byte for byte and the hardware decoders reconstructed every frame
 exactly.
@@ -59,7 +60,9 @@ compresses a frame in \SI{0.61}{\milli\second} (\SI{5.1}{Gbit/s}) with
 Both decoders reconstruct one value per clock, about \SI{2}{\milli\second} per
 frame (\SI{1.97}{\milli\second} and \lpcDecTime).
 Encoder and decoder together use about \SI{23}{\percent} of the chip's logic
-for either algorithm.
+for either algorithm. With the range FFT also on the FPGA the codes differ from
+MATLAB's in \SI{0.016}{\percent} of values, by one step, and DRHE still takes
+in \SI{8.3}{Gbit/s} of raw ADC data.
 
 \item \textbf{DRHE is the better choice for a streaming sensor.} The two
 algorithms are close on ratio and level on logic, but DRHE needs no frame
@@ -100,10 +103,9 @@ or let the hardware hold several and choose per frame, or update one slowly
 from past frames. A seventeenth category for the value $-32768$ would remove
 the need for saturation.
 
-\paragraph{All sixteen channels and the range FFT on chip.} Widen the stream or
-time-multiplex the cores to compress all sixteen receive channels, and place a
-range-FFT core in front of the compressor, as in Kiem's system, so that the
-board processes raw ADC data end to end.
+\paragraph{All sixteen channels.} Widen the stream or time-multiplex the
+cores, and the range-FFT front end with them, to compress all sixteen receive
+channels.
 
 \paragraph{The quantisation trade-off.} Study adaptive or companded scaling as
 a deliberate design choice: how many bits of the noise floor are worth keeping
