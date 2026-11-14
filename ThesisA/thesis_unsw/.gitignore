@@ -1,0 +1,10 @@
+# LaTeX build by-products (thesis.pdf itself is tracked)
+*.aux
+*.log
+*.toc
+*.lof
+*.lot
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
