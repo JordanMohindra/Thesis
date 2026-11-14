@@ -599,7 +599,7 @@ compression ratio of any frame at $32/(2 \times 4) = 4.0$.
 \paragraph{The re-derived dictionaries.} The prediction errors of DRHE and
 LPC at lag $\nTx$ are smaller than that: most fall in categories 0, 1 and 2
 (Section~\ref{sec:dictresult}). A new set of codeword lengths was therefore
-derived for each algorithm, by building a Huffman code \cite{huffman1952} on
+derived for each algorithm, by building a Huffman code \cite{huffman1952}\label{lit:huffman:dict} on
 the $S_4$ category counts of the algorithm's own residuals over frames 0--4
 only. One is added to every count before the code is built, so that categories
 never seen in training still receive a codeword and the code remains lossless
