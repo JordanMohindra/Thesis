@@ -33,6 +33,25 @@ ratio is available. A backward-adaptive LPC, fitting its coefficients to
 \emph{previous} frames instead of the current one, would remove both the buffer
 and the latency at some cost in ratio, and is a natural next step.
 
+\paragraph{Why DRHE stays in floating point.} Kiem's fixed-point types would cut
+the DRHE compressor to \HW{ablf}{LUT} LUTs and \HW{ablf}{DSP} DSPs for a
+\SI{0.07}{\percent} loss of ratio (Section~\ref{sec:hw_ladder}), so the
+floating-point datapath is not kept for its ratio. It is kept for three
+reasons. First, verification: single-precision prediction reproduces the
+double-precision MATLAB model's bit counts on every frame
+(Section~\ref{sec:verifres}), so each rung of the ladder can be checked exactly
+against the one above it; a fixed-point design changes the residuals and would
+need a bit-accurate model of its own at every level, the kind of model Kiem
+listed as future work. Second, margin: the floating-point compressor closes at
+\HW{drhen}{fmax}\,MHz out of context against \HW{ablf}{fmax}\,MHz for the
+fixed-point one, whose 26-level carry chain leaves almost nothing at
+\SI{100}{\mega\hertz}. Third, generality: floating point needs no word-length
+analysis for a sensor's scaling, whereas Kiem's types were sized for his. On
+this device the cost is affordable --- the compressor is \SI{16}{\percent} of
+the chip and the whole system under half --- so the extra logic buys exact
+verification and timing margin. Where silicon area dominates, as in an ASIC,
+the fixed-point datapath is the better trade (Section~\ref{sec:futurework}).
+
 \begin{keybox}
 \textbf{Recommendation.} For a streaming sensor-edge compressor, DRHE is the
 better choice: it is lossless, compresses by \num{4.2} with a matched
@@ -118,7 +137,7 @@ baseline should be reported alongside any radar compression ratio; it costs a
 few lines of MATLAB and separates the algorithm from the sensor.
 
 \paragraph{The unused bits are a design choice.} The same unused bits are why
-FX16 loses \SI{3.77}{\percent} of targets: filling the container removes that
+FX16 loses \SI{3.77}{\percent} of the reference detections: filling the container removes that
 loss and, with it, most of the compression (Section~\ref{sec:quant}). How many
 bits of the noise floor are worth transmitting is a decision for the radar
 system designer; a lossless compressor does not change that trade, it only
@@ -183,8 +202,9 @@ contributes nothing, as lag-1 prediction on this radar shows
 under-filled container (Section~\ref{sec:ratiomeaning}), a property of this
 recording's gain staging.
 
-\item \textbf{One recording.} All results use 50 consecutive frames of one
-ColoRadar sequence. Scenes with more or faster targets would give larger
+\item \textbf{One recording.} All results use 50 consecutive frames,
+\SI{10}{\second}, of one ColoRadar sequence,
+\texttt{12\_21\_2020\_ec\_hallways\_run4}. Scenes with more or faster targets would give larger
 prediction errors and lower ratios, and the re-derived dictionaries were
 trained and tested on the same recording.
 
@@ -209,8 +229,9 @@ still be lossy.
 receive channels; Stage~2 and the hardware use four. The two stages' ratios are
 close (\num{3.75} and \num{3.751} for DRHE) but not identical by construction.
 
-\item \textbf{Power was not measured}, so the energy cost of compression is
-not reported.
+\item \textbf{Power is estimated, not measured.} The figures of
+Section~\ref{sec:resources} come from Vivado's power report with default
+switching activity; the board's power draw was not measured.
 
 \item \textbf{Co-simulation covers one frame.} The 50-frame results are from
 C-simulation and the board, which exercise identical logic; the cycle-accurate

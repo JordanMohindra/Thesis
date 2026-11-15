@@ -82,7 +82,8 @@ LPC. Noise at ramp $m-1$ says nothing about noise at ramp $m$; the ratio is set
 by how many bits of noise each value carries. Figure~\ref{fig:kr_sweep} shows
 this across noise floors from $-120$ to $-60$\,dBFS. Each \SI{6}{\decibel} of
 noise doubles the noise in LSB and costs about one bit per value; at very low
-noise the fixed dictionary's four-bit minimum caps the ratio at 3.92; the two
+noise the fixed dictionary's four-bit minimum holds the ratio at 3.92, just
+under the ceiling of 4.0 that it sets (Section~\ref{sec:dict}); the two
 scalings give the same curve shifted by \SI{12}{\decibel}.
 
 \begin{figure}[htbp]

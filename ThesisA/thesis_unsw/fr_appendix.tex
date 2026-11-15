@@ -151,6 +151,12 @@ File & Purpose \\
 \texttt{make\_poster\_figs.m} & Stage~2 breakdown, dictionary tables, and the figures of Chapter~\ref{ch:results}; parameters at the top \\
 \texttt{export\_frames\_for\_vitis.m} & writes the \texttt{int16} stimulus for the HLS testbenches \\
 \midrule
+\multicolumn{2}{@{}l}{\textbf{Range-FFT front end} (\texttt{radar\_fe/})}\\
+\texttt{radar\_fe.cpp}, \texttt{radar\_fe.h}, \texttt{radar\_fe\_types.h} & HLS front end: window, FFT, mean removal, FX16 \\
+\texttt{export\_raw\_and\_tables.m} & raw ADC frames and the window, twiddle and mean tables \\
+\texttt{radar\_fe\_tb.cpp} & 50-frame testbench against MATLAB's codes \\
+\texttt{fe\_detection\_check.m} & detections with the hardware and MATLAB codes (Table~\ref{tab:fedet}) \\
+\midrule
 \multicolumn{2}{@{}l}{\textbf{HLS} (\texttt{hls\_component/})}\\
 \texttt{drhe\_tdm\_common.h}, \texttt{drhe\_tdm\_compress.cpp}, \texttt{drhe\_tdm\_decompress.cpp} & DRHE cores and the DRHE dictionary \\
 \texttt{lpc\_tdm\_common.h}, \texttt{lpc\_tdm\_compress.cpp}, \texttt{lpc\_tdm\_decompress.cpp} & LPC cores, Yule--Walker solver and the LPC dictionary \\
@@ -158,7 +164,7 @@ File & Purpose \\
 \midrule
 \multicolumn{2}{@{}l}{\textbf{Board} (\texttt{fpga\_kcu116/})}\\
 \texttt{hls/export\_ips.bat} & C-simulation (writes the golden streams) and IP packaging \\
-\texttt{vivado/build.bat} & block design, synthesis, implementation, bitstream; \texttt{decomp 1} adds the decompressor \\
+\texttt{vivado/build.bat} & block design, synthesis, implementation, bitstream; \texttt{decomp 1} adds the decompressor, \texttt{fe 1} the range-FFT front end \\
 \texttt{sw/src/main.c}, \texttt{board\_map.h} & MicroBlaze firmware \\
 \texttt{host/run\_board.bat}, \texttt{run\_board.tcl} & program the board, load frames, run, read results \\
 \texttt{host/pc\_decompress.bat} & PC decompression with the HLS decoder source \\
@@ -182,7 +188,8 @@ vitis-run --mode hls --cosim --config test_tdm.cfg --work_dir hls_tdm
 
 \noindent
 Board run, from \texttt{fpga\_kcu116/host} (\texttt{<tag>} is \texttt{drhe},
-\texttt{lpc}, \texttt{drhe\_full} or \texttt{lpc\_full}):
+\texttt{lpc}, \texttt{drhe\_full}, \texttt{lpc\_full}, \texttt{drhe\_fe\_full} or
+\texttt{lpc\_fe\_full}):
 \begin{verbatim}
 run_board.bat <tag> 50
 pc_decompress.bat <tag>          (compress-only builds)
@@ -218,13 +225,17 @@ Independent bit counts, original dictionary & Python, 50 frames & equal to HLS o
 Independent decode, re-derived dictionaries & Python & no residual mismatch\\
 Edge cases, eight synthetic inputs & HLS C-sim & all pass within their allowed MaxDiff\\
 RTL behaviour & co-simulation, 1 frame & MaxDiff 0, both algorithms\\
-Timing closure, four builds & Vivado & all met at \SI{100}{\mega\hertz} (Table~\ref{tab:builds})\\
+Timing closure, six builds & Vivado & all met at \SI{100}{\mega\hertz} (Table~\ref{tab:builds})\\
 Compressed bytes against C-sim, original dictionary & KCU116, 50 frames & byte-identical, both algorithms\\
 Decompression of board output & PC, 50 frames & MaxDiff 0, both algorithms\\
 Compressed bytes against C-sim, re-derived dictionaries & KCU116, 50 frames & byte-identical; CR \num{4.21704}, \num{4.40345}\\
 On-chip decompression (\texttt{\_full}) & KCU116, 50 frames & MaxDiff 0, both algorithms; \SI{1.97}{\milli\second} and \lpcDecTime{} per frame\\
 Parallel LPC decoder against the first one & C-sim, 50 frames + 8 edge cases & bit-identical output\\
 Frames ending on a word boundary & C-sim, 8 edge cases, both algorithms & TLAST always sent; ColoRadar output unchanged\\
+Range-FFT front end against MATLAB & C-sim, 50 frames & \num{1522} of \num{9830400} codes differ, each by one step\\
+Range-FFT front end RTL & co-simulation, 1 frame & identical to C-sim\\
+Front-end codes and compressed bytes (\texttt{\_fe\_full}) & KCU116, 50 frames & codes and bytes identical to C-sim; MaxDiff 0, both algorithms\\
+Detections with on-chip and MATLAB codes & MATLAB, 50 frames & Table~\ref{tab:fedet}; totals differ by 3 of \num{11148}\\
 DRHE matches Kiem's specification & rebuilt simulation & bit-identical output\\
 \bottomrule
 \end{longtable}

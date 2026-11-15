@@ -29,10 +29,9 @@ HLS reports what it \emph{expects} a circuit to cost; Vivado reports what the
 placed and routed circuit \emph{does} cost. Each core was implemented on its
 own (out of context) on the \texttt{xcku5p-ffvb676-2-e} at
 \SI{10}{\nano\second}, with \texttt{vivado.flow=impl} in its HLS
-configuration. Out of context and in the board system, the DRHE compressor's
-LUTs and flip-flops agree to within \SI{2}{\percent} and its DSPs and block RAM
-exactly; LPC's block RAM differs by about \SI{10}{\percent}, because Vivado maps
-its memories differently. The in-system figures of Table~\ref{tab:resources}
+configuration. Out of context and in the board system, both compressors' LUTs
+and flip-flops agree to within \SI{2}{\percent} and their DSPs and block RAM
+exactly. The in-system figures of Table~\ref{tab:resources}
 are the ones quoted for the final cores. Table~\ref{tab:hw_hlsvsimpl} compares
 the two kinds of number.
 
@@ -41,7 +40,9 @@ the two kinds of number.
 \caption[HLS estimates against implemented results]{HLS estimates against the
 same compressors after placement and routing, out of context, on the
 \texttt{xcku5p} with a \SI{10}{\nano\second} constraint. BRAM in 36\,Kb blocks.
-$F_{\max} = 1/(10\,\mathrm{ns} - \mathrm{WNS})$ after routing.}
+$F_{\max} = 1/(10\,\mathrm{ns} - \mathrm{WNS})$ after routing: the speed this
+routed circuit would reach, not the fastest the design could go, since the
+tools stop optimising once \SI{10}{\nano\second} is met.}
 \label{tab:hw_hlsvsimpl}
 \small
 \setlength{\tabcolsep}{3.2pt}
@@ -236,7 +237,12 @@ write; one or two more pipeline stages would fix that.
 closes at \HW{ablksgone}{fmax}\,MHz on a speed-grade $-1$ part and
 \HW{ablk}{fmax}\,MHz on a $-2$, and DRHE-1 closes at
 \HW{ablctrlsgone}{fmax}\,MHz on a $-1$ part, so this thesis's floating-point
-datapath meets Kiem's clock on Kiem's grade of silicon.
+datapath meets Kiem's clock on Kiem's grade of silicon. These $F_{\max}$
+figures come from runs constrained to \SI{10}{\nano\second}, so they are not
+true maxima: placement varies from run to run by a few per cent, which is why
+DRHE-1 can report \HW{ablctrlsgone}{fmax}\,MHz on the slower $-1$ part and
+\HW{drheone}{fmax}\,MHz on the $-2$. They show margin over \SI{100}{\mega\hertz},
+not a ranking.
 
 % -------------------------------------------------------------------
 \section{Latency}

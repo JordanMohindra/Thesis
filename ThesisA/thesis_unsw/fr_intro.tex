@@ -11,8 +11,8 @@ this thesis produces about \SI{3}{\mebi\byte} of raw digitised samples every
 frame, and it is one of several such sensors on a car. Getting that data to the
 central processor means either expensive shielded high-speed cabling or
 compressing it at the sensor first. Compression is the cheaper answer, but it
-has to keep up with the sensor, fit in a small amount of silicon, and --- because
-this data feeds a system that decides whether to brake --- lose nothing. This
+has to keep up with the sensor, fit in a small amount of silicon, and ---
+because whatever it discards is gone before detection --- lose nothing. This
 thesis compares the available compression methods on real radar data, selects
 the ones that meet those conditions, and builds and measures them on an FPGA.
 
@@ -41,11 +41,11 @@ Where a car once had a hundred small electronic control units each doing one
 job, the industry has moved to domain controllers, then to \emph{zonal}
 architectures where sensors report to a nearby gateway, and toward fully
 centralised designs where one high-performance system-on-chip does everything
-\cite{bandur2021,liu2022,barabas2024}. Centralising the computation has obvious
+\cite{bandur2021,liu2022}. Centralising the computation has obvious
 advantages, but it means the raw sensor data has to travel.
 
 Figure~\ref{fig:arch} shows the consequence. A Serialiser/Deserialiser (SerDes)
-link \cite{ti_serdes,gmsl} carries the aggregated output of several radar
+link \cite{ti_serdes} carries the aggregated output of several radar
 modules at \SI{2.5}{Gbit\per\second} or more. Those data rates are achievable,
 but they require shielded cable, they cost money and weight, and they put a
 matching ingest burden on the SoC's memory system \cite{matheus2021}. If
@@ -167,9 +167,10 @@ resources on an AMD KCU116 board.
 \item \textbf{A comparison of eight compression methods on real cascade radar
 data} (Section~\ref{sec:stage1}). Only the two predictive lossless coders, DRHE
 (\num{3.75}) and LPC (\num{3.70}), compress by more than three without losing
-detections; the lossy quantisers reach up to \num{3.76} but miss
-\SIrange{10}{29}{\percent} of targets, and floating-point storage compresses by
-only \num{1.04}.
+detections; the best lossy quantiser, BAQ, reaches \num{3.76} but misses
+\SI{10.4}{\percent} of the reference detections, the other two miss up to
+\SI{29}{\percent} at lower ratios, and floating-point storage compresses by only
+\num{1.04}.
 
 \item \textbf{The correct prediction axis for time-division MIMO radar}
 (Section~\ref{sec:predaxis}). On a TDM cascade consecutive ramps come from

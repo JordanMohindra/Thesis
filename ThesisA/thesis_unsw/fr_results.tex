@@ -43,11 +43,12 @@ DRHE fp16  & lossless\textsuperscript{*} & 1.04 & 0.05 & 0.01 & $-105.64$ & 35.5
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.62\textwidth]{fig_stage1.png}
-\caption[Compression against missed targets]{Compression ratio against missed
-targets for the eight methods. A good method sits to the right (small data) and
-at the bottom (no extra missed targets). Only DRHE and LPC reach the shaded
-region; the lossy methods pay for their ratio in missed targets, and storing
+\includegraphics[width=0.8\textwidth]{fig_stage1.pdf}
+\caption[Compression against missed detections]{Compression ratio against missed
+detections for the eight methods. A good method sits to the right (small data) and
+at the bottom (no extra missed detections). Only DRHE and LPC reach the shaded
+region (ratio above three, no loss beyond FX16); the lossy methods pay for their
+ratio in missed detections, and storing
 the data as floating point barely compresses.}
 \label{fig:stage1}
 \end{figure}
@@ -55,21 +56,22 @@ the data as floating point barely compresses.}
 Four observations decide what goes forward.
 
 \paragraph{The lossless coders share FX16's detection metrics exactly.}
-FX16, DRHE and LPC report identical missed-target rates, false discovery rates,
+FX16, DRHE and LPC report identical miss rates, false discovery rates,
 noise floors and SNR. This is a consequence of losslessness rather than a
 coincidence: both coders reconstruct the FX16 codes bit for bit, so the
 detector sees identical data. What those rows measure is the cost of the
-\emph{quantisation} step, \SI{3.77}{\percent} of targets missed and
+\emph{quantisation} step, \SI{3.77}{\percent} of detections missed and
 \SI{1.11}{\percent} of detections spurious, none of it the cost of compression.
 
 \paragraph{The lossy methods pay for their ratio in detections.}
 BAQ reaches \num{3.76}, the same ratio as DRHE, but misses
-\SI{10.44}{\percent} of targets instead of \SI{3.77}{\percent}, and
+\SI{10.44}{\percent} of the reference detections instead of \SI{3.77}{\percent}, and
 \SI{9.69}{\percent} of what it reports is spurious against
 \SI{1.11}{\percent}: nearly three times the miss rate and nearly nine times the
 false discovery rate, for no gain in ratio. RDVLE and RDVLE+UDRE are worse on
-both counts. In a system that brakes a car none of these trades is acceptable,
-which is the empirical form of the argument of Section~\ref{sec:lossless}.
+both counts. Where the detector must see every weak return, none of these
+trades is acceptable, which is the empirical form of the argument of
+Section~\ref{sec:lossless}.
 
 \paragraph{Floating-point storage does not compress.}
 DRHE applied to FP16 values almost removes the quantisation loss (0.05\,\%
@@ -81,8 +83,9 @@ in Section~\ref{sec:hwvskiem}.
 
 \paragraph{Two methods qualify.}
 DRHE (\num{3.75}) and LPC (\num{3.70}) are the only methods that compress by
-more than three without adding a single missed target, and both clear the
-\num{2.4}--\num{2.7} a Gigabit Ethernet link needs with margin. Both were taken
+more than three without adding a single missed detection, and both clear the
+2.8 that three cascades need on one Gigabit Ethernet link
+(Section~\ref{sec:linkreq}) and Kiem's \num{2.4}--\num{2.7}. Both were taken
 forward to Stage~2 and to hardware.
 
 \subsection{The cost of the quantisation step}
@@ -215,7 +218,7 @@ LPC  & \num{3.479} & $+\num{0.218}$ & $+\num{0.707}$ & \textbf{\num{4.404}} & \n
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.62\textwidth]{fig_cr_bars.png}
+\includegraphics[width=0.8\textwidth]{fig_cr_bars.pdf}
 \caption[Compression ratio, step by step]{The compression ratio built up step by
 step. Huffman coding alone reaches \num{3.48}; prediction adds \num{0.22} to
 \num{0.27}; the re-derived dictionary adds more than prediction does, for both
@@ -236,10 +239,11 @@ share that need three or more falls; the expensive tail almost disappears.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.62\textwidth]{fig_residual.png}
+\includegraphics[width=0.8\textwidth]{fig_residual.pdf}
 \caption[Bits needed per value]{How many bits each value needs ($S_4$), for the
-raw FX16 codes and for the two algorithms' prediction errors. Prediction moves
-values towards the cheap end; most prediction errors need two bits or fewer.}
+raw FX16 codes and for the two algorithms' prediction errors, 50 frames, four
+receive channels. Prediction moves values towards the cheap end; most
+prediction errors need two bits or fewer.}
 \label{fig:residual}
 \end{figure}
 
@@ -321,7 +325,7 @@ LPC, lags $\nTx$, $2\nTx$        & 4.102 & 3.242 & 3.040 & \SI{34.9}{\percent}\\
 
 \noindent
 Two things follow. The $S_4$ construction itself is efficient: the ideal
-dictionary comes within 2 to \SI{7}{\percent} of the entropy, so splitting each
+dictionary comes within 3 to \SI{7}{\percent} of the entropy, so splitting each
 value into a coded size and raw payload bits loses little. Almost all of the
 original dictionary's excess is the dictionary, and it grows as prediction
 improves --- from \SI{12}{\percent} on the raw codes to \SI{35}{\percent} on
@@ -336,10 +340,11 @@ prediction quality rather than shrinking.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.62\textwidth]{fig_cr_frames.png}
+\includegraphics[width=0.8\textwidth]{fig_cr_frames.pdf}
 \caption[Compression ratio of each frame]{Compression ratio of each of the 50
-frames, re-derived dictionaries. LPC is ahead on almost every frame; both vary
-with the scene in the same way.}
+frames, re-derived dictionaries. Frames 0--4 (shaded) trained the dictionaries;
+the other 45 are held out. LPC is ahead on almost every frame; both vary with
+the scene in the same way.}
 \label{fig:crframes}
 \end{figure}
 
@@ -437,7 +442,7 @@ Decompressor latency            & \SI{339}{\micro\second} & \lpcDecLat\\
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.7\textwidth]{fig_timing.png}
+\includegraphics[width=0.8\textwidth]{fig_timing.pdf}
 \caption[Time per frame on the FPGA]{Time to encode and decode one frame on the
 FPGA, measured on the board with the re-derived dictionaries, with each
 encoder's output delay. DRHE outputs as the data arrives; LPC must wait for the
@@ -520,8 +525,9 @@ LPC  & compressor   & \num{33820} & \num{20083} & 108  & 158\\
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.66\textwidth]{fig_resources.png}
-\caption[FPGA resources]{Share of the chip used by each core, for the
+\includegraphics[width=0.8\textwidth]{fig_resources.pdf}
+\caption[FPGA resources]{Share of the \texttt{XCKU5P}'s LUTs, block RAMs and
+DSP slices used by each core, post-route in the board system, for the
 compressor, the decompressor, and both together.}
 \label{fig:resources}
 \end{figure}
@@ -536,6 +542,17 @@ DRHE decoder carries its own floating-point predictor and its state in block
 RAM, while the LPC decoder needs no block RAM at all, because the coefficients
 arrive ready-made in the bitstream and its few past samples per (channel, bin)
 fit in distributed RAM.
+
+\paragraph{Power, estimated.} Power was not measured on the board. Vivado's
+power report for each compressor, placed and routed out of context at
+\SI{100}{\mega\hertz} with the tool's default switching activity, estimates
+\HW{drhen}{ptotal}\,W for DRHE and \HW{lpcn}{ptotal}\,W for LPC, of which
+about \HW{drhen}{pstatic}\,W is the device's static
+power. Spreading the dynamic part over each design's time per frame gives
+\HW{drhen}{pJbit}\,pJ per input bit for DRHE and \HW{lpcn}{pJbit}\,pJ for LPC:
+LPC draws less power while it runs but runs five times longer. These are
+estimates, best read as a comparison between the two designs, not as the
+energy a production device would use.
 
 % -------------------------------------------------------------------
 \section{Starting from raw ADC samples}
@@ -580,7 +597,7 @@ through the detection chain of Section~\ref{sec:detectionmetrics}, on the four
 channels the hardware compresses. The rounding error of both is
 \SI{0.2887}{LSB} RMS, exactly the $1/\sqrt{12}$ of ideal rounding, so the
 fixed-point FFT adds no error of its own. The detection maps are identical in
-44 of the 50 frames, and the totals differ by two missed targets and one false
+44 of the 50 frames, and the totals differ by two missed detections and one false
 detection out of \num{11148}. The losses of FX16 itself are those of
 Section~\ref{sec:quant}: the quietest cells are only about one step in size, so
 rounding raises the noise floor by \SI{0.26}{\decibel} and the detection

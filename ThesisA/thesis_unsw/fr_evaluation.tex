@@ -12,9 +12,10 @@ All eight methods of Section~\ref{sec:candidates} are run in MATLAB over the
 same 50 consecutive ColoRadar frames with all 16 receive channels. Each is
 scored on compression ratio and on what it does to target detection. A method
 goes forward only if it is lossless --- it loses no detections beyond those of
-the FX16 step every method shares --- and compresses by more than three, which
-leaves a margin over the \num{2.4}--\num{2.7} that a Gigabit Ethernet link needs
-(Section~\ref{sec:kiem} and Chapter~\ref{ch:kiem}).
+the FX16 step every method shares --- and compresses by more than three, enough
+for three ColoRadar cascades to share one Gigabit Ethernet link
+(Section~\ref{sec:linkreq}) and a margin over the \num{2.4}--\num{2.7} of Kiem's
+sensor (Chapter~\ref{ch:kiem}).
 
 \paragraph{Stage 2 --- where does the compression come from, and what does it
 cost in hardware?}
@@ -43,11 +44,13 @@ receive channels are exported to the hardware path, because four complex
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.6\textwidth]{fig_input.png}
+\includegraphics[width=0.8\textwidth]{fig_input_report.png}
 \caption[One input frame]{One input frame as the compressor receives it:
 receiver 1 of ColoRadar frame 0 after the range FFT and FX16 quantisation, 128
 range bins by 192 ramps. Strong returns appear as horizontal bands at fixed
-range; most of the frame is low-level noise, which is why it compresses.}
+range; most of the frame is low-level noise, which is why it compresses.
+Colour is $20\log_{10}(|\text{code}|+1)$; ramps are in recorded,
+transmitter-interleaved order.}
 \label{fig:input}
 \end{figure}
 
@@ -85,7 +88,9 @@ $D_{\mathrm{test}}$ those of the reconstructed data,
 \qquad
 \mathrm{FDR}\% = \frac{|D_{\mathrm{test}} \setminus D_{\mathrm{ref}}|}{|D_{\mathrm{test}}|}.
 \end{equation}
-The first is the share of targets missed. The second is labelled a false
+A detection is a cell of the range--Doppler map that the detector marks, so
+these metrics count cells, not physical objects; one object can occupy several
+cells. The first is the share of reference detections missed. The second is labelled a false
 positive rate in Kiem's thesis, but it normalises by the test detections, so it
 is a false discovery rate. Matching is cell by cell with no positional
 tolerance, and the \SI{15}{\decibel} threshold is not swept. FX16, DRHE and LPC

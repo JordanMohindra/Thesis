@@ -1,46 +1,31 @@
 High-resolution cascaded MIMO radar produces more raw data than a vehicle's
-network and central processor can comfortably absorb. Compressing that data at
-the sensor buys back bandwidth, but only if the compressor is lossless, fast and
-small, because anything it discards is lost before target detection ever sees
-it.
+network can comfortably carry. Compressing at the sensor saves bandwidth, but
+only if the compressor is lossless, fast and small, because whatever it
+discards is lost before detection.
 
-This thesis compares data compression methods for automotive radar on real data
-and implements the most suitable of them in hardware. Eight methods were
-evaluated in MATLAB on 50 frames of the public ColoRadar dataset, recorded with
-a twelve-transmitter Texas Instruments cascade radar. The lossy quantisers
-reached compression ratios of up to \num{3.76} but missed up to
-\SI{28.7}{\percent} of targets, and floating-point storage barely compressed at
-all. Two lossless predictive coders compressed by more than three:
-Doppler Redundancy Hybrid Encoding (DRHE), which predicts magnitude and phase
-with fixed filters, and a second-order linear predictive coder (LPC) whose
-coefficients are fitted to each frame. On a time-division MIMO radar both must
-predict each ramp from the previous ramp of the \emph{same transmitter}, twelve
-ramps back; predicting from the adjacent ramp does worse than not predicting
-at all.
+This thesis compares compression methods on real radar data and implements the
+most suitable in hardware. Eight methods were evaluated in MATLAB on 50 frames
+of the public ColoRadar dataset, from a twelve-transmitter Texas Instruments
+cascade. The best lossy quantiser reached a compression ratio of
+\num{3.76} but missed \SI{10.4}{\percent} of the reference detections, and
+floating-point storage barely compressed. Two lossless predictive coders
+compressed by more than three: Doppler Redundancy Hybrid Encoding (DRHE) and a
+second-order linear predictive coder (LPC). On a time-division MIMO radar both
+must predict from the previous ramp of the \emph{same transmitter}; predicting
+from the adjacent ramp does worse than not predicting at all. Huffman coding
+alone achieves \num{3.48}, prediction adds \num{0.22}--\num{0.27}, and
+dictionaries re-derived for the prediction errors raise the ratios to
+\num{4.22} (DRHE) and \num{4.40} (LPC).
 
-The compression ratio was broken down into its sources. Huffman coding of the
-16-bit range-FFT data alone achieves \num{3.48}; prediction adds a further
-\num{0.22}--\num{0.27}; and a Huffman dictionary re-derived for the prediction
-errors adds \num{0.47} for DRHE and \num{0.71} for LPC, giving \num{4.22} and
-\num{4.40} overall, measured on the hardware, with every frame reconstructed
-exactly.
-
-Both compressors and their decompressors were written in C++, synthesised
-with Vitis HLS and Vivado, and run on an AMD KCU116 (Kintex UltraScale+) board
-at \SI{100}{\mega\hertz}. On the board all 50 frames were compressed
-byte-identically to the simulation, and the board's own decoders reconstructed
-every frame exactly. With a range-FFT front end also on the FPGA, the board
-starts from raw ADC samples; its 16-bit codes differ from MATLAB's in
-\SI{0.016}{\percent} of values, by one step, so the ratios are unchanged to four
-significant figures. DRHE
-compresses a frame in \SI{0.61}{\milli\second} (\SI{5.1}{Gbit/s}) and streams
-its output with \SI{13}{\micro\second} of latency. LPC takes
+Both encoders and decoders were written in C++ with Vitis HLS and run on an AMD
+KCU116 board at \SI{100}{\mega\hertz}, behind a range-FFT front end that
+takes raw ADC samples. On all 50 frames the compressed output was
+byte-identical to the simulation and the board's decoders reconstructed every
+frame exactly. DRHE compresses a frame in \SI{0.61}{\milli\second}
+(\SI{5.1}{Gbit/s}) with \SI{13}{\micro\second} of latency; LPC takes
 \SI{3.25}{\milli\second} and, because its coefficients depend on the whole
-frame, cannot output anything until the whole frame has arrived: its last
-output word follows its last input word by \SI{3.0}{\milli\second}. The
-decoders each reconstruct one value per clock, about \SI{2}{\milli\second} per
-frame. Encoder and decoder together use about \SI{23}{\percent} of the chip's
-logic for either algorithm. LPC
-compresses about \SI{4}{\percent} better; DRHE is recommended for a streaming
-sensor front end, because it needs no frame buffer and has a small fraction of
-LPC's latency.
+frame, adds \SI{3.0}{\milli\second}. Each decoder rebuilds a frame in about
+\SI{2}{\milli\second}, and encoder and decoder together use about
+\SI{23}{\percent} of the chip's logic. DRHE is recommended for a streaming
+sensor front end; LPC compresses \SI{4}{\percent} better at the cost of a frame
+buffer and milliseconds of latency.

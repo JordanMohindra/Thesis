@@ -46,6 +46,12 @@ to the FX16 codes.
 \noindent
 NXP's formats were not implemented separately, since their exact bit layouts
 are proprietary and the block-floating-point quantiser represents the family.
+Texas Instruments' exponential-Golomb engine \cite{ti_ege}, which Kiem
+evaluated, was left out for a similar reason: it is a fixed-budget block coder
+that is lossy, more so as the ratio rises, the class BAQ already represents, and
+Kiem's own results show its cost. At the ratios a Gigabit link needs, his EGE6
+(2.67) and EGE4 (4.0) missed \SI{7.7}{\percent} and \SI{40}{\percent} of his
+detections (Table~\ref{tab:kc_t35}).
 Neural and spectral methods such as AdaRadar \cite{park2026} were left out of
 scope: they are lossy, and their decoders run on the central processor.
 
@@ -338,8 +344,8 @@ $S_4$ & cost & \% values & \% bits & \% values & \% bits & \% values & \% bits\\
 
 The lag-$\nTx$ predictor works by emptying the tail. It moves
 \SI{86.19}{\percent} of values into categories 0--2, which all cost four bits,
-and cuts categories 5--8 from \SI{5.53}{\percent} to \SI{1.00}{\percent} of
-values. The lag-1 predictor does the opposite: against no prediction it pushes
+and cuts categories 5--8 from \SI{4.23}{\percent} of values with no prediction
+to \SI{1.00}{\percent}. The lag-1 predictor does the opposite: against no prediction it pushes
 values \emph{up} into categories 3, 4 and 8, which is how a predictor on the
 wrong axis loses to doing nothing.
 

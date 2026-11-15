@@ -26,8 +26,9 @@ A third, independent implementation in Python reproduced their bit counts.
 \begin{enumerate}
 \item \textbf{Only lossless predictive coding meets the requirement.} DRHE
 (\num{3.75}) and LPC (\num{3.70}) are the only methods that compress by more
-than three without adding a missed target. The lossy quantisers reach up to
-\num{3.76} but miss \SIrange{10}{29}{\percent} of targets, and floating-point
+than three without adding a missed detection. The best lossy quantiser, BAQ,
+reaches \num{3.76} but misses \SI{10.4}{\percent} of the reference detections,
+the other two miss up to \SI{29}{\percent} at lower ratios, and floating-point
 storage compresses by only \num{1.04}. All detection loss in the lossless chain
 comes from the 16-bit quantisation step, not from compression.
 
