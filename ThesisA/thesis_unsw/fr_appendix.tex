@@ -8,8 +8,8 @@ implementation packs least-significant-bit first, so the stored codewords are
 bit-reversed. Both forms are listed, and all sixteen entries were verified to
 agree with the published table.
 
-The reversed code set remains prefix-free, which is what allows the decoder to
-match candidates from the low end of its bit buffer with no ambiguity.
+The reversed code set remains prefix-free, so the decoder can match
+candidates from the low end of its bit buffer without ambiguity.
 
 \begin{table}[h]
 \centering
@@ -43,10 +43,10 @@ $S_4$ & $|v|$ range & $\ell$ & code (MSB-first) & stored (LSB-first) & cost \\
 \end{table}
 
 \noindent
-Note the non-monotonicity at categories 12--15: the longest codewords are
-assigned to categories 12 and 13 rather than to 15. This is a property of the
-published dictionary and is reproduced faithfully. It has no effect on this
-dataset, where no residual exceeds category 10.
+The codeword lengths are not monotonic at categories 12--15: the longest
+codewords are assigned to categories 12 and 13 rather than to 15. This is a
+property of the published dictionary and is reproduced as published. It has no
+effect on this dataset, where no residual exceeds category 10.
 
 
 \section*{The re-derived dictionaries}
@@ -122,10 +122,9 @@ LPC's bitstream has two sections:
 \underbrace{\text{enc}(d_{\Re})\ \text{enc}(d_{\Im})\ \cdots}_{\text{residuals, raster order}}
 \]
 The coefficient table comes first because the decoder needs all of it before it
-can reconstruct anything. The residuals follow in the original raster order ---
-not in the order the compressor computed them --- which is what allows the
-decompressor to operate without a frame buffer
-(Section~\ref{sec:lpcimpl}).
+can reconstruct anything. The residuals follow in the original raster order,
+not in the order the compressor computed them, so the decompressor can operate
+without a frame buffer (Section~\ref{sec:lpcimpl}).
 
 
 \chapter{Reproducing the Results}

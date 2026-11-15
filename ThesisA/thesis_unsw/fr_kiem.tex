@@ -2,9 +2,9 @@
 \chapter{The Baseline: Kiem's Thesis}
 \label{ch:kiem}
 
-Most results in this thesis are set beside a result from Lukas Kiem's
-master's thesis \cite{kiem2025}, carried out at Infineon. This chapter sets out
-what he did, on what data, and what he concluded. Section and table numbers
+Many results in this thesis are compared with those of Lukas Kiem's
+master's thesis \cite{kiem2025}, carried out at Infineon. This chapter
+summarises what he did, on what data, and what he concluded. Section and table numbers
 quoted here (``his Table~3.5'') refer to his thesis.
 
 \section{His problem and his data}
@@ -22,12 +22,12 @@ protocol headers. The sensor cycles at \SI{20}{\hertz}; a frame of 1024 ramps
 takes about \SI{21}{\milli\second} to acquire, and he allowed compression
 \SI{15}{\milli\second} of the remaining \SI{29}{\milli\second}.
 
-Two features of his setting differ from this thesis's. His radar uses
-\textbf{one transmitter}, so consecutive ramps are consecutive observations by
-the same antenna pair and the question on which this thesis's prediction design
-turns (Section~\ref{sec:predaxis}) never arises. And it delivers \textbf{real}
-samples, whose spectrum is symmetric, so he keeps half of each range FFT
-because the other half is redundant; ColoRadar's samples are complex.
+His setting differs from this thesis's in two ways. His radar uses one
+transmitter, so consecutive ramps are consecutive observations by the same
+antenna pair, and the question of which ramp to predict from
+(Section~\ref{sec:predaxis}) never arises. It also delivers real samples, whose
+spectrum is symmetric, so he keeps half of each range FFT because the other
+half is redundant; ColoRadar's samples are complex.
 
 His evaluation chain (his Figure~3.1), which this thesis adopts almost
 unchanged, shifts the ADC samples into a 32-bit word, applies a Hanning window
@@ -60,7 +60,7 @@ the results for DRHE are more promising.'' (his Section~3.4.1)
 
 \noindent
 He assumed that method's domain from its int16 input, did not run it, and
-compared published figures from different data. Table~\ref{tab:kc_t35} is his
+compared published figures from different data. Table~\ref{tab:kc_t35} gives his
 result. DRHE reached a ratio of 3.25 with exactly FX16's detection metrics,
 since it is lossless with respect to the 16-bit codes; the lossy schemes either
 stayed below the requirement or lost detections. One miss in about 170
@@ -96,7 +96,7 @@ EGE4  & 4    & 40.24 & 26.63 & $-74.689$ & 28.245\\
 
 Two simplifications made DRHE suitable for hardware. He removed the run-length
 half of the original coder, which changed the ratio only from 3.25 to 3.24 and
-lets every value be coded independently in one clock. And he fixed the Huffman
+lets every value be coded independently in one clock. He also fixed the Huffman
 dictionary, built once from the $S_4$ statistics of one of his recordings (his
 Appendix~A); it is the \emph{original dictionary} of this thesis
 (Section~\ref{sec:dict}). For each range bin $n$ of ramp $m$ and each channel,
@@ -156,8 +156,8 @@ He concluded that DRHE met every requirement of his use case. His future work
 included floating-point arithmetic for the prediction, since his core far
 exceeded its real-time requirement; a bit-accurate decompression model; tests
 with a real sensor; safe error handling; and a guaranteed compression ratio.
-This thesis takes up the first two: its DRHE predicts in floating point, and
-Chapter~\ref{ch:hwinterpret} measures what that costs, and it implements and
+This thesis takes up the first two. Its DRHE predicts in floating point, and
+Chapter~\ref{ch:hwinterpret} measures what that costs; it also implements and
 verifies a hardware decompressor for every design. Its saturation of the one
 residual the code cannot represent (Section~\ref{sec:robust}) is a form of the
 safe error handling he asked for.

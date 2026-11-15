@@ -2,34 +2,33 @@
 \chapter{Background}
 \label{ch:background}
 
-This chapter covers what the radar measures and how, why its data is large,
-how lossless compression works, and the FPGA concepts the hardware chapters
-use.
+This chapter covers how the radar measures range, velocity and angle, why its
+data is large, how lossless compression works, and the FPGA concepts used in
+the hardware chapters.
 
 \section{How an FMCW radar measures range}
 \label{sec:fmcw}
 
 \subsection{The chirp}
 
-Automotive radar is almost universally \emph{frequency-modulated continuous
-wave} (FMCW). Instead of emitting a short pulse and timing the echo --- which
-would demand impractically fast electronics for the distances involved --- an
-FMCW radar transmits continuously, sweeping its frequency linearly upward over
-a short interval. One such sweep is called a \emph{chirp}. The sensor used here
+Automotive radar almost always uses \emph{frequency-modulated continuous wave}
+(FMCW) operation. Rather than emitting a short pulse and timing the echo, which
+would need impractically fast electronics at these distances, an FMCW radar
+transmits continuously whilst sweeping its frequency linearly upward over a
+short interval. One such sweep is called a \emph{chirp}. The sensor used here
 sweeps \SI{1.798}{\giga\hertz} of bandwidth around a \SI{77}{\giga\hertz}
-centre frequency while its echo is sampled, and starts a new chirp every
-\SI{78.5}{\micro\second}.
+centre frequency and starts a new chirp every \SI{78.5}{\micro\second}.
 
 When the chirp reflects off an object at range $R$, the echo arrives delayed by
 the round-trip time
 \begin{equation}
 \tau = \frac{2R}{c},
 \end{equation}
-where $c$ is the speed of light. Because the transmitter has kept sweeping in
-the meantime, the echo's frequency at any instant is lower than what is
-currently being transmitted, by an amount proportional to the delay. If the
-chirp sweeps $B$ hertz in $T_c$ seconds, the sweep slope is $S = B/T_c$ and the
-frequency difference is
+where $c$ is the speed of light. Since the transmitter keeps sweeping in the
+meantime, the echo's frequency is lower than the frequency currently being
+transmitted, by an amount proportional to the delay. If the chirp sweeps $B$
+hertz in $T_c$ seconds, the sweep slope is $S = B/T_c$ and the frequency
+difference is
 \begin{equation}
 \label{eq:beat}
 f_b = S\,\tau = \frac{2 S R}{c}.
@@ -61,31 +60,29 @@ f_b = S\,\tau = \frac{2 S R}{c}.
    (0,-0.28) -- (2.6,-0.28) node[midway,below,font=\scriptsize,text=slate,yshift=-3pt]{$T_c$};
 \draw[decorate,decoration={brace,amplitude=4pt,mirror},slate]
    (0,-1.15) -- (9.0,-1.15) node[midway,below,font=\scriptsize,text=slate,yshift=-3pt]
-   {one frame: many chirps --- the \emph{slow time} axis};
+   {one frame of many chirps: the \emph{slow time} axis};
 \end{tikzpicture}
 \caption[FMCW chirp and beat frequency]{FMCW operation. Each chirp sweeps
 linearly in frequency. The echo is a delayed copy, so at any instant the
-transmitted and received frequencies differ by $f_b = S\tau$, proportional to
-target range. A frame consists of many such chirps in succession; the axis
-running across chirps is called \emph{slow time} and is where Doppler
-information lives.}
+transmitted and received frequencies differ by $f_b = S\tau$, which is
+proportional to target range. A frame consists of many chirps in succession;
+the axis across chirps is called \emph{slow time} and carries the Doppler
+information.}
 \label{fig:chirp}
 \end{figure}
 
-A mixer multiplies the transmitted and received signals, producing a
-low-frequency \emph{beat} or intermediate-frequency signal at exactly $f_b$.
-That signal is low-pass filtered and digitised by an analog-to-digital
-converter (ADC) at a modest rate --- \SI{8}{\mega\hertz} here, rather than the
-tens of gigahertz the raw RF would need. This is the central trick of FMCW: it
-converts a timing measurement that would need picosecond resolution into a
-frequency measurement that an ordinary ADC can make.
+A mixer multiplies the transmitted and received signals to produce a
+low-frequency \emph{beat} signal at $f_b$, which is low-pass filtered and
+digitised by an analog-to-digital converter (ADC) at a modest rate,
+\SI{8}{\mega\hertz} here. FMCW therefore turns a timing measurement that would
+need picosecond resolution into a frequency measurement that an ordinary ADC
+can make.
 
 \subsection{From beat frequency to a range profile}
 
-Measuring $f_b$ is a spectral estimation problem, so the natural tool is the
-Fourier transform. Taking an $N_s$-point FFT across the $N_s$ ADC samples of a
-single chirp produces a \emph{range profile}: bin $n$ of the FFT corresponds,
-through Equation~\eqref{eq:beat}, to range
+Taking an $N_s$-point FFT across the $N_s$ ADC samples of one chirp gives a
+\emph{range profile}. Through Equation~\eqref{eq:beat}, bin $n$ of the FFT
+corresponds to range
 \begin{equation}
 R_n = n \cdot \frac{c}{2B},
 \end{equation}
@@ -94,85 +91,76 @@ so the range resolution is
 \Delta R = \frac{c}{2B} \approx \SI{8.3}{\centi\metre}
 \end{equation}
 for the \SI{1.798}{\giga\hertz} bandwidth used here. A peak in the range
-profile is an object. This first transform is called the \textbf{Range FFT},
-and its output is the data this thesis compresses.
+profile is an object. This first transform is the \emph{range FFT}, and its
+output is the data this thesis compresses.
 
 \subsection{Slow time and Doppler}
 
-A single chirp gives range but not velocity. To get velocity, the radar
-transmits many chirps in rapid succession --- a \emph{frame} --- and looks at
-how the \emph{phase} of a given range bin evolves from chirp to chirp.
-
-The reasoning is worth spelling out, because the whole of DRHE rests on it. A
-target at range $R$ produces a range-FFT value whose phase is
-$\theta = -4\pi R/\lambda$, where $\lambda$ is the wavelength. Over the
-chirp-to-chirp interval $T$, a target moving at radial velocity $v$ changes
-range by $vT$, so its phase changes by
+A single chirp gives range but not velocity. To measure velocity, the radar
+transmits many chirps in quick succession, called a \emph{frame}, and tracks
+how the \emph{phase} of each range bin changes from chirp to chirp. DRHE relies
+on this behaviour. A target at range $R$ produces a range-FFT value with phase
+$\theta = -4\pi R/\lambda$, where $\lambda$ is the wavelength. Over the chirp
+interval $T$, a target moving at radial velocity $v$ changes range by $vT$, so
+its phase changes by
 \begin{equation}
 \label{eq:dopplerphase}
 \Delta\theta = -\frac{4\pi v T}{\lambda}.
 \end{equation}
 At \SI{77}{\giga\hertz}, $\lambda \approx \SI{3.9}{\milli\metre}$, so even a
-very slow target produces a measurable phase step --- which is exactly why
-radar is good at velocity. Critically for compression, $\Delta\theta$ is
-\emph{constant} for a target at constant velocity. The phase of a given range
-bin therefore advances linearly across chirps, and its magnitude barely changes
-at all. That is a highly predictable sequence, and predictable sequences
-compress.
+slow target produces a measurable phase step. For compression, the important
+point is that $\Delta\theta$ is \emph{constant} for a target at constant
+velocity. The phase of a range bin therefore advances linearly across chirps
+whilst its magnitude barely changes, which is a highly predictable sequence.
 
-The axis running across chirps within a frame is called \textbf{slow time}, as
-opposed to the \emph{fast time} axis of samples within a chirp. Taking a second
-FFT along slow time resolves $\Delta\theta$ into velocity: this is the
-\textbf{Doppler FFT}.
+The axis across chirps within a frame is called \emph{slow time}, and the axis
+of samples within a chirp \emph{fast time}. A second FFT along slow time, the
+\emph{Doppler FFT}, resolves $\Delta\theta$ into velocity.
 
 \section{Angle, MIMO and the virtual array}
 \label{sec:mimo}
 
 Angle is measured by comparing the phase of the same echo at separated receive
-antennas: a wavefront arriving at angle $\phi$ reaches adjacent antennas,
+antennas. A wavefront arriving at angle $\phi$ reaches adjacent antennas,
 spaced $d$ apart, with a phase difference
 \begin{equation}
 \label{eq:steering}
 \Delta\psi = \frac{2\pi d \sin\phi}{\lambda},
 \end{equation}
-and an FFT across the antennas --- the \textbf{Angle FFT} --- turns these into
-a bearing. Angular resolution grows with the size of the array.
+and an FFT across the antennas, the \emph{angle FFT}, turns these differences
+into a bearing. Angular resolution grows with the size of the array.
 Multiple-Input Multiple-Output (MIMO) radar enlarges the array cheaply: if the
 signal of each of $N_t$ transmitters can be separated at each of $N_r$
-receivers, every transmit--receive pair acts as an element of a \emph{virtual
+receivers, every transmit--receive pair acts as one element of a \emph{virtual
 array}. The sensor used here has $N_t = 12$ and $N_r = 16$, giving 192 virtual
 elements from 28 physical antennas.
 
-\subsection{Time-division multiplexing, and why it matters here}
+\subsection{Time-division multiplexing}
 \label{sec:tdm}
 
-The separability requirement has to be met somehow. The simplest method, and
-the one this sensor uses, is \emph{time-division multiplexing} (TDM): the
-transmitters fire one at a time, in a fixed rotation, so whatever a receiver
-hears during transmitter $t$'s slot must have come from transmitter $t$.
-
-TDM is simple and robust, and it has one consequence that matters throughout
-this thesis. Inside every repetition of the frame --- every ``chirp loop''
---- all $N_t$ transmitters fire in sequence before the loop repeats. When the
-resulting data is laid out as a two-dimensional array of (ramp, range bin),
-which is how a streaming compressor sees it, the ramp index is
+This sensor separates the transmitters by \emph{time-division multiplexing}
+(TDM): the transmitters fire one at a time in a fixed rotation, so whatever a
+receiver hears during transmitter $t$'s slot came from transmitter $t$. In
+every repetition of the frame, called a chirp loop, all $N_t$ transmitters fire
+in turn. When the data is laid out as a two-dimensional array of (ramp, range
+bin), which is how a streaming compressor sees it, the ramp index is
 \begin{equation}
 \label{eq:rampindex}
 m = q\,N_t + t,
 \qquad q \in [0, N_c), \quad t \in [0, N_t),
 \end{equation}
-where $q$ indexes the chirp loop and $t$ the transmitter. The transmitter index
-varies \emph{fastest}.
+where $q$ indexes the chirp loop and $t$ the transmitter, so the transmitter
+index varies fastest.
 
-This is the correct physical time order. It is also, as Figure~\ref{fig:tdm}
-makes visual, a trap. Ramp $m$ and ramp $m-1$ are different physical
-transmitters $N_t - 1$ times out of $N_t$. They are separated in \emph{space}
-by the array baseline, not in \emph{time} by a pulse interval, and the phase
-relationship between them is governed by Equation~\eqref{eq:steering} --- the
-target's bearing --- not by Equation~\eqref{eq:dopplerphase} --- the target's
-velocity. The genuine slow-time neighbour of ramp $m$, the one whose phase
-differs by a Doppler step, is ramp $m - N_t$. From Chapter~\ref{ch:methods} on,
-this distance is written $\nTx$; on this sensor $\nTx = N_t = 12$.
+This order has one consequence that matters throughout this thesis
+(Figure~\ref{fig:tdm}). Ramps $m$ and $m-1$ come from different transmitters
+$N_t - 1$ times out of $N_t$. They are separated in space by the array baseline
+rather than in time, so the phase difference between them is set by the
+target's bearing (Equation~\eqref{eq:steering}), not its velocity
+(Equation~\eqref{eq:dopplerphase}). The slow-time neighbour of ramp $m$, whose
+phase differs by a Doppler step, is ramp $m - N_t$. From
+Chapter~\ref{ch:methods} on, this distance is written $\nTx$; on this sensor
+$\nTx = N_t = 12$.
 
 \begin{figure}[t]
 \centering
@@ -201,30 +189,30 @@ this distance is written $\nTx$; on this sensor $\nTx = N_t = 12$.
 % lag arrows, drawn under the strip
 \draw[warm,line width=1.0pt,-{Latex[length=1.8mm]}] (14,-1.05) -- (13.1,-1.05);
 \node[font=\scriptsize,text=warm,anchor=west] at (-0.3,-1.85)
-   {\textbf{lag 1} lands on TX 1 --- a \emph{different antenna}; the phase step is the target's \emph{bearing}};
+   {\textbf{lag 1} lands on TX 1, a \emph{different antenna}: the phase step is the target's \emph{bearing}};
 \draw[green2,line width=1.0pt,-{Latex[length=1.8mm]}] (14,-2.75) -- (2.1,-2.75);
 \node[font=\scriptsize,text=green2,anchor=west] at (-0.3,-3.55)
-   {\textbf{lag $n_{\mathrm{Tx}}\!=\!12$} lands on TX 2 --- the \emph{same antenna}; the phase step is the target's \emph{velocity}};
+   {\textbf{lag $n_{\mathrm{Tx}}\!=\!12$} lands on TX 2, the \emph{same antenna}: the phase step is the target's \emph{velocity}};
 \end{tikzpicture}
-\caption[TDM-MIMO ramp interleaving]{Why ``the previous ramp'' is the wrong
-neighbour on a TDM-MIMO cascade. Each cell is one ramp, labelled with the
-transmitter that produced it; the twelve transmitters rotate inside every chirp
-loop. Predicting ramp $m$ from ramp $m-1$ (red) crosses a transmitter boundary
-eleven times out of twelve, so the two ramps differ by the target's array
-steering phase. Predicting from ramp $m - n_{\mathrm{Tx}}$ (green) stays on the
-same physical antenna and therefore on the genuine Doppler axis.}
+\caption[TDM-MIMO ramp interleaving]{The prediction lag on a TDM-MIMO cascade.
+Each cell is one ramp, labelled with the transmitter that produced it; the
+twelve transmitters rotate inside every chirp loop. Predicting ramp $m$ from
+ramp $m-1$ (red) crosses a transmitter boundary eleven times out of twelve, so
+the two ramps differ by the target's array steering phase. Predicting from ramp
+$m - n_{\mathrm{Tx}}$ (green) stays on the same physical antenna, and therefore
+on the Doppler axis.}
 \label{fig:tdm}
 \end{figure}
 
 
-\section{The radar data cube, and why it is large}
+\section{The radar data cube}
 \label{sec:cube}
 
-Putting the three axes together gives the \emph{radar data cube}: fast time
-(samples within a chirp) $\times$ slow time (ramps) $\times$ receive channel.
-Three FFTs are applied along the three axes in turn, yielding range, velocity
-and angle. Figure~\ref{fig:cube} shows the arrangement and where in the chain
-this thesis intervenes.
+Together the three axes form the \emph{radar data cube}: fast time (samples
+within a chirp) $\times$ slow time (ramps) $\times$ receive channel. The range,
+Doppler and angle FFTs are applied along these axes in turn.
+Figure~\ref{fig:cube} shows the arrangement and where this thesis's compressor
+sits in the chain.
 
 \begin{figure}[t]
 \centering
@@ -261,100 +249,87 @@ this thesis intervenes.
 \end{scope}
 \end{tikzpicture}
 \caption[Radar data cube and processing chain]{The radar data cube and the
-processing chain. The compressor sits immediately after range-FFT and
+processing chain. The compressor sits immediately after the range FFT and
 fixed-point quantisation, before the data leaves the sensor. Everything
-downstream --- Doppler FFT, angle FFT, detection --- sees the reconstructed
-data, which for a lossless compressor is bit-identical to the original.}
+downstream (Doppler FFT, angle FFT and detection) sees the reconstructed data,
+which for a lossless compressor is bit-identical to the original.}
 \label{fig:cube}
 \end{figure}
 
-The volume follows directly. For the sensor used here, one frame is
+For the sensor used here, one frame is
 \begin{equation}
 N_s \times N_c \times N_r \times N_t
  = 256 \times 16 \times 16 \times 12 = \num{786432}
 \end{equation}
 complex samples. Each is two 16-bit integers, so a frame is
-\SI{3145728}{\byte} --- exactly \SI{3}{\mebi\byte}. At 20 frames per second,
-a common automotive rate, that is about half a gigabit per second from one
+\SI{3145728}{\byte}, exactly \SI{3}{\mebi\byte}. At 20 frames per second, a
+common automotive rate, this is about half a gigabit per second from one
 sensor, and a vehicle carries several.
 
-\section{Lossless compression: how it actually works}
+\section{Lossless compression}
 \label{sec:compression}
 
-\subsection{The two categories}
+\subsection{Lossless and lossy compression}
 
-Compression divides into \emph{lossless}, where the decompressed data is
-bit-identical to the input, and \emph{lossy}, where some information is
-permanently discarded in exchange for a smaller payload \cite{sayood2017}.
-Lossy compression can reach far higher ratios; lossless compression is bounded
-by the information content of the data itself. Section~\ref{sec:lossless}
-explained why this application needs the lossless kind.
+In \emph{lossless} compression the decompressed data is bit-identical to the
+input, whereas \emph{lossy} compression permanently discards some information
+in exchange for a smaller payload \cite{sayood2017}. Lossy compression can
+reach far higher ratios, but lossless compression is bounded by the
+information content of the data itself. Section~\ref{sec:lossless} explained
+why this application needs lossless compression.
 
-\subsection{The bound: entropy}
+\subsection{Entropy}
 
-There is a hard limit on lossless compression, and knowing it is what makes the
-results in Chapter~\ref{ch:results} interpretable. If a source emits symbols
-$x$ with probabilities $p(x)$, its \emph{order-0 entropy} is
+If a source emits symbols $x$ with probabilities $p(x)$, its \emph{order-0
+entropy} is
 \begin{equation}
 \label{eq:entropy}
 H = -\sum_x p(x) \log_2 p(x) \quad\text{bits per symbol},
 \end{equation}
-and no code that treats symbols independently can average fewer bits than $H$
-\cite{sayood2017}. This gives a concrete yardstick: measure $H$ for the data,
-compare it against what the coder actually achieves, and the gap is the coder's
-inefficiency. Section~\ref{sec:decomp} uses exactly this to separate what the
-predictor contributes from what the Huffman dictionary contributes.
+and no code that treats symbols independently can average fewer than $H$ bits
+per symbol \cite{sayood2017}. Comparing $H$ with what a coder achieves
+therefore gives the coder's inefficiency. Section~\ref{sec:decomp} uses this
+to separate what the predictor contributes from what the Huffman dictionary
+contributes.
 
-\subsection{The standard two-stage structure}
+\subsection{Prediction and entropy coding}
 
-Almost every practical lossless compressor has the same shape: a
-\emph{decorrelation} stage followed by an
-\emph{entropy coding} stage.
+Most practical lossless compressors have two stages: \emph{decorrelation}
+followed by \emph{entropy coding}. If consecutive samples are similar, the
+first stage predicts each sample from its neighbours and transmits only the
+\emph{residual}, the difference between the prediction and the sample. When
+the prediction is good, the residuals cluster around zero even though the
+samples span the full dynamic range. Nothing is lost, since the decoder applies
+the same prediction rule and adds the residual back.
 
+The second stage exploits the skewed distribution of the residuals by giving
+frequent values short codewords and rare values long ones. Huffman coding
+\cite{huffman1952}\label{lit:huffman:bg} produces the optimal prefix-free code
+for a known symbol distribution.
 
-The \textbf{decorrelation} stage exploits structure. If consecutive samples are
-similar, predict each one from its neighbours and transmit only the
-\emph{residual}, the difference between prediction and truth. When the
-prediction is good, residuals cluster tightly around zero even though the
-original samples spanned the full dynamic range. Nothing is lost: given the
-residual and the same prediction rule, the decoder reconstructs the original
-exactly.
+The two stages are independent. A predictor that does not help, and produces
+residuals no more skewed than its input, does not break the coder: the coder
+still compresses whatever it is given, and the ratio can still look
+reasonable. Hence this thesis reports a no-prediction baseline, the coder
+applied to the unpredicted data, alongside every predictive result.
 
-The \textbf{entropy coding} stage exploits the resulting skew in the
-distribution. Values that occur often get short codewords; values that occur
-rarely get long ones. Huffman coding \cite{huffman1952}\label{lit:huffman:bg} is the classic
-construction and produces the optimal prefix-free code for a known symbol
-distribution.
-
-Crucially, the two stages are independent. A predictor that fails --- that
-produces residuals no more skewed than its input --- does not break the coder;
-the coder simply carries on compressing whatever it is handed, and the
-compression ratio can still look respectable. Detecting this requires
-deliberately measuring what the coder achieves \emph{without} the predictor.
-This thesis reports that no-prediction baseline alongside every predictive
-result.
-
-\subsection{Open-loop versus closed-loop prediction}
+\subsection{Open-loop and closed-loop prediction}
 \label{sec:closedloop}
 
-One subtlety in predictive coding matters enough to state now, because the
-hardware of Chapter~\ref{ch:hardware} is built around it
+The encoder predicts from past samples, and so does the decoder, but the
+decoder only has the past \emph{reconstructed} samples. In \emph{open-loop}
+prediction the encoder predicts from the original samples; in
+\emph{closed-loop} prediction, as in differential pulse-code modulation (DPCM),
+the encoder reconstructs each sample exactly as the decoder will and predicts
+from that. When compression is lossless the two are identical, because the
+reconstruction equals the original. However, if anything (a saturation, a
+rounding or a clamp) makes the reconstruction differ from the original by even
+one bit, an open-loop encoder and its decoder start predicting from different
+histories and \emph{diverge}. With an IIR predictor such as DRHE's, the
+divergence then carries through every later ramp, whereas a closed loop
+confines the error to the affected sample. The hardware of
+Chapter~\ref{ch:hardware} uses a closed loop for this reason
 (Section~\ref{sec:robust}).
-
-The encoder predicts from past samples. So does the decoder --- but the decoder
-does not have the past \emph{original} samples, only the past
-\emph{reconstructed} ones. In \emph{open-loop} prediction the encoder uses the
-originals; in \emph{closed-loop} prediction (classically, differential
-pulse-code modulation, DPCM) the encoder reconstructs each sample exactly as
-the decoder will, and predicts from that.
-
-When compression is perfectly lossless the two are identical, because
-reconstruction equals the original. The moment anything --- a saturation, a
-rounding, a clamp --- makes reconstruction differ from the original by even one
-bit, an open-loop encoder and its decoder begin predicting from different
-histories and \emph{diverge}. With an IIR predictor, as in DRHE, that
-divergence is then carried forward through every subsequent ramp. Closing the
-loop confines the error to the affected sample.
 
 
 \section{The sensor and the dataset}
@@ -364,27 +339,27 @@ loop confines the error to the affected sample.
 
 The radar front end assumed throughout is the Texas Instruments AWR2243, a
 76--\SI{81}{\giga\hertz} FMCW transceiver with three transmit and four receive
-channels \cite{ti_awr2243}. Importantly for this work, the AWR2243 performs no
-signal processing of its own: it transmits, receives, mixes and digitises, then
-streams raw ADC samples out over a MIPI CSI-2 interface. It therefore exposes
-exactly the payload that creates the transport bottleneck.
-
-Four AWR2243 devices are cascaded on the MMWCAS-RF-EVM evaluation module,
-giving \num{12} transmit and \num{16} receive channels on one synchronised
-board --- the \num{192}-element virtual array of Section~\ref{sec:mimo}.
+channels \cite{ti_awr2243}. The AWR2243 does no signal processing of its own:
+it transmits, receives, mixes and digitises, then streams raw ADC samples out
+over a MIPI CSI-2 interface. It therefore produces exactly the data that
+creates the transport bottleneck. The MMWCAS-RF-EVM evaluation module cascades
+four AWR2243 devices, giving \num{12} transmit and \num{16} receive channels on
+one synchronised board, and hence the \num{192}-element virtual array of
+Section~\ref{sec:mimo}.
 
 \subsection{ColoRadar}
 
-Rather than synthetic stimulus, this thesis uses real captures from the public
-ColoRadar dataset \cite{kramer2022}\label{lit:kramer:bg}, which includes cascade recordings from
-exactly this module across indoor, outdoor and subterranean environments.
-Table~\ref{tab:capture} lists the relevant parameters. Fifty consecutive frames,
-frames 0 to 49 of the cascade recording \texttt{12\_21\_2020\_ec\_hallways\_run4}
-(\SI{10}{\second} at the capture's \SI{5}{\hertz} frame rate), were used
-throughout: \num{39321600} complex ADC samples, \SI{150}{\mebi\byte}
-of raw data over all sixteen receivers. The hardware path compresses four
-receivers' 128 range bins, \SI{19.7}{\mega\byte} over the 50 frames, and every
-one of those values is checked after decompression.
+Rather than synthetic data, this thesis uses real captures from the public
+ColoRadar dataset \cite{kramer2022}\label{lit:kramer:bg}, which includes cascade
+recordings from this module in indoor, outdoor and subterranean environments.
+Table~\ref{tab:capture} lists the relevant parameters. Fifty consecutive
+frames, frames 0 to 49 of the cascade recording
+\texttt{12\_21\_2020\_ec\_hallways\_run4} (\SI{10}{\second} at the capture's
+\SI{5}{\hertz} frame rate), are used throughout: \num{39321600} complex ADC
+samples, or \SI{150}{\mebi\byte} of raw data over all sixteen receivers. The
+hardware path compresses four receivers' 128 range bins, \SI{19.7}{\mega\byte}
+over the 50 frames, and every one of those values is checked after
+decompression.
 
 \begin{table}[t]
 \centering
@@ -409,44 +384,44 @@ Frame size (raw)           & --- & \SI{3145728}{\byte} \\
 \end{tabular}
 \end{table}
 
-Each complex sample is stored as two contiguous \texttt{int16} values. The
-index of the sample at (fast-time $s$, chirp loop $q$, receiver $r$,
-transmitter $t$) in the file is
+Each complex sample is stored as two contiguous \texttt{int16} values, and the
+sample at (fast-time $s$, chirp loop $q$, receiver $r$, transmitter $t$) is at
+index
 \begin{equation}
 i = 2\bigl(s + N_s(q + N_c(r + t N_r))\bigr),
 \end{equation}
 so the layout from slowest to fastest varying is $[t, r, q, s]$. Reshaping this
-into the (fast time, ramp, receiver) cube the processing chain expects is what
-produces the transmitter-interleaved ramp axis of Equation~\eqref{eq:rampindex}.
+into the (fast time, ramp, receiver) cube used by the processing chain gives
+the transmitter-interleaved ramp axis of Equation~\eqref{eq:rampindex}.
 
 \subsection{What one cascade asks of its link}
 \label{sec:linkreq}
 
 A frame of 192 ramps of \SI{78.5}{\micro\second} is acquired in
-\SI{15.07}{\milli\second}, so while it is measuring the cascade produces
+\SI{15.07}{\milli\second}, so whilst it is measuring the cascade produces
 $\SI{3}{\mebi\byte} / \SI{15.07}{\milli\second} = \SI{1.67}{Gbit/s}$ of raw
 samples. The range FFT keeps 128 of the 256 bins, which halves this to
 \SI{0.835}{Gbit/s} of FX16 codes for all sixteen receivers. Kiem allows for
-protocol headers by asking a ratio of 2.7 rather than 2.4 of a Gigabit Ethernet
-link (Section~\ref{sec:kc_problem}), which leaves about \SI{0.89}{Gbit/s} of
-payload. On the same basis one cascade's range-FFT stream fits a link by itself,
-but its raw stream needs a ratio of 1.9, and a link shared by several sensors,
-as in the zonal architectures of Section~\ref{sec:motivation}, needs 0.94 per
-sensor: 2.8 for three cascades and 3.8 for four. This thesis therefore asks
-for a ratio above three, enough for three cascades on one Gigabit link; the
-ratios of 4.2 and 4.4 reached in Chapter~\ref{ch:results} carry four,
-\SI{0.20}{Gbit/s} each. These are rates during acquisition, which a sensor must
-sustain unless it buffers whole frames --- the buffer a streaming compressor
-exists to avoid. ColoRadar itself records at only \SI{5}{\hertz}, so its average
-rate is far lower.
+protocol headers by requiring a ratio of 2.7 rather than 2.4 on a Gigabit
+Ethernet link (Section~\ref{sec:kc_problem}), which leaves about
+\SI{0.89}{Gbit/s} of payload. On this basis one cascade's range-FFT stream fits
+a link by itself, but its raw stream needs a ratio of 1.9, and a link shared by
+several sensors, as in the zonal architectures of Section~\ref{sec:motivation},
+needs 0.94 per sensor: 2.8 for three cascades and 3.8 for four. This thesis
+therefore requires a ratio above three, enough for three cascades on one
+Gigabit link; the ratios of 4.2 and 4.4 reached in Chapter~\ref{ch:results}
+carry four, at \SI{0.20}{Gbit/s} each. These are rates during acquisition,
+which a sensor must sustain unless it buffers whole frames, and avoiding that
+buffer is the point of a streaming compressor. ColoRadar itself records at only
+\SI{5}{\hertz}, so its average rate is far lower.
 
 \section{Quantisation: the FX16 step}
 \label{sec:numbers}
 \label{sec:fx16}
 
-The range-FFT output is naturally a complex floating-point quantity. Before it
-can be compressed by a fixed-point pipeline it has to be quantised to 16-bit
-integers --- the \textbf{FX16} step. This is a scaling followed by rounding:
+The range-FFT output is a complex floating-point quantity. Before a fixed-point
+pipeline can compress it, it has to be quantised to 16-bit integers, which is
+the FX16 step. This is a scaling followed by rounding:
 \begin{equation}
 \label{eq:scale}
 \sigma = \frac{32767}{A_{\max}\,2^{\mathrm{shift}} \sum_k w_k \,/\, (2 N_s)},
@@ -460,22 +435,20 @@ of samples per ramp, and $x$ is the range-FFT output normalised by $N_s$
 (Section~\ref{sec:refchain}). The denominator is the largest value a
 full-scale sinusoid can produce, so $\sigma$ maps it to the largest
 \texttt{int16}. For ColoRadar's 16-bit ADC and 256-point Hann window
-($\sum_k w_k = 127.5$) the whole step reduces to
+($\sum_k w_k = 127.5$) the step reduces to
 $x_{\mathrm{FX16}} = \mathrm{round}(X/63.75)$, where $X$ is the unnormalised
 FFT of the windowed ADC samples.
 
-Two things about Equation~\eqref{eq:scale} matter later. First, the rounding
-introduces an error bounded by half a least-significant bit, which acts as a
-wideband noise floor \cite{widrow2008}; this is the dominant source of
-detection degradation in the whole chain, and Chapter~\ref{ch:results}
-separates it cleanly from the cost of compression. Second, and more
-consequentially for this thesis, the scale factor is \emph{fixed} --- it is
-calibrated from a theoretical full-scale ADC sinusoid, not from the data.
-If the actual capture sits well below full scale, the top bits of every
-resulting \texttt{int16} are only copies of the sign bit. On ColoRadar the largest FX16
-code is \num{437}, so fewer than ten of the sixteen bits ever carry
-information; Section~\ref{sec:ratiomeaning} shows how much of the compression
-ratio this accounts for.
+Equation~\eqref{eq:scale} has two consequences for this thesis. First, rounding
+introduces an error of up to half a least-significant bit, which acts as a
+wideband noise floor \cite{widrow2008}. This is the main source of detection
+loss in the whole chain, and Chapter~\ref{ch:results} separates it from the
+cost of compression. Second, the scale factor is \emph{fixed}: it is calibrated
+from a theoretical full-scale ADC sinusoid, not from the data. If the capture
+sits well below full scale, the top bits of every \texttt{int16} are only copies
+of the sign bit. On ColoRadar the largest FX16 code is \num{437}, so fewer than
+ten of the sixteen bits ever carry information. Section~\ref{sec:ratiomeaning}
+shows how much of the compression ratio this accounts for.
 
 
 % -------------------------------------------------------------------
@@ -483,125 +456,124 @@ ratio this accounts for.
 \label{sec:fpga}
 
 A field-programmable gate array (FPGA) is a chip of configurable logic blocks
-and wiring that \emph{becomes} the circuit described, rather than executing
-instructions. It can process four receive channels in the same clock cycle,
-with deterministic timing, and can be changed after manufacture, which is why
-it suits a proof of concept; a production design would normally move into an
-ASIC or a fixed-function block of a larger SoC \cite{kuon2008,nxp_an5375}.
-Its resources are counted in four units: \textbf{LUTs} (look-up tables, which
-implement logic), \textbf{flip-flops} (one-bit registers), \textbf{block RAM}
-(on-chip memory, counted here in \SI{36}{\kilo bit} blocks, each with two
-access ports) and \textbf{DSP slices} (hardened multiply--accumulate units).
-The device used throughout, an AMD Kintex UltraScale+
-\texttt{xcku5p-ffvb676-2-e}, provides \num{216960} LUTs, \num{433920}
-flip-flops, 480 block RAMs and \num{1824} DSP slices. Fixed-point arithmetic
-maps onto these cheaply; floating point needs a multi-cycle operator for every
-operation \cite{parhami2010,ieee754}.
+and wiring that is configured into the required circuit, rather than executing
+instructions. It can process four receive channels in the same clock cycle
+with deterministic timing, and it can be changed after manufacture, which
+suits a proof of concept. A production design would normally move into an ASIC
+or a fixed-function block of a larger SoC \cite{kuon2008,nxp_an5375}. FPGA
+resources are counted in four units: look-up tables (LUTs), which implement
+logic; flip-flops (one-bit registers); block RAM (on-chip memory, counted here
+in \SI{36}{\kilo bit} blocks, each with two access ports); and DSP slices
+(hardened multiply--accumulate units). The device used throughout, an AMD
+Kintex UltraScale+ \texttt{xcku5p-ffvb676-2-e}, provides \num{216960} LUTs,
+\num{433920} flip-flops, 480 block RAMs and \num{1824} DSP slices. Fixed-point
+arithmetic maps onto these cheaply, whereas floating point needs a multi-cycle
+operator for every operation \cite{parhami2010,ieee754}.
 
 \label{sec:pipelining}
-A \textbf{pipeline} splits a computation into stages separated by registers so
-that several inputs are in flight at once; its \emph{depth} is the number of
-cycles one input takes to pass through. The \textbf{initiation interval} (II)
-is the number of cycles between accepting one input and the next:
-$\mathrm{II} = 1$ is one input per clock, and $\mathrm{II} = 2$ halves the
-throughput. $\mathbf{F_{\max}}$ is the fastest clock at which every path still
-settles within one period. A frame of $K$ input beats takes about
+A \emph{pipeline} splits a computation into stages separated by registers so
+that several inputs are processed at once; its \emph{depth} is the number of
+cycles one input takes to pass through. The \emph{initiation interval} (II) is
+the number of cycles between accepting one input and the next: $\mathrm{II} =
+1$ is one input per clock, and $\mathrm{II} = 2$ halves the throughput.
+$F_{\max}$ is the fastest clock at which every path still settles within one
+period. A frame of $K$ input beats therefore takes about
 $K \cdot \mathrm{II} / f$ seconds, plus the pipeline depth once per loop
 invocation.
 
-\textbf{High-level synthesis} (HLS) generates the circuit from annotated C++:
+\emph{High-level synthesis} (HLS) generates the circuit from annotated C++:
 loops become pipelined state machines, arrays become memories, and pragmas set
-the II and the interfaces. Because the source is C++, the same code also runs
-as software against the MATLAB reference before any hardware exists, which
-makes the verification of Section~\ref{sec:ladder} possible. The cores here use
-AXI4-Stream interfaces: a valid/ready handshake carrying one fixed-width word
-per beat.
+the II and the interfaces. Since the source is C++, the same code also runs as
+software against the MATLAB reference before any hardware exists, which makes
+the verification of Section~\ref{sec:ladder} possible. The cores in this thesis
+use AXI4-Stream interfaces, a valid/ready handshake carrying one fixed-width
+word per beat.
 
 % -------------------------------------------------------------------
 \section{Related work}
 \label{sec:sota}
 \label{sec:kiem}
 
-Three bodies of work bear on this thesis: the compression built into radar
-processors and proposed for radar data, the lossless predictive coders of audio,
-image and space data, from which DRHE and LPC borrow their structure, and the
-baseline this thesis extends. Table~\ref{tab:relwork} sets them side by side.
+This thesis draws on three bodies of work: compression built into radar
+processors and proposed for radar data; the lossless predictive coders of
+audio, image and space data, from which DRHE and LPC borrow their structure;
+and the baseline this thesis extends. Table~\ref{tab:relwork} summarises them.
 
 \subsection{Compression in radar sensors and processors}
 
-Radar processors compress to save on-chip memory and link bandwidth, with
+Radar processors compress to save on-chip memory and link bandwidth, using
 simple fixed-latency schemes. Texas Instruments' mmWave devices contain a
 compression engine that codes blocks of range-FFT samples with an order-$k$
 exponential-Golomb code \cite{teuhola1978}, choosing $k$ per block from the
-most common bit width, and meets a configured output size, so it is lossy, more
-so as the ratio rises \cite{ti_ege,kiem2025}. NXP's S32R radar processors offer a family of
-fixed-ratio formats (CP4, CP4D, CP8 and others) that NXP describes as near
-lossless, with typically under \SI{0.25}{\decibel} of SNR loss at ratios of 2.8
-to 3 and under \SI{1}{\decibel} at 6 \cite{nxp_an5375}. Infineon's common-exponent
-formats CMPRA and CMPRB, which Kiem evaluated, fix the ratio at 2 and 4
-\cite{kiem2025}. All of these trade a bounded loss for a guaranteed ratio.
+most common bit width. It meets a configured output size, so it is lossy, and
+more so as the ratio rises \cite{ti_ege,kiem2025}. NXP's S32R radar processors
+offer a family of fixed-ratio formats (CP4, CP4D, CP8 and others) that NXP
+describes as near lossless, with typically under \SI{0.25}{\decibel} of SNR
+loss at ratios of 2.8 to 3 and under \SI{1}{\decibel} at 6 \cite{nxp_an5375}.
+Infineon's common-exponent formats CMPRA and CMPRB, which Kiem evaluated, fix
+the ratio at 2 and 4 \cite{kiem2025}. All of these trade a bounded loss for a
+guaranteed ratio.
 
 Synthetic aperture radar (SAR) faced the downlink problem first. Block adaptive
 quantisation (BAQ) sets a quantiser step from each block's statistics and was
-flown on Magellan \cite{kwok1989}; Benz \emph{et al.}\ compared several
-algorithms for SAR raw data, BAQ among them \cite{benz1995}. Weather radar products
-are compressed by predicting each value from its spatial and temporal
-neighbours and entropy-coding the residual \cite{zeng2018}. For automotive
-FMCW radar, Li \cite{li2014} proposed range-dependent variable-length encoding
-(RDVLE), which spends fewer bits on far range bins, where the received power is
+flown on Magellan \cite{kwok1989}, and Benz \emph{et al.}\ compared several
+algorithms for SAR raw data, including BAQ \cite{benz1995}. Weather radar
+products are compressed by predicting each value from its spatial and temporal
+neighbours and entropy-coding the residual \cite{zeng2018}. For automotive FMCW
+radar, Li \cite{li2014} proposed range-dependent variable-length encoding
+(RDVLE), which spends fewer bits on far range bins where the received power is
 lower, and Doppler Redundancy Hybrid Encoding (DRHE), which predicts each
 range-FFT sample along slow time with two IIR filters in polar form and codes
 the error \cite{li2014,zivkovic2015}. Meucci and Mancuso \cite{meucci2022}
 applied linear prediction along fast time to the raw ADC samples of each chirp,
 with Huffman-coded residuals. Learned methods reach far higher ratios by giving
 up exactness: an autoencoder with range coding \cite{hu2023}, and AdaRadar,
-which prunes and quantises discrete-cosine-transform coefficients of the radar
-cube at a rate set by feedback from the detector and reports a hundredfold size
+which prunes and quantises discrete cosine transform coefficients of the radar
+cube at a rate set by feedback from the detector, reporting a hundredfold size
 reduction for about one point of detection accuracy \cite{park2026}. Both are
 lossy by design, which rules them out where every sample must reach the
 detector.
 
 \subsection{Lossless predictive coding outside radar}
 
-The structure of DRHE and of this thesis's LPC --- predict each value from its
-neighbours, then entropy-code the prediction error exactly --- is the standard
-structure of lossless coding for sampled signals, and it is mature in audio,
+DRHE and this thesis's LPC both predict each value from its neighbours and then
+entropy-code the prediction error exactly. This is the standard structure of
+lossless coding for sampled signals, and it is well established in audio,
 images and space data.
 
-\paragraph{Linear prediction.} Linear prediction models each sample as a
-weighted sum of the previous ones, with weights chosen to minimise the mean
-squared error; the autocorrelation method leads to the Yule--Walker equations,
-solved by the Levinson--Durbin recursion \cite{makhoul1975}. In speech coding
-the predictor's coefficients and a coarse description of the residual are sent
-and the waveform is only approximated. In lossless coding the residual is sent
-exactly, so the decoder rebuilds every sample bit for bit.
+Linear prediction models each sample as a weighted sum of the previous ones,
+with weights chosen to minimise the mean squared error; the autocorrelation
+method leads to the Yule--Walker equations, solved by the Levinson--Durbin
+recursion \cite{makhoul1975}. Speech coders send the coefficients and a coarse
+description of the residual, so the waveform is only approximated, whereas
+lossless coders send the residual exactly, so the decoder rebuilds every
+sample.
 
-\paragraph{Lossless audio.} Shorten fits a low-order linear predictor to each
-block of audio and entropy-codes the residuals \cite{robinson1994}. FLAC, now
-standardised as RFC~9639, chooses per block between fixed polynomial predictors
-of order 0 to 4 and a quantised linear predictor of order up to 32 whose
-coefficients are sent in the stream, and codes the residuals with Rice codes
-whose parameter can change across partitions of the block \cite{rfc9639}.
-MPEG-4 ALS adds long-term prediction and higher prediction orders to the same
-scheme \cite{liebchen2004}. These are \emph{forward-adaptive}: the coefficients
-are fitted to the data being coded and sent as side information, exactly as in
-this thesis's LPC (Section~\ref{sec:lpc}). The alternative, a
-\emph{backward-adaptive} predictor that updates from samples already decoded and
-sends no coefficients \cite{sayood2017}, is the streaming variant suggested in
-Section~\ref{sec:futurework}.
+In lossless audio, Shorten fits a low-order linear predictor to each block and
+entropy-codes the residuals \cite{robinson1994}. FLAC, now standardised as
+RFC~9639, chooses per block between fixed polynomial predictors of order 0 to 4
+and a quantised linear predictor of order up to 32 whose coefficients are sent
+in the stream, and codes the residuals with Rice codes whose parameter can
+change across partitions of the block \cite{rfc9639}. MPEG-4 ALS adds long-term
+prediction and higher prediction orders to the same scheme \cite{liebchen2004}.
+These coders are \emph{forward-adaptive}: the coefficients are fitted to the
+data being coded and sent as side information, as in this thesis's LPC
+(Section~\ref{sec:lpc}). A \emph{backward-adaptive} predictor instead updates
+from samples already decoded and sends no coefficients \cite{sayood2017};
+Section~\ref{sec:futurework} suggests it for a streaming LPC.
 
-\paragraph{Codes for prediction errors.} Prediction errors are mostly small
-and roughly two-sided geometric, which Golomb codes \cite{golomb1966} and their
-power-of-two special case, Rice codes \cite{rice1979}, match with no table at
-all. The space agencies' lossless standard, CCSDS~121.0, predicts each sample
-from the previous one and chooses among Rice options block by block, a design
-made for simple flight hardware \cite{ccsds121}. LOCO-I, the core of JPEG-LS,
-combines a fixed nonlinear predictor with context modelling and Golomb--Rice
-coding and comes close to far more complex coders \cite{weinberger2000}. The
-entropy coder of DRHE, which sends each value's size category as a Huffman
-codeword followed by that many raw bits (Section~\ref{sec:entropycoder}), is
-the scheme of baseline JPEG's DC coefficients \cite{itut81}; Rice and
-exponential-Golomb codes are the table-free relatives of the same idea.
+Prediction errors are mostly small and roughly two-sided geometric, which
+Golomb codes \cite{golomb1966} and their power-of-two special case, Rice codes
+\cite{rice1979}, match without any table. The space agencies' lossless
+standard, CCSDS~121.0, predicts each sample from the previous one and chooses
+among Rice options block by block, a design intended for simple flight hardware
+\cite{ccsds121}. LOCO-I, the core of JPEG-LS, combines a fixed nonlinear
+predictor with context modelling and Golomb--Rice coding, and comes close to
+far more complex coders \cite{weinberger2000}. DRHE's entropy coder, which
+sends each value's size category as a Huffman codeword followed by that many
+raw bits (Section~\ref{sec:entropycoder}), is the scheme baseline JPEG uses for
+its DC coefficients \cite{itut81}; Rice and exponential-Golomb codes are
+table-free versions of the same idea.
 
 \begin{table}[t]
 \centering
@@ -642,13 +614,12 @@ single-transmitter Infineon radar, selected DRHE (3.25 in simulation) and
 implemented its compressor on a Zynq UltraScale+ device (3.17 in hardware).
 Chapter~\ref{ch:kiem} summarises it.
 
-Against this background three things are missing from the work reviewed here.
-DRHE, the radar-specific lossless coder, predicts from the previous ramp, which
-is the right reference only when consecutive ramps come from the same
-transmitter; on a time-division MIMO cascade they do not
-(Section~\ref{sec:tdm}). The prediction-plus-entropy-coding designs of audio and
-image coding, whose behaviour is well understood, have not been compared with
-the vendor schemes on the same radar data and with the same metrics. And no
-lossless radar compressor has been built with its decoder in hardware and
-verified bit for bit on a board. Section~\ref{sec:objectives} turns
-these into this thesis's objectives.
+Three things are missing from the work reviewed here. First, DRHE predicts from
+the previous ramp, which is only the right reference when consecutive ramps
+come from the same transmitter; on a time-division MIMO cascade they do not
+(Section~\ref{sec:tdm}). Second, the prediction and entropy-coding designs of
+audio and image coding have not been compared with the vendor schemes on the
+same radar data with the same metrics. Third, no lossless radar compressor has
+been built with its decoder in hardware and verified bit for bit on a board.
+Section~\ref{sec:objectives} turns these gaps into the objectives of this
+thesis.

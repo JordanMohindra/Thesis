@@ -5,27 +5,26 @@
 \section{Two stages}
 \label{sec:stages}
 
-The evaluation runs in two stages, each answering one question.
+The evaluation has two stages.
 
-\paragraph{Stage 1 --- which methods are worth building?}
+\paragraph{Stage 1: screening.}
 All eight methods of Section~\ref{sec:candidates} are run in MATLAB over the
-same 50 consecutive ColoRadar frames with all 16 receive channels. Each is
-scored on compression ratio and on what it does to target detection. A method
-goes forward only if it is lossless --- it loses no detections beyond those of
-the FX16 step every method shares --- and compresses by more than three, enough
-for three ColoRadar cascades to share one Gigabit Ethernet link
-(Section~\ref{sec:linkreq}) and a margin over the \num{2.4}--\num{2.7} of Kiem's
-sensor (Chapter~\ref{ch:kiem}).
+same 50 consecutive ColoRadar frames with all 16 receive channels, and each is
+scored on compression ratio and on its effect on target detection. A method
+goes forward only if it is lossless, meaning it loses no detections beyond
+those of the FX16 step every method shares, and compresses by more than three.
+This is enough for three ColoRadar cascades to share one Gigabit Ethernet link
+(Section~\ref{sec:linkreq}) and gives a margin over the \num{2.4}--\num{2.7} of
+Kiem's sensor (Chapter~\ref{ch:kiem}).
 
-\paragraph{Stage 2 --- where does the compression come from, and what does it
-cost in hardware?}
+\paragraph{Stage 2: breakdown and hardware.}
 The selected methods, DRHE and LPC, are evaluated on the four-receiver frames
 that the hardware processes. Their compression ratio is broken down into what
 the entropy coder achieves alone, what prediction adds, and what a re-derived
-dictionary adds. They are then implemented, with decoders, in hardware
-(Chapter~\ref{ch:hardware}), verified bit for bit at every level of the ladder
-of Section~\ref{sec:ladder}, and measured on the board for time per frame,
-latency and chip resources.
+dictionary adds. They are then implemented with decoders in hardware
+(Chapter~\ref{ch:hardware}), verified bit for bit at every level of
+Section~\ref{sec:ladder}, and measured on the board for time per frame, latency
+and chip resources.
 
 \section{The reference signal chain}
 \label{sec:refchain}
@@ -34,13 +33,13 @@ A ColoRadar frame is read and reshaped into a complex cube of (fast time
 $\times$ ramp $\times$ receiver) with the TDM flattening of
 Equation~\eqref{eq:rampindex}, and the per-ramp mean is subtracted to remove
 the DC and transmitter-leakage term. A Hann window is applied along fast time,
-and an $N_s$-point range FFT normalised by $N_s$. Only the positive half of the
-spectrum is kept, giving 128 range bins; the input is complex, so this is a
-choice to keep positive ranges, not a consequence of symmetry. The result is
-scaled by Equation~\eqref{eq:scale} and rounded to \texttt{int16}. Four
-receive channels are exported to the hardware path, because four complex
-\texttt{int16} samples make one 128-bit AXI4-Stream beat; one such frame is
-\SI{393216}{\byte} (Figure~\ref{fig:input}).
+followed by an $N_s$-point range FFT normalised by $N_s$. Only the positive
+half of the spectrum is kept, giving 128 range bins; since the input is
+complex, this is a choice to keep positive ranges rather than a consequence of
+symmetry. The result is scaled by Equation~\eqref{eq:scale} and rounded to
+\texttt{int16}. Four receive channels are exported to the hardware path,
+because four complex \texttt{int16} samples make one 128-bit AXI4-Stream beat;
+one such frame is \SI{393216}{\byte} (Figure~\ref{fig:input}).
 
 \begin{figure}[htbp]
 \centering
@@ -48,7 +47,7 @@ receive channels are exported to the hardware path, because four complex
 \caption[One input frame]{One input frame as the compressor receives it:
 receiver 1 of ColoRadar frame 0 after the range FFT and FX16 quantisation, 128
 range bins by 192 ramps. Strong returns appear as horizontal bands at fixed
-range; most of the frame is low-level noise, which is why it compresses.
+range, and most of the frame is low-level noise, which is why it compresses.
 Colour is $20\log_{10}(|\text{code}|+1)$; ramps are in recorded,
 transmitter-interleaved order.}
 \label{fig:input}
@@ -60,7 +59,7 @@ Section~\ref{sec:tdm}), non-coherent integration over the 16 receive channels,
 and a detector whose threshold is the mean of the lowest \SI{75}{\percent} of
 magnitudes plus \SI{15}{\decibel}, with 8-connected local-maximum suppression.
 There is no angle FFT. None of this affects a lossless result, which returns
-the input exactly; it matters only for the lossy comparison points.
+the input exactly; it matters only for the lossy methods.
 
 \section{Metrics}
 \label{sec:metrics}
@@ -76,8 +75,8 @@ the last 256-bit word. Ratios are computed per frame and reported as the mean
 over 50 frames.
 
 \paragraph{Losslessness.} The maximum absolute difference between input and
-reconstruction over every real and imaginary component must be zero. There is
-no tolerance.
+reconstruction over every real and imaginary component must be zero, with no
+tolerance.
 
 \paragraph{Detection.}
 \label{sec:detectionmetrics}
@@ -89,14 +88,14 @@ $D_{\mathrm{test}}$ those of the reconstructed data,
 \mathrm{FDR}\% = \frac{|D_{\mathrm{test}} \setminus D_{\mathrm{ref}}|}{|D_{\mathrm{test}}|}.
 \end{equation}
 A detection is a cell of the range--Doppler map that the detector marks, so
-these metrics count cells, not physical objects; one object can occupy several
-cells. The first is the share of reference detections missed. The second is labelled a false
-positive rate in Kiem's thesis, but it normalises by the test detections, so it
-is a false discovery rate. Matching is cell by cell with no positional
-tolerance, and the \SI{15}{\decibel} threshold is not swept. FX16, DRHE and LPC
-reconstruct identical data, so their detection metrics are identical by
-construction: for the lossless methods they measure the cost of the FX16 step
-alone.
+these metrics count cells, not physical objects, and one object can occupy
+several cells. The first metric is the share of reference detections missed.
+The second is labelled a false positive rate in Kiem's thesis, but since it
+normalises by the test detections it is a false discovery rate. Matching is
+cell by cell with no positional tolerance, and the \SI{15}{\decibel} threshold
+is not swept. FX16, DRHE and LPC reconstruct identical data, so their detection
+metrics are identical by construction: for the lossless methods they measure
+the cost of the FX16 step alone.
 
 \paragraph{Baselines.} Every predictive result is reported against a
 \emph{no-prediction baseline}, the FX16 codes fed straight into the same
@@ -105,18 +104,18 @@ entropy of Equation~\eqref{eq:entropy}, evaluated on the residuals, separates
 what the predictor achieves from what the dictionary wastes.
 
 \paragraph{Timing.} \emph{Time per frame} runs from the start of a frame's DMA
-transfer to the last output word written. \emph{Throughput} is input bits per
-frame divided by it. \emph{Latency} runs from the last input word read from
+transfer to the last output word written, and \emph{throughput} is input bits
+per frame divided by it. \emph{Latency} runs from the last input word read from
 memory to the last output word written back, measured by the board firmware
-with a hardware timer; this is Kiem's definition, and it measures how long the
+with a hardware timer. This is Kiem's definition, and it measures how long the
 compressed data lags the raw data.
 
 \section{The verification ladder}
 \label{sec:ladder}
 
-A compressor that is \emph{nearly} lossless is useless, so every design is
-taken down five levels, each checked against the one above, so that a
-discrepancy localises to one transition (Figure~\ref{fig:ladder}).
+Since the compressor must be exactly lossless, every design is checked at five
+levels, each against the level above, so that a discrepancy can be traced to
+one transition (Figure~\ref{fig:ladder}).
 
 \begin{figure}[t]
 \centering
@@ -141,38 +140,39 @@ discrepancy localises to one transition (Figure~\ref{fig:ladder}).
   {output byte-identical to C-simulation?\\measured time, throughput, latency};
 \end{tikzpicture}
 \caption[The verification ladder]{The verification ladder. Each level is checked
-against the one above it, so a mismatch localises to a single transition rather
-than to ``somewhere in the design''.}
+against the one above it, so a mismatch can be traced to a single
+transition.}
 \label{fig:ladder}
 \end{figure}
 
-\textbf{MATLAB} models the chain in double precision and gives the exact bits
-each algorithm should produce. \textbf{HLS C-simulation} compiles the hardware
-C++ as software, on stimulus exported from MATLAB as \texttt{int16}, and checks
-over all 50 frames that it produces exactly MATLAB's bit counts and that the
-decompressor recovers every sample. \textbf{RTL co-simulation} runs the same
-testbench on the generated Verilog for one frame, to check that synthesis
-preserved behaviour and to count cycles. \textbf{Vivado implementation} places
-and routes the complete board system and gives real resources and timing.
-\textbf{The board} streams all 50 frames through the cores and compares the
-output byte for byte with the C-simulation.
+MATLAB models the chain in double precision and gives the exact bits each
+algorithm should produce. HLS C-simulation compiles the hardware C++ as
+software, on stimulus exported from MATLAB as \texttt{int16}, and checks over
+all 50 frames that it produces exactly MATLAB's bit counts and that the
+decompressor recovers every sample. RTL co-simulation runs the same testbench
+on the generated Verilog for one frame, to check that synthesis preserved the
+behaviour and to count cycles. Vivado implementation places and routes the
+complete board system and gives the real resources and timing. Finally, the
+board streams all 50 frames through the cores and compares the output byte for
+byte with the C-simulation.
 
 \section{Edge-case testing}
 \label{sec:edgecases}
 
-Real data exercises the typical case well and the extreme case not at all. The
-ColoRadar residuals span roughly $[-514, +416]$, which is entirely inside
-category 10 of a 16-category code. Everything above that is never exercised by real data.
-
+Real data tests the typical case well but not the extreme cases. The ColoRadar
+residuals span roughly $[-514, +416]$, which lies within category 10 of a
+16-category code, so the higher categories are never exercised by real data.
 An eight-case synthetic testbench was therefore built
-(Table~\ref{tab:edgecases}), generating its stimulus internally so that it runs
-identically in C-simulation and co-simulation.
+(Table~\ref{tab:edgecases}). It generates its stimulus internally, so it runs
+identically in C-simulation and co-simulation, and it covers the two situations
+handled in Section~\ref{sec:robust}, neither of which can arise on ColoRadar
+data.
 
 \begin{table}[t]
 \centering
 \caption[Synthetic edge cases]{The synthetic edge-case suite. Each case has its
-own allowed reconstruction error --- zero for all but the three that can
-produce the value $-32768$ and therefore exercise the saturation described in
+own allowed reconstruction error: zero for all but the three that can produce
+the value $-32768$ and therefore exercise the saturation described in
 Section~\ref{sec:robust}. Uniformly random \texttt{int16} input produces a
 residual of $-32768$ by chance, so it is one of them.}
 \label{tab:edgecases}
@@ -193,28 +193,22 @@ int16-min        & $-32768$ specifically & 1 \\
 \end{tabular}
 \end{table}
 
-The suite exercises the parts of the design that real data never reaches,
-including the two situations handled by the robustness measures of
-Section~\ref{sec:robust}, neither of which can arise on ColoRadar data.
-
 \section{An independent implementation}
 \label{sec:indep}
 
-As a final check that the compression figures are right --- not merely
-consistent between MATLAB and C++, which share a specification and could share
-a misunderstanding --- the whole compression chain was written a third time,
-independently, in Python and NumPy, from the descriptions in
-Chapters~\ref{ch:methods} and~\ref{ch:evaluation} without reusing any code. It
+MATLAB and the HLS C++ share a specification, so they could also share a
+misunderstanding. As a further check, the whole compression chain was written a
+third time in Python and NumPy from the descriptions in
+Chapters~\ref{ch:methods} and~\ref{ch:evaluation}, without reusing any code. It
 reads raw ColoRadar frames, applies the TDM flattening, DC removal, window,
 range FFT and FX16 scaling, runs DRHE and LPC with the same coefficient
 quantisation as the hardware, and counts the bits of the $S_4$, APPEND and
-Huffman coder with and without 256-bit padding. With the original dictionary
-it reproduces the HLS bit counts of both algorithms exactly on every one of the
-50 frames, and with the re-derived dictionaries it reproduces the hardware's
-residuals exactly on the frames checked. It is also the
-source of the no-prediction baseline, the entropy figures and the LPC
-coefficient statistics reported in Chapter~\ref{ch:results}.
-Appendix~\ref{app:verify} lists what was checked.
+Huffman coder with and without 256-bit padding. With the original dictionary it
+reproduces the HLS bit counts of both algorithms exactly on all 50 frames, and
+with the re-derived dictionaries it reproduces the hardware's residuals exactly
+on the frames checked. It is also the source of the no-prediction baseline, the
+entropy figures and the LPC coefficient statistics reported in
+Chapter~\ref{ch:results}. Appendix~\ref{app:verify} lists what was checked.
 
 \section{Tools}
 
