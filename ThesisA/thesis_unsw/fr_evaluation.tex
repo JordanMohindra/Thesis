@@ -10,10 +10,10 @@ The evaluation has two stages.
 \paragraph{Stage 1: screening.}
 All eight methods of Section~\ref{sec:candidates} are run in MATLAB over the
 same 50 consecutive ColoRadar frames with all 16 receive channels, and each is
-scored on compression ratio and on its effect on target detection. A method
-goes forward only if it is lossless, meaning it loses no detections beyond
-those of the FX16 step every method shares, and compresses by more than three.
-This is enough for three ColoRadar cascades to share one Gigabit Ethernet link
+scored on compression ratio and on its effect on target detection: the higher
+the ratio and the fewer detections lost, the better. The methods with the best
+trade-off at a ratio above three go forward. A ratio of three is enough for
+three ColoRadar cascades to share one Gigabit Ethernet link
 (Section~\ref{sec:linkreq}) and gives a margin over the \num{2.4}--\num{2.7} of
 Kiem's sensor (Chapter~\ref{ch:kiem}).
 
@@ -101,9 +101,9 @@ measured by the board firmware with a hardware timer.
 \section{The verification ladder}
 \label{sec:ladder}
 
-Since the compressor must be exactly lossless, every design is checked at five
-levels, each against the level above, so that a discrepancy can be traced to
-one transition (Figure~\ref{fig:ladder}).
+Since the selected designs are meant to be exactly lossless, every design is
+checked at five levels, each against the level above, so that a discrepancy can
+be traced to one transition (Figure~\ref{fig:ladder}).
 
 \begin{figure}[t]
 \centering

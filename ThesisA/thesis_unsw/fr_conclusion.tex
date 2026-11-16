@@ -5,7 +5,8 @@
 \section{Summary}
 
 This thesis set out to compare data compression methods for SoC-based radar on
-real, public, multi-transmitter data, to select the best lossless ones, and to
+real, public, multi-transmitter data, to select those with the best trade-off
+between compression and loss, and to
 implement their encoders and decoders on an FPGA and measure them on a board.
 The four objectives of Section~\ref{sec:objectives} were met. Eight methods
 were compared in MATLAB on 50 ColoRadar frames from a twelve-transmitter
@@ -16,7 +17,7 @@ on an AMD KCU116 board, and verified bit for bit from MATLAB to the board.
 \section{Findings}
 
 \begin{enumerate}
-\item Only lossless predictive coding meets the requirement. DRHE (\num{3.75})
+\item Lossless predictive coding gives the best trade-off. DRHE (\num{3.75})
 and LPC (\num{3.70}) are the only methods that compress by more than three
 without adding a missed detection; the best lossy quantiser reaches \num{3.76}
 but misses \SI{10.4}{\percent} of the reference detections, and floating-point

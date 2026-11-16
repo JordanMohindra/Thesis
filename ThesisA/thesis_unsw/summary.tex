@@ -23,16 +23,17 @@
 A.\quad\textbf{Problem statement}\\
 \sumbox{In automotive radar, high-resolution cascaded MIMO sensors produce more
 raw data than a vehicle's network and central processor can comfortably absorb.
-Compressing at the sensor saves link bandwidth, but the compressor must be
-lossless (anything it discards is lost before target detection), keep up with
-the sensor, and be small enough for sensor hardware. Radar compression methods
+Compressing at the sensor saves link bandwidth, but the compressor must keep up
+with the sensor and be small enough for sensor hardware, and the less it loses
+before target detection, the better. Radar compression methods
 are rarely compared on the same real multi-transmitter data, and the lossless
 baseline was evaluated on a single-transmitter radar with no decoder.}
 \vspace{2mm}
 
 B.\quad\textbf{Objective}\\
 \sumbox{Compare compression methods side by side on real, public,
-multi-transmitter radar data; select the best lossless methods; and implement
+multi-transmitter radar data; select the methods with the best trade-off
+between compression and loss; and implement
 their encoders and decoders on an FPGA, verified and measured on a board.}
 \vspace{2mm}
 

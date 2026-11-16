@@ -1,9 +1,10 @@
 High-resolution automotive radar produces more raw data than a vehicle's
-network can comfortably carry, and compressing it at the sensor is only safe
-if nothing is lost. This thesis compares eight compression methods on 50 frames
-of public twelve-transmitter cascade radar data and finds that only lossless
-predictive coding, DRHE and a linear predictive coder (LPC), compresses by more
-than three without losing detections. On a time-division MIMO radar both must
+network can comfortably carry. Compressing it at the sensor reduces this load,
+and the less information the compressor loses, the better. This thesis
+compares eight compression methods on 50 frames of public twelve-transmitter
+cascade radar data and finds that lossless predictive coding, DRHE and a linear
+predictive coder (LPC), gives the best trade-off: both compress by more than
+three without losing detections. On a time-division MIMO radar both must
 predict from the same transmitter. With Huffman dictionaries matched to their
 errors they reach \num{4.22} and \num{4.40}. Both encoders and decoders run on
 an AMD KCU116 FPGA board, with output byte-identical to simulation and every

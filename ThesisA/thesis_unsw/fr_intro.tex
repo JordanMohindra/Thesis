@@ -34,12 +34,12 @@ An alternative approach (and the one that motivates this thesis) is to apply dat
 \end{figure}
 
 \label{sec:lossless}
-The compressor sits \emph{upstream} of detection, so whatever it discards is
-lost before the detector sees it, and the detector's job is to find weak
-returns close to the noise floor. This thesis therefore requires the
-compressor to be \emph{lossless}: every reconstructed sample must equal the
-original exactly. This also makes verification unambiguous, since a single
-differing bit anywhere in the test set is a failure.
+The compressor sits \emph{upstream} of detection, and the detector's job is to
+find weak returns close to the noise floor, so the less information a
+compressor loses, the better. A \emph{lossless} compressor, whose every
+reconstructed sample equals the original exactly, loses nothing at all, and
+for such a design verification is unambiguous, since a single differing bit
+anywhere in the test set is a failure.
 
 \section{Objective}
 \label{sec:objectives}
@@ -65,9 +65,9 @@ The ultimate goal of this thesis is to advance the state of the art in automotiv
 
 \begin{enumerate}
 \item A comparison of eight compression methods on real cascade radar data
-(Section~\ref{sec:stage1}): only the lossless predictive coders DRHE
-(\num{3.75}) and LPC (\num{3.70}) compress by more than three without losing
-detections.
+(Section~\ref{sec:stage1}): the lossless predictive coders DRHE (\num{3.75})
+and LPC (\num{3.70}) give the best trade-off, compressing by more than three
+without losing detections.
 \item The correct prediction lag for time-division MIMO radar
 (Sections~\ref{sec:predaxis} and~\ref{sec:predaxisres}): slow-time prediction
 must use the previous ramp of the same transmitter, $\nTx$ ramps back, or it

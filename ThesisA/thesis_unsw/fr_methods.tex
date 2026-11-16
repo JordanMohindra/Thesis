@@ -52,12 +52,12 @@ coder, the class BAQ already represents, and Kiem's own results show its cost.
 At the ratios a Gigabit link needs, his EGE6 (2.67) and EGE4 (4.0) missed
 \SI{7.7}{\percent} and \SI{40}{\percent} of his detections
 (Figure~\ref{fig:kiemresults}). Neural and spectral methods such as AdaRadar
-\cite{park2026} were out of scope, since they are lossy and their decoders run
-on the central processor.
+\cite{park2026} were out of scope, since their decoders run a neural network on the central
+processor, beyond the hardware this thesis builds.
 
 The rest of this chapter covers DRHE and LPC, which Section~\ref{sec:stage1}
-shows are the only two methods that compress by more than three without losing
-detections.
+shows give the best trade-off of the eight: they compress by more than three
+without losing detections.
 
 \section{The shared entropy coder}
 \label{sec:entropycoder}
