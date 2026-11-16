@@ -1,207 +1,95 @@
 % ===================================================================
+% Chapter 1 follows the Thesis A introduction word for word, with the
+% objectives updated to what was done.
+% ===================================================================
 \chapter{Introduction}
 \label{ch:intro}
 
-\section{The problem}
-\label{sec:problem}
+The automotive industry is currently undergoing a rapid transformation, especially with the pursuit of autonomous vehicles. The main driver of this transformation is the reliance on various sensor technologies that enable the vehicle to interpret its surrounding environment. Amongst these sensor technologies is radar, which is critical mainly due to its ability to work under various adverse conditions, such as rain, fog, snow, and darkness; conditions that other sensors, such as cameras and lidar, would not function in~\cite{waldschmidt2021,yao2023}.
 
-High-resolution automotive radars now generate data faster than the vehicle
-can easily move it. The cascaded radar used in this thesis produces about
-\SI{3}{\mebi\byte} of raw digitised samples every frame, and a car carries
-several such sensors. Getting this data to the central processor requires
-either expensive shielded high-speed cabling or compressing it at the sensor
-first. Compression is the cheaper option, but the compressor has to keep up
-with the sensor, fit in a small amount of silicon and, since anything it
-discards is gone before detection, lose nothing. This thesis compares the
-available compression methods on real radar data, selects the ones that meet
-these conditions, and builds and measures them on an FPGA.
+Radar has long been integral to Advanced Driver Assistance Systems (ADAS), initially being used for straightforward tasks such as distance warning and collision avoidance. However, as radar technology has evolved, its applications have expanded rapidly, including adaptive cruise control (ACC), automatic emergency braking (AEB), blind spot detection (BSD), and lane change assist (LCA)~\cite{skolnik2008}. More recently, the trajectory of radar has shifted toward supporting levels of autonomy, including SAE Levels 2+ through 4, which demand high-resolution environmental mapping, object classification, and multi-target tracking~\cite{infineon2024}. All these advances in radar applications have substantially increased the resolution and complexity requirements.
 
 \section{Motivation}
 \label{sec:motivation}
+\label{sec:problem}
 
-Radar is used in vehicles because it works in conditions where other sensors
-do not. Cameras struggle in fog, glare and darkness, and lidar is degraded by
-rain and airborne dust, whilst radar is largely unaffected
-\cite{waldschmidt2021,yao2023}. Radar has been in production vehicles for two
-decades, first for simple distance warning and now for adaptive cruise
-control, automatic emergency braking, blind-spot detection and lane-change
-assistance \cite{skolnik2008}.
+The motivation behind this research stems from this increase in resolution. As automotive systems architecture has evolved from domain-based to centralized design, the demands on data transmission infrastructure have intensified~\cite{bandur2021,liu2022}. In a centralized architecture, raw sensor data from multiple radars distributed around the vehicle must be sent to a central processing unit. Since transmitting data in its raw form allows maximum flexibility for downstream processing, it places a high demand on the vehicle's communication bandwidth.
 
-What has changed recently is the resolution required. SAE Level 2+ autonomy
-needs more than the distance to the nearest object: it needs to know how many
-objects there are, where they are, how fast they are moving and how large they
-are. Separating a car from a pedestrian standing beside it requires angular
-resolution, which comes from having many antennas. A radar with $N_t$
-transmitters and $N_r$ receivers can synthesise an array of $N_t \times N_r$
-elements, so resolution improves roughly with this product. However, the data
-volume grows with it too.
+To better illustrate this, consider the architecture seen in Figure~\ref{fig:serdes_arch}. This architecture is known as Serializer/Deserializer (SerDes)~\cite{ti_serdes}, which uses high-speed serial data lines to transport data from sensors to a central processor. In this example, various radar modules are placed around the car, with two radar modules aggregated at the front. Each of these radar modules uses 4 receive antennas that transmit at 600 Mbit/s. This data is transmitted from the radar module over 4 parallel data lines using Camera Serial Interface (CSI-2) to a serializer unit, which takes the 4 600~Mbit/s data lines (or in the case of the front module, 8 data lines) and serializes them into a 2.5~Gbit/s data line (5~Gbit/s for the front). Then, at the central System-on-Chip (SoC), a corresponding deserializer reconstructs the parallel data lines. While SerDes architectures are capable of handling these extremely high data rates, they carry the significant disadvantage of requiring expensive shielded cabling to maintain signal integrity, and require the SoC and deserializer to have substantial processing capacity and memory bandwidth to ingest the incoming data~\cite{matheus2021}.
 
-At the same time, vehicle electrical architectures have been consolidating:
-from a hundred single-purpose electronic control units, to domain controllers,
-to \emph{zonal} architectures where sensors report to a nearby gateway, and
-towards fully centralised designs where one high-performance system-on-chip
-does everything \cite{bandur2021,liu2022}. Centralising the computation means
-the raw sensor data has to travel.
-
-Figure~\ref{fig:arch} shows the consequence. A Serialiser/Deserialiser (SerDes)
-link \cite{ti_serdes} carries the combined output of several radar modules at
-\SI{2.5}{Gbit\per\second} or more. These rates are achievable, but they need
-shielded cable, which adds cost and weight, and the SoC's memory system must
-ingest all of the data \cite{matheus2021}. If the data is instead compressed at
-the radar module by a factor of \num{2.5} or more, it fits within Gigabit
-Ethernet \cite{ieee8023bp}, a cheap, standard and unshielded interconnect.
-This substitution is the main motivation for this work.
-
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
-\begin{tikzpicture}[font=\small,
-  box/.style={draw=slate,fill=white,rounded corners=2pt,minimum height=7mm,inner xsep=4pt},
-  rad/.style={box,fill=lightbg,minimum width=13mm},
-  lbl/.style={font=\scriptsize,text=slate}]
-
-% ---- top: without compression
-\node[lbl,anchor=west] at (-0.2,1.9) {\textbf{(a) Raw transport}};
-\node[rad] (r1) at (0.9,1.1) {radar};
-\node[rad] (r2) at (0.9,0.2) {radar};
-\node[box,minimum width=14mm] (ser) at (4.0,0.65) {serialiser};
-\node[box,minimum width=14mm] (des) at (8.6,0.65) {deserialiser};
-\node[box,minimum width=12mm,fill=lightbg] (soc) at (11.9,0.65) {SoC};
-\draw[-{Latex[length=1.6mm]},slate] (r1) -- (ser);
-\draw[-{Latex[length=1.6mm]},slate] (r2) -- (ser);
-\draw[-{Latex[length=1.6mm]},warm,line width=1.4pt] (ser) -- node[above,lbl,text=warm,yshift=1pt]{\SI{2.5}{Gbit/s} shielded serial} (des);
-\draw[-{Latex[length=1.6mm]},slate] (des) -- (soc);
-
-% ---- bottom: with compression
-\node[lbl,anchor=west] at (-0.2,-0.75) {\textbf{(b) Compressed transport}};
-\node[rad] (q1) at (0.9,-1.55) {radar};
-\node[rad] (q2) at (0.9,-2.45) {radar};
-\node[box,minimum width=16mm,fill=lightbg] (cmp) at (4.0,-2.0) {compressor};
-\node[box,minimum width=18mm,fill=lightbg] (dec) at (8.8,-2.0) {decompressor};
-\node[box,minimum width=12mm,fill=lightbg] (soc2) at (11.9,-2.0) {SoC};
-\draw[-{Latex[length=1.6mm]},slate] (q1) -- (cmp);
-\draw[-{Latex[length=1.6mm]},slate] (q2) -- (cmp);
-\draw[-{Latex[length=1.6mm]},green2,line width=1.4pt] (cmp) -- node[above,lbl,text=green2,yshift=1pt]{$<$\,\SI{1}{Gbit/s} Gigabit Ethernet} (dec);
-\draw[-{Latex[length=1.6mm]},slate] (dec) -- (soc2);
-\end{tikzpicture}
-\caption[Raw versus compressed radar transport]{Raw versus compressed radar
-transport. Compressing by a factor of \num{2.5} or more at the radar module
-replaces a shielded high-speed serial link with standard Gigabit Ethernet,
-without changing what the central processor receives.}
-\label{fig:arch}
+\includegraphics[width=0.8\textwidth]{serdes_arch.png}
+\caption{Centralized architecture with SerDes \cite{kiem2025}.}
+\label{fig:serdes_arch}
 \end{figure}
 
-\section{Why the compressor must be lossless}
+An alternative approach (and the one that motivates this thesis) is to apply data compression directly at the sensor edge before transmission to the SoC, as illustrated in Figure~\ref{fig:compression_arch}. By compressing the data at the source, we are able to substantially reduce the required transmission bandwidth. In this example, compressing the 2.5~Gbit/s data stream by a factor of 2.5 or greater would reduce the throughput to 1~Gbit/s or below, enabling the use of Gigabit Ethernet~\cite{ieee8023bp}. Gigabit Ethernet offers a cost-effective and well-standardized interconnect solution, and its adoption would yield reductions in cabling cost and system complexity compared to the SerDes solution~\cite{ieee8023ch}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{compression_arch.png}
+\caption{Centralized architecture with applied compression \cite{kiem2025}.}
+\label{fig:compression_arch}
+\end{figure}
+
 \label{sec:lossless}
+The compressor sits \emph{upstream} of detection, so whatever it discards is
+lost before the detector sees it, and the detector's job is to find weak
+returns close to the noise floor. This thesis therefore requires the
+compressor to be \emph{lossless}: every reconstructed sample must equal the
+original exactly. This also makes verification unambiguous, since a single
+differing bit anywhere in the test set is a failure.
 
-Lossy compression reaches much higher ratios, and radar data is already noisy,
-so a lossy compressor may seem acceptable. However, the compressor sits
-\emph{upstream} of detection. Whatever it discards is lost before the detector
-sees it, and the detector's job is to find weak returns close to the noise
-floor, such as a pedestrian at range or a motorcycle between two trucks. Lossy
-compression raises the noise floor where this margin is smallest.
-Chapter~\ref{ch:results} shows this on real data: Block Adaptive Quantization
-reaches the same compression ratio as the lossless coders studied here but
-misses nearly three times as many real detections and reports nearly nine times
-as many false ones.
-
-Losslessness also makes verification unambiguous. Every reconstructed sample
-must equal its original exactly, so there is no tolerance or distortion metric
-to trade off: a single differing bit anywhere in the \num{157} million input
-bits of the test set is a failure. Every design in this thesis is checked
-against this criterion, from MATLAB through C-simulation and RTL co-simulation
-to the encoders and decoders running on the FPGA board.
-
-\section{Aim and objectives}
+\section{Objective}
 \label{sec:objectives}
 
-The starting point is the master's thesis of Lukas Kiem \cite{kiem2025}, which
-evaluated a range of radar compression schemes on recordings from a
-single-transmitter Infineon radar, selected Doppler Redundancy Hybrid Encoding
-(DRHE) as the best of them, and implemented its compressor on a Zynq
-UltraScale+ device with a hardware compression ratio of \num{3.17}.
-Chapter~\ref{ch:kiem} describes this work.
+The primary objective of this thesis is to extend and improve the radar data compression framework established by Lukas Kiem~\cite{kiem2025}, addressing the critical gaps identified in his work and broadening the evaluation to include more recent compression approaches.
 
-The aim of this thesis is to compare compression methods side by side on real,
-public, multi-transmitter radar data, select the best \emph{lossless} methods,
-and implement both their encoders and their decoders on an FPGA, measured on a
-real board. Four questions left open by Kiem's work define the objectives:
+Specifically, this thesis pursues the following objectives:
 
 \begin{enumerate}
-\item Kiem's results come from private recordings of a single-transmitter
-radar. This thesis uses 50 consecutive frames of the public ColoRadar dataset
-\cite{kramer2022}\label{lit:kramer:intro}, recorded with a Texas Instruments
-twelve-transmitter, sixteen-receiver cascade, for every result from simulation
-to hardware.
+    \item Kiem's implementation required that radar data be converted to a 16-bit fixed-point format prior to compression. This linear quantization step was identified as the dominant source of information loss in the processing chain, as it crushes weak radar signals, which are critical for detecting small or distant objects such as pedestrians, into the noise floor. This thesis measures what this step costs in detection, separately from the cost of compression, and investigates whether floating-point storage, re-scaling or a non-linear (companding) quantizer~\cite{deng2024} avoids it.
 
-\item Kiem identified the conversion to 16-bit fixed point (FX16) as the
-source of his detection errors. This thesis measures what this step costs in
-detection, and whether floating-point storage is a usable alternative.
+    \item Kiem's results were measured on private recordings of a single-transmitter radar, leaving the performance of his design on a multi-transmitter (MIMO) radar unvalidated. This thesis uses real-world data recorded with the Texas Instruments AWR2243 cascaded MIMO radar sensor, taken from the public ColoRadar dataset~\cite{kramer2022}\label{lit:kramer:intro}, enabling more accurate analysis of compression algorithms performance.
 
-\item This thesis broadens the comparison to eight methods, run on the same
-data with the same metrics: two reference formats, three lossy quantisers,
-DRHE on integer and on floating-point data, and a linear predictive coder (LPC)
-designed for this thesis as a controlled comparison with DRHE.
+    \item This thesis expands the list of compression algorithms evaluated, including both newer and older methods that promise the same, if not better, performance metrics than those investigated by Kiem. Eight methods are compared on the same data with the same metrics, including a linear predictive coder (LPC) designed for this thesis as a controlled comparison with DRHE.
 
-\item Kiem implemented compression only and measured it on his own system.
-This thesis implements compression \emph{and} decompression for both selected
-algorithms, verifies them bit-exactly from MATLAB to the board, and measures
-throughput, latency and resources on an AMD KCU116 board.
+    \item Kiem implemented only the compressor. This thesis implements the full compression and decompression pipeline in hardware for the selected algorithms, verifies it bit for bit from MATLAB to the board, and measures its throughput, latency and resources on an AMD KCU116 FPGA board.
 \end{enumerate}
+
+The ultimate goal of this thesis is to advance the state of the art in automotive data compression by implementing a solution that achieves high compression ratios whilst meeting the strict requirements of low latency.
 
 \section{Contributions}
 \label{sec:contributions}
 
-The contributions of this thesis are:
-
 \begin{enumerate}
 \item A comparison of eight compression methods on real cascade radar data
-(Section~\ref{sec:stage1}). Only the two predictive lossless coders, DRHE
-(\num{3.75}) and LPC (\num{3.70}), compress by more than three without losing
-detections. The best lossy quantiser, BAQ, reaches \num{3.76} but misses
-\SI{10.4}{\percent} of the reference detections, and floating-point storage
-compresses by only \num{1.04}.
-
+(Section~\ref{sec:stage1}): only the lossless predictive coders DRHE
+(\num{3.75}) and LPC (\num{3.70}) compress by more than three without losing
+detections.
 \item The correct prediction lag for time-division MIMO radar
-(Section~\ref{sec:predaxis}). On a TDM cascade consecutive ramps come from
-different transmitters, so slow-time prediction must use the previous ramp of
-the same transmitter, $\nTx$ ramps back. Predicting from the adjacent ramp, as
-single-transmitter descriptions of these algorithms do, compresses worse than
-not predicting at all.
-
-\item A breakdown of where the compression comes from
-(Sections~\ref{sec:decomp} and~\ref{sec:ratiomeaning}). Huffman coding alone
-achieves \num{3.48} on this data, mostly from unused fixed-point headroom and
-the sparsity of a range-FFT frame. Prediction adds \SIrange{6}{8}{\percent},
-and the Huffman dictionary decides the rest.
-
-\item Huffman dictionaries matched to the prediction errors
-(Section~\ref{sec:dictresult}). Derived from five frames, they raise DRHE to
-\num{4.22} and LPC to \num{4.40}, hold on the 45 frames they were not trained
-on, and reverse the ranking of the two algorithms.
-
-\item Complete, verified hardware for both algorithms
-(Chapters~\ref{ch:hardware} and~\ref{ch:results}). The encoders and decoders
-run in a test system on an AMD KCU116 board, where the compressed output is
-byte-identical to the simulation on all 50 frames with both dictionaries and
-the hardware decoders reconstruct every frame exactly. A range-FFT front end on
-the FPGA lets the board start from raw ADC samples, and shows that the MATLAB
-front end used for the study is a faithful stand-in.
-
-\item A comparison with the baseline (Chapters~\ref{ch:hwinterpret}
-and~\ref{ch:vskiem}), including a reconstruction of Kiem's simulation from his
-text, which reaches his simulated DRHE ratio at one plausible noise level and
-explains how his results relate to the ones here.
+(Sections~\ref{sec:predaxis} and~\ref{sec:predaxisres}): slow-time prediction
+must use the previous ramp of the same transmitter, $\nTx$ ramps back, or it
+does worse than no prediction at all.
+\item A breakdown of the compression ratio and Huffman dictionaries matched to
+the prediction errors (Sections~\ref{sec:decomp} and~\ref{sec:dictresult}),
+which raise DRHE to \num{4.22} and LPC to \num{4.40}.
+\item Verified encoders and decoders for both algorithms, with a range-FFT front
+end, running on an FPGA board (Chapter~\ref{ch:hardware} and
+Section~\ref{sec:verifres}), whose output is byte-identical to the simulation
+and is reconstructed exactly on the board.
+\item A reconstruction of, and comparison with, the baseline design
+(Section~\ref{sec:hwvskiem}).
 \end{enumerate}
 
-\section{Thesis outline}
+\section{Thesis Outline}
 \label{sec:structure}
 
-Chapter~\ref{ch:background} covers FMCW and MIMO radar, lossless compression
-and FPGAs, and Chapter~\ref{ch:kiem} summarises Kiem's thesis.
-Chapter~\ref{ch:methods} describes the eight methods and the two predictive
-coders, and Chapter~\ref{ch:evaluation} how they are evaluated and verified.
-Chapter~\ref{ch:hardware} describes the encoders, decoders and board test
-system, and Chapter~\ref{ch:results} reports the results.
-Chapters~\ref{ch:hwinterpret} and~\ref{ch:vskiem} compare the hardware and the
-compression results with Kiem's. Chapter~\ref{ch:discussion} discusses what the
-results mean for a radar sensor, and Chapter~\ref{ch:conclusion} concludes.
+Chapter~\ref{ch:background} gives the background on automotive radar, data
+compression and FPGAs, and Chapter~\ref{ch:kiem} summarises the baseline.
+Chapter~\ref{ch:methods} describes the compression methods,
+Chapter~\ref{ch:evaluation} how they are evaluated, and
+Chapter~\ref{ch:hardware} the hardware. Chapter~\ref{ch:results} reports the
+results, Chapter~\ref{ch:discussion} discusses them, and
+Chapter~\ref{ch:conclusion} concludes.

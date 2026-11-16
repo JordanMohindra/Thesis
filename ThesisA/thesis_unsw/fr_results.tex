@@ -2,18 +2,17 @@
 \chapter{Results}
 \label{ch:results}
 
-This chapter follows the two stages of Section~\ref{sec:stages}. It reports the
-screening of all eight methods, then breaks down the compression of the two
-selected algorithms, and then reports their verification and measured
-performance on the FPGA board.
+This chapter follows the two stages of Section~\ref{sec:stages}: the screening
+of all eight methods, the breakdown of the two selected algorithms' compression,
+and their verification and measured performance on the FPGA board.
 
 % -------------------------------------------------------------------
 \section{Stage 1: screening eight methods}
 \label{sec:stage1}
 
-All eight methods were run over the same 50 consecutive ColoRadar frames, with
-all 16 receive channels and \num{9934} reference detections.
-Table~\ref{tab:stage1} and Figure~\ref{fig:stage1} give the results.
+All eight methods were run over the same 50 ColoRadar frames, with all 16
+receive channels and \num{9934} reference detections (Table~\ref{tab:stage1}
+and Figure~\ref{fig:stage1}).
 
 \begin{table}[htbp]
 \centering
@@ -52,48 +51,31 @@ barely compresses.}
 \label{fig:stage1}
 \end{figure}
 
-\paragraph{The lossless coders share FX16's detection metrics.}
-FX16, DRHE and LPC report identical miss rates, false discovery rates, noise
-floors and SNR. This follows from losslessness: both coders reconstruct the
-FX16 codes bit for bit, so the detector sees identical data. These rows
-therefore measure the cost of the \emph{quantisation} step
-(\SI{3.77}{\percent} of detections missed and \SI{1.11}{\percent} spurious),
-none of which is the cost of compression.
-
-\paragraph{The lossy methods lose detections.}
-BAQ reaches \num{3.76}, the same ratio as DRHE, but misses
-\SI{10.44}{\percent} of the reference detections instead of \SI{3.77}{\percent},
-and \SI{9.69}{\percent} of its detections are spurious against
-\SI{1.11}{\percent}. That is nearly three times the miss rate and nearly nine
-times the false discovery rate, for no gain in ratio. RDVLE and RDVLE+UDRE are
-worse on both counts. Where the detector must see every weak return, none of
-these trades is acceptable, as argued in Section~\ref{sec:lossless}.
-
-\paragraph{Floating-point storage does not compress.}
-DRHE applied to FP16 values almost removes the quantisation loss
-(\SI{0.05}{\percent} missed) but compresses by only \num{1.04}. A
-half-precision mantissa keeps fine noise detail at every magnitude, so the
-prediction errors never settle near zero. The compressor's \emph{input} must
-therefore be integer. Whether the arithmetic \emph{inside} the predictor is
-floating point is a separate question, discussed in Section~\ref{sec:hwvskiem}.
-
-\paragraph{Two methods qualify.}
-DRHE (\num{3.75}) and LPC (\num{3.70}) are the only methods that compress by
-more than three without adding a missed detection. Both clear the 2.8 that
-three cascades need on one Gigabit Ethernet link (Section~\ref{sec:linkreq})
-and Kiem's \num{2.4}--\num{2.7}, so both were taken forward to Stage~2 and to
-hardware.
+FX16, DRHE and LPC report identical detection metrics because both coders
+reconstruct the FX16 codes bit for bit. These rows therefore measure the cost
+of the \emph{quantisation} step (\SI{3.77}{\percent} of detections missed and
+\SI{1.11}{\percent} spurious), none of which is the cost of compression. BAQ
+reaches \num{3.76}, the same ratio as DRHE, but misses \SI{10.44}{\percent} of
+the reference detections and \SI{9.69}{\percent} of its detections are
+spurious: nearly three times the miss rate and nine times the false discovery
+rate, for no gain in ratio. RDVLE and RDVLE+UDRE are worse on both counts.
+DRHE applied to FP16 values almost removes the quantisation loss but
+compresses by only \num{1.04}, because a half-precision mantissa keeps fine
+noise detail at every magnitude, so the compressor's \emph{input} must be
+integer. DRHE (\num{3.75}) and LPC (\num{3.70}) are the only methods that
+compress by more than three without adding a missed detection, clearing the 2.8
+that three cascades need on one Gigabit link (Section~\ref{sec:linkreq}), and
+both were taken forward.
 
 \subsection{The cost of the quantisation step}
 \label{sec:quant}
 
 Since FX16 causes all the detection loss of the lossless methods,
-Table~\ref{tab:quant} compares four ways of producing the 16-bit codes on one
-frame. The standard FX16 scaling, calibrated to a full-scale ADC signal, uses
-only \SI{1.33}{\percent} of the \texttt{int16} range: the largest code in the
-frame is 436. Scaling each frame so that its own peak fills the range reduces
-the quantisation error by a factor of 67, and the companding curve of Deng and
-Huang \cite{deng2024} reduces it further.
+Table~\ref{tab:quant} compares four ways of producing the 16-bit codes. The
+standard fixed scaling uses only \SI{1.33}{\percent} of the \texttt{int16}
+range. Scaling each frame to its own peak reduces the quantisation error by a
+factor of 67, and the companding curve of Deng and Huang \cite{deng2024}
+reduces it further.
 
 \begin{table}[htbp]
 \centering
@@ -117,27 +99,21 @@ FX16, companded \cite{deng2024} & 0.0048 & 114.38 & 0.0011 & 94.28 & 0.78\\
 \end{tabular}
 \end{table}
 
-However, the compression ratio moves the other way. With the range filled,
-lossless DRHE compresses by only \num{1.18}, and with companding, which spreads
-the values over the whole code range, it expands the data. Quantisation error
-and compression ratio depend on the same unused bits. The fixed scaling leaves
-about six of the sixteen bits as copies of the sign bit and rounds away
-everything below its coarse step, whereas stretching the data to fill the
-container turns those six bits into fine detail, which is mostly receiver noise
-that a lossless coder must keep. The quantisation error can therefore be
-removed, but only by giving up almost all of the compression. The fixed FX16
-scaling was kept, as in Kiem's design, and Section~\ref{sec:ratiomeaning}
-discusses what this means for the ratios.
+However, the compression ratio moves the other way: with the range filled,
+lossless DRHE compresses by only \num{1.18}, and with companding it expands the
+data. The fixed scaling leaves about six of the sixteen bits as copies of the
+sign bit, whereas filling the container turns them into fine detail, mostly
+receiver noise that a lossless coder must keep. The quantisation error can
+therefore be removed only by giving up almost all of the compression, so the
+fixed scaling was kept, as in Kiem's design.
 
 % -------------------------------------------------------------------
 \section{Stage 2: the prediction lag}
 \label{sec:predaxisres}
 
-Stage~2 uses the four-receiver frames that the hardware processes. The first
-question is whether the predictors help at all, which depends on the
-prediction lag (Section~\ref{sec:predaxis}). Table~\ref{tab:predaxis} compares
-each predictor with the no-prediction baseline at lag 1 and at lag $\nTx$, all
-with the original dictionary.
+Stage~2 uses the four-receiver frames that the hardware processes.
+Table~\ref{tab:predaxis} compares each predictor with the no-prediction
+baseline at lag 1 and at lag $\nTx$.
 
 \begin{table}[htbp]
 \centering
@@ -159,37 +135,25 @@ LPC, lags 1, 2                                 & \num{3.385} & $-2.7\,\%$\\
 \end{tabular}
 \end{table}
 
-Predicting from the adjacent ramp is worse than not predicting at all for both
-algorithms, because on this radar the adjacent ramp is another transmitter and
-the difference between the two is set by the target's bearing, not its
-velocity. Predicting from the same transmitter turns a \SI{4.9}{\percent} loss
-into a \SI{7.8}{\percent} gain for DRHE, and a \SI{2.7}{\percent} loss into a
-\SI{6.3}{\percent} gain for LPC. The tail of the error distribution shows the
-same pattern: the 99th percentile of $|$residual$|$ is \num{80.6} with no
-prediction and \num{102.4} for DRHE at lag 1, but \num{15.8} for DRHE and
-\num{8.2} for LPC at lag $\nTx$.
-
-LPC loses less than DRHE at lag 1. Yule--Walker chooses the coefficients that
-minimise the residual energy, so when the previous ramp is another transmitter
-and there is little correlation to exploit, the fitted coefficients shrink
-towards zero, and $a_1 = a_2 = 0$ is no prediction. Over the \num{51200}
-coefficient sets of the 50 frames, the median fitted $a_1$ at lags 1,\,2 is
-$-0.02$, with half of all values between $-0.13$ and $0.09$; at lags
-$\nTx$,\,$2\nTx$ the median is $0.40$, with a cluster near 1 from bins holding
-strong, slowly changing returns. DRHE's coefficients are fixed, so at lag 1 it
-keeps extrapolating a phase trend that is not there. In the worst case a fitted
-model stops predicting, whereas a fixed model keeps predicting wrongly.
-
-Everything that follows uses lag $\nTx$.
+Predicting from the adjacent ramp, another transmitter on this radar, is worse
+than not predicting at all for both algorithms. Predicting from the same
+transmitter turns a \SI{4.9}{\percent} loss into a \SI{7.8}{\percent} gain for
+DRHE, and a \SI{2.7}{\percent} loss into a \SI{6.3}{\percent} gain for LPC; the
+99th percentile of $|$residual$|$ falls from \num{80.6} with no prediction to
+\num{15.8} (DRHE) and \num{8.2} (LPC). LPC loses less at lag 1 because
+Yule--Walker shrinks its coefficients towards zero, which is no prediction,
+when there is little correlation (median $a_1 = -0.02$ at lag 1 against
+$0.40$ at lag $\nTx$), whereas DRHE's fixed coefficients keep extrapolating a
+phase trend that is not there. Everything that follows uses lag $\nTx$.
 
 % -------------------------------------------------------------------
 \section{Where the compression comes from}
 \label{sec:decomp}
 
-Both algorithms share one entropy coder, so their compression ratio can be
-built up in three steps: what the coder achieves on the FX16 codes alone, what
-prediction adds, and what a dictionary re-derived for the prediction errors
-adds. Table~\ref{tab:decomp} and Figure~\ref{fig:crbars} show the result.
+Since both algorithms share one entropy coder, their ratio can be built up in
+three steps (Table~\ref{tab:decomp} and Figure~\ref{fig:crbars}): the coder on
+the FX16 codes alone, what prediction adds, and what a dictionary re-derived
+for the prediction errors adds.
 
 \begin{table}[htbp]
 \centering
@@ -220,37 +184,21 @@ both algorithms.}
 \label{fig:crbars}
 \end{figure}
 
-Most of the ratio is there before any prediction, since the entropy coder
-alone achieves \num{3.48}. Section~\ref{sec:ratiomeaning} explains why: mainly
-the unused top bits of the FX16 container and the sparsity of a range-FFT
-frame. Prediction adds a modest \SIrange{6}{8}{\percent}, and the re-derived
-dictionary adds more than prediction does: \num{0.47} for DRHE and \num{0.71}
-for LPC. Figure~\ref{fig:residual} shows why prediction helps. The share of
-values that need zero, one or two bits rises, the share that need three or more
-falls, and the expensive tail almost disappears.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.8\textwidth]{fig_residual.pdf}
-\caption[Bits needed per value]{How many bits each value needs ($S_4$), for the
-raw FX16 codes and for the two algorithms' prediction errors, 50 frames, four
-receive channels. Prediction moves values towards the cheap end, and most
-prediction errors need two bits or fewer.}
-\label{fig:residual}
-\end{figure}
+Most of the ratio is there before any prediction: the entropy coder alone
+achieves \num{3.48}, mainly from the unused top bits of the FX16 container and
+the sparsity of a range-FFT frame (Section~\ref{sec:ratiomeaning}). Prediction
+adds \SIrange{6}{8}{\percent}, and the re-derived dictionary adds more than
+prediction does.
 
 % -------------------------------------------------------------------
 \section{The re-derived dictionary}
 \label{sec:dictresult}
 
-Table~\ref{tab:dictshare} gives the share of DRHE's prediction errors in each
-size category beside the codeword length each dictionary gives it. The original
-dictionary gives its shortest codes to categories 2 to 4, but on this data most
-errors fall in categories 0 to 2, and categories 3 and 4 hold only
-\SI{16}{\percent}. The re-derived dictionary gives the three most common
-categories codes of three, two and one bits, and the average codeword falls
-from \num{2.70} to \num{2.24} bits per value (from \num{2.80} to \num{2.12} for
-LPC).
+The original dictionary gives its shortest codes to categories 2 to 4, but most
+prediction errors fall in categories 0 to 2 (Table~\ref{tab:dictshare}). The
+re-derived dictionary gives these three categories codes of three, two and one
+bits, and the average codeword falls from \num{2.70} to \num{2.24} bits per
+value for DRHE (\num{2.80} to \num{2.12} for LPC).
 
 \begin{table}[htbp]
 \centering
@@ -270,30 +218,24 @@ Code length, re-derived   & \textbf{3} & \textbf{2} & \textbf{1} & 4 & 5 & 6 & \
 \end{tabular}
 \end{table}
 
-The dictionaries were trained on frames 0--4 and tested on the 45 frames
-they did not see. On frames 5--49 DRHE reaches \num{4.207} and LPC \num{4.372}
-(Table~\ref{tab:decomp}), within \SI{1}{\percent} of their all-frame figures,
-so five frames of a scene are enough to fix a dictionary for the rest of the
-recording. The FPGA cores with the re-derived tables give \num{4.21704} and
-\num{4.40345} per frame, matching MATLAB, both in C-simulation and measured on
-the board (Section~\ref{sec:verifres}), and reconstruct all 50 frames exactly.
-
-The dictionary also reverses the ranking of the two algorithms. With the
-original dictionary DRHE leads by \SI{1.5}{\percent}, whereas with dictionaries
-matched to each algorithm's own errors LPC leads by \SI{4.4}{\percent}. LPC's
-errors were always the smaller of the two: over five frames, \num{4.10} against
-\num{4.24} bits per value with the original dictionary, before LPC's \num{0.17}
-bits per value of coefficients. However, a dictionary that cannot code anything
-in fewer than four bits hides most of that difference.
+Trained on frames 0--4, the dictionaries reach \num{4.207} (DRHE) and
+\num{4.372} (LPC) on the 45 frames they did not see, within \SI{1}{\percent}
+of their all-frame figures, and the FPGA cores give exactly MATLAB's
+\num{4.21704} and \num{4.40345}. The dictionary also reverses the ranking:
+DRHE leads by \SI{1.5}{\percent} with the original dictionary, LPC by
+\SI{4.4}{\percent} with matched ones, because LPC's errors were always the
+smaller but a dictionary that codes nothing in fewer than four bits hid the
+difference.
 
 \subsection{How close to the limit}
 \label{sec:coderlimit}
 
-The order-0 entropy of Equation~\eqref{eq:entropy} is the floor for any code
-that treats values independently. An \emph{ideal} $S_4$ dictionary, a Huffman
-code built on each design's own category counts, shows how much of the gap to
-that floor is due to the dictionary and how much to the $S_4$ construction.
-Table~\ref{tab:coderlimit} gives both, in bits per value, over five frames.
+Table~\ref{tab:coderlimit} compares the coder with the order-0 entropy
+(Equation~\eqref{eq:entropy}) and with an \emph{ideal} $S_4$ dictionary built
+on each design's own counts. The ideal dictionary comes within 3 to
+\SI{7}{\percent} of the entropy, so the $S_4$ construction loses little; the
+original dictionary's excess is almost all due to the dictionary, and grows
+from \SI{12}{\percent} to \SI{35}{\percent} as prediction improves.
 
 \begin{table}[htbp]
 \centering
@@ -314,16 +256,6 @@ LPC, lags $\nTx$, $2\nTx$        & 4.102 & 3.242 & 3.040 & \SI{34.9}{\percent}\\
 \end{tabular}
 \end{table}
 
-\noindent
-The $S_4$ construction itself is efficient: the ideal dictionary comes within
-3 to \SI{7}{\percent} of the entropy, so splitting each value into a coded size
-and raw payload bits loses little. Almost all of the original dictionary's
-excess is due to the dictionary, and it grows as prediction improves, from
-\SI{12}{\percent} on the raw codes to \SI{35}{\percent} on LPC's errors,
-because better prediction moves the errors further below the sizes the original
-dictionary favours. This is why re-deriving the dictionary gains more for LPC
-than for DRHE.
-
 % -------------------------------------------------------------------
 \section{Frame-to-frame variation}
 \label{sec:perframe}
@@ -338,67 +270,45 @@ with the scene in the same way.}
 \label{fig:crframes}
 \end{figure}
 
-Figure~\ref{fig:crframes} shows the ratio of every frame. It varies by about a
-third across the recording, from about \num{3.5} to \num{4.8}, and the two
-algorithms move together. The variation follows the scene: frames with more
-strong returns have larger prediction errors and compress less. A link must be
-sized for the worst frame rather than the mean, and at \num{3.5} the worst
-frame still leaves a wide margin over the \num{2.4}--\num{2.7} required.
+The ratio varies from about \num{3.5} to \num{4.8} across the recording, and
+the two algorithms move together (Figure~\ref{fig:crframes}): frames with more
+strong returns have larger prediction errors. A link must be sized for the
+worst frame, and at \num{3.5} it still leaves a wide margin.
 
 % -------------------------------------------------------------------
 \section{Verification}
 \label{sec:verifres}
 
-Every level of the ladder of Section~\ref{sec:ladder} that was run passed with
+Every level of the ladder of Section~\ref{sec:ladder} passed with
 $\mathrm{MaxDiff} = 0$:
 
 \begin{itemize}
-\item C-simulation, 50 frames (\num{4915200} complex samples,
-\num{157286400} input bits per design): both compressors, with both the
-original and the re-derived dictionaries, reconstruct every sample exactly. The
-bit counts agree with MATLAB on every frame once the zero padding of the last
-256-bit output word is counted. MATLAB's LPC model includes this padding and
-agrees exactly, whilst its DRHE model omits it, so the hardware's DRHE counts
-exceed MATLAB's by 15 to 252 bits, always less than one word.
-\item RTL co-simulation: both compressors reconstruct exactly.
-\item Edge cases: all eight synthetic cases of Table~\ref{tab:edgecases} pass
-for both algorithms. Uniformly random input expands by \SI{67}{\percent} (CR
-\num{0.60}), as any lossless coder must on incompressible data, since every
-value lands in a high category and costs a long codeword plus up to 15 payload
-bits.
-\item Board, compressors: with both dictionaries, both compressors produced
-compressed output byte-identical to the C-simulation on all 50 frames, and
-every frame, decompressed on the PC, matched the input exactly. With the
-re-derived dictionaries the mean compression ratio on the board is
-\num{4.21704} for DRHE (range \numrange{3.548}{4.454}) and \num{4.40345} for
-LPC (\numrange{3.526}{4.793}); with the original dictionary it is \num{3.7508}
-(\numrange{3.517}{3.815}) and \num{3.6968} (\numrange{3.461}{3.761}). All four
-are exactly the C-simulation figures.
-\item Board, on-chip decompression: in the \texttt{\_full} builds the board
-compresses each frame, decompresses it with the hardware decoder and compares
-the reconstruction with the original word by word. Both decoders reconstruct
-all 50 frames exactly, and the compressed streams are again byte-identical to
-the C-simulation.
-\item Board, from raw ADC samples: in the \texttt{\_fe\_full} builds the range
-FFT also runs on the FPGA. Its FX16 codes are identical to its C-simulation on
-all 50 frames, both compressed streams are byte-identical to the C-simulation
-of the compressors on those codes, and both decoders again reconstruct every
-frame exactly (Section~\ref{sec:feresults}).
+\item \textbf{C-simulation}, 50 frames (\num{157286400} input bits per design):
+both compressors, with both dictionaries, reconstruct every sample exactly, and
+the bit counts agree with MATLAB on every frame once the padding of the last
+256-bit word is counted.
+\item \textbf{RTL co-simulation} and all eight \textbf{edge cases}
+(Table~\ref{tab:edgecases}) pass for both algorithms. Random input expands by
+\SI{67}{\percent}, as any lossless coder must on incompressible data.
+\item \textbf{Board, compressors}: with both dictionaries, the compressed
+output is byte-identical to the C-simulation on all 50 frames. Mean ratios are
+\num{4.21704} (DRHE) and \num{4.40345} (LPC) with the re-derived
+dictionaries, and \num{3.7508} and \num{3.6968} with the original one.
+\item \textbf{Board, decoders}: the hardware decoders reconstruct all 50 frames
+exactly, word by word.
+\item \textbf{Board, from raw ADC samples}: with the range FFT also on the FPGA,
+the FX16 codes match its C-simulation, the compressed streams match the
+compressors' C-simulation, and the decoders again reconstruct every frame
+exactly.
 \end{itemize}
 
 \noindent
-The bytes produced by the FPGA are therefore the bytes the simulation
-predicted, and the board's own decoder turns them back into the input exactly.
-Every hardware compression ratio reported here is a measured figure, and every
-stage of the chain, from raw ADC samples in to reconstructed data out, has been
-run on the FPGA.
+Every hardware compression ratio reported here is therefore a measured figure,
+and every stage from raw ADC samples to reconstructed data has run on the FPGA.
 
 % -------------------------------------------------------------------
 \section{Speed and latency on the board}
 \label{sec:boardtiming}
-
-Table~\ref{tab:timing} gives the timing measured on the board over 50 frames,
-and Figure~\ref{fig:timing} plots it.
 
 \begin{table}[htbp]
 \centering
@@ -439,49 +349,24 @@ value per clock.}
 \label{fig:timing}
 \end{figure}
 
-\paragraph{DRHE streams.} Its time per frame, \SI{0.61}{\milli\second}, is two
-clocks per input beat ($\mathrm{II} = 2$) plus a short pipeline fill on each
-ramp. Its latency is \SI{13.1}{\micro\second}, so the last compressed word
-leaves almost as soon as the last raw word arrives. The core's own pipeline
-accounts for about a microsecond of this; the rest is most likely data still in
-flight in the DMA and interconnect when the last input word is read, though
-this was not measured separately.
-
-\paragraph{LPC waits.} Its time per frame is \SI{3.25}{\milli\second}, 5.3 times
-DRHE's, and \SI{92}{\percent} of it (\SI{3.0}{\milli\second}) comes
-\emph{after} the last input word has arrived, because the coefficients cannot
-be computed until every ramp of the frame is in. That is 230 times DRHE's
-latency. Better scheduling would not remove it: as long as the coefficients are
-fitted to the frame being compressed, the first output bit has to wait for the
-last input sample.
-
-\paragraph{Decoding.} The DRHE decoder takes \SI{1.97}{\milli\second} per
-frame (\num{196881} cycles, range \numrange{196858}{196919}), almost exactly
-the one value per clock it was designed for (Section~\ref{sec:dechw}), since a
-frame holds \num{196608} values. It is 3.2 times slower than the compressor by
-design, as it decodes one value per clock whereas the compressor encodes four
-channels at once. Its latency of \SI{339}{\micro\second} is the resulting
-backlog: when the last compressed word has been read, about a sixth of the
-frame is still to be rebuilt. The LPC decoder uses the same unpack stage and
-runs at the same rate: \lpcDecCycles{} cycles per frame on average (range
-\numrange{197340}{197411}), or \lpcDecTime{}, with \lpcDecLat{} of latency
-(\SIrange{291}{408}{\micro\second}), the same kind of backlog. Its time does not
-depend on the data, because every codeword is matched in one clock whatever its
-length.
-
-Both algorithms are fast in absolute terms. The ColoRadar cascade records at
-\SI{5}{\hertz}, a frame every \SI{200}{\milli\second}, so DRHE's compressor uses
-\SI{0.3}{\percent} of the frame period, LPC's under \SI{2}{\percent}, and each
-decoder about \SI{1}{\percent}. Section~\ref{sec:scaling} considers larger
-frames.
+DRHE streams (Table~\ref{tab:timing} and Figure~\ref{fig:timing}). Its time per
+frame, \SI{0.61}{\milli\second}, is two clocks per input beat
+($\mathrm{II} = 2$) plus a short pipeline fill on each ramp, and its last
+compressed word leaves \SI{13.1}{\micro\second} after the last raw word
+arrives. LPC takes \SI{3.25}{\milli\second}, and \SI{3.0}{\milli\second} of
+this comes \emph{after} the last input word, because its coefficients cannot be
+computed until every ramp is in: 230 times DRHE's latency, and no scheduling
+removes it whilst the coefficients are fitted to the frame being compressed.
+Both decoders run at almost exactly one value per clock, \SI{1.97}{\milli\second}
+for DRHE and \lpcDecTime{} for LPC, independent of the data; their latencies
+are the backlog left when the compressed input ends. All are fast against
+ColoRadar's \SI{200}{\milli\second} frame period: DRHE's compressor uses
+\SI{0.3}{\percent} of it, LPC's under \SI{2}{\percent}, and each decoder about
+\SI{1}{\percent}.
 
 % -------------------------------------------------------------------
 \section{Chip resources}
 \label{sec:resources}
-
-Table~\ref{tab:resources} gives the post-route resources of each core, taken
-from the hierarchical utilisation report of the \texttt{\_full} builds, and
-Figure~\ref{fig:resources} shows them as a share of the chip.
 
 \begin{table}[htbp]
 \centering
@@ -515,34 +400,22 @@ compressor, the decompressor, and both together.}
 \end{figure}
 
 Encoder and decoder together use under a quarter of the chip's logic for both
-algorithms, and the whole test system (processor, memory controller, DMAs and
-both cores) uses \SI{38}{\percent} (DRHE) and \SI{37}{\percent} (LPC)
-(Table~\ref{tab:builds}). The two compressors use almost the same logic but
-differ in memory: LPC's compressor needs 108 block RAMs, 96 of them for its
-frame buffer, against DRHE's 40 for predictor state. The decoders are the other
-way round. The DRHE decoder carries its own floating-point predictor with its
-state in block RAM, whilst the LPC decoder needs no block RAM at all, because
-the coefficients arrive in the bitstream and its few past samples per (channel,
-bin) fit in distributed RAM.
-
-\paragraph{Power, estimated.} Power was not measured on the board. Vivado's
-power report for each compressor, placed and routed out of context at
-\SI{100}{\mega\hertz} with the tool's default switching activity, estimates
-\HW{drhen}{ptotal}\,W for DRHE and \HW{lpcn}{ptotal}\,W for LPC, of which
-about \HW{drhen}{pstatic}\,W is the device's static power. Spreading the
-dynamic part over each design's time per frame gives \HW{drhen}{pJbit}\,pJ per
-input bit for DRHE and \HW{lpcn}{pJbit}\,pJ for LPC: LPC draws less power
-whilst it runs but runs five times longer. These are estimates, best read as a
-comparison between the two designs rather than as the energy a production
-device would use.
+algorithms (Table~\ref{tab:resources} and Figure~\ref{fig:resources}), and the
+whole test system \SI{38}{\percent} (DRHE) and \SI{37}{\percent} (LPC). The
+compressors use almost the same logic but differ in memory: LPC needs 108 block
+RAMs, 96 of them for its frame buffer, against DRHE's 40 for predictor state.
+The decoders are the other way round, since the LPC decoder receives its
+coefficients in the bitstream and needs no block RAM. Power was not measured on
+the board; Vivado estimates \HW{drhen}{ptotal}\,W for DRHE and
+\HW{lpcn}{ptotal}\,W for LPC with default switching activity, or
+\HW{drhen}{pJbit} and \HW{lpcn}{pJbit}\,pJ per input bit.
 
 % -------------------------------------------------------------------
 \section{Starting from raw ADC samples}
 \label{sec:feresults}
 
-With the range FFT on chip (Section~\ref{sec:fehw}) the board is given the raw
-ADC samples of each frame, \SI{786432}{\byte}, and does everything else itself.
-Table~\ref{tab:fe} compares these builds with the ones fed MATLAB's codes.
+With the range FFT on chip (Section~\ref{sec:fehw}) the board takes the raw ADC
+samples of each frame and does everything else itself (Table~\ref{tab:fe}).
 
 \begin{table}[htbp]
 \centering
@@ -568,23 +441,17 @@ End-to-end latency    & \SI{13.1}{\micro\second} & \SI{21.3}{\micro\second} & \S
 \end{tabular}
 \end{table}
 
-\paragraph{The codes.} Compared with MATLAB's codes, \num{1522} of the
-\num{9830400} values of the 50 frames differ (\SI{0.016}{\percent}), each by
-exactly one step. These are values that lie almost on a rounding boundary,
-where the fixed-point FFT and MATLAB's double precision fall on opposite sides.
-The compression ratios change in the fifth significant figure.
-
-\paragraph{The detections.} Table~\ref{tab:fedet} runs both sets of codes
-through the detection chain of Section~\ref{sec:detectionmetrics}, on the four
-channels the hardware compresses. The rounding error of both is
-\SI{0.2887}{LSB} RMS, exactly the $1/\sqrt{12}$ of ideal rounding, so the
-fixed-point FFT adds no error of its own. The detection maps are identical in
-44 of the 50 frames, and the totals differ by two missed detections and one
-false detection out of \num{11148}. The losses of FX16 itself are those of
-Section~\ref{sec:quant}: the quietest cells are only about one step in size, so
-rounding raises the noise floor by \SI{0.26}{\decibel} and the detection
-threshold with it. MATLAB's range FFT is therefore a faithful stand-in for the
-hardware throughout this thesis.
+\num{1522} of the \num{9830400} codes (\SI{0.016}{\percent}) differ from
+MATLAB's, each by one step, where a value lies almost on a rounding boundary,
+so the ratios change only in the fifth significant figure. Both sets of codes
+have exactly the $1/\sqrt{12}$\,LSB RMS error of ideal rounding, and their
+detections differ by three of \num{11148} (Table~\ref{tab:fedet}), so MATLAB's
+range FFT is a faithful stand-in for the hardware. The front end now sets the
+pace: DRHE takes \SI{0.76}{\milli\second} per frame, still \SI{8.3}{Gbit/s} of
+raw ADC data, and LPC's \SI{3.0}{\milli\second} after the last input word is
+unchanged. The front end uses \SI{7}{\percent} of the LUTs and 296 DSPs, and
+the whole system then uses \SI{47}{\percent} (DRHE) and \SI{46}{\percent}
+(LPC) of the LUTs.
 
 \begin{table}[htbp]
 \centering
@@ -604,19 +471,6 @@ FX16, FPGA          & 4.17 & 1.80 & $-105.81$ & 36.40 & 0.2887\\
 \bottomrule
 \end{tabular}
 \end{table}
-
-\paragraph{Speed.} The front end takes about 1.5 clocks per input beat and
-now sets the pace: DRHE's time per frame rises by \SI{23}{\percent} to
-\SI{0.76}{\milli\second}, which is still \SI{8.3}{Gbit/s} of raw ADC data. Its
-latency rises by \SI{8}{\micro\second}, the front end's own pipeline. For LPC
-the front end lengthens only the ingest pass, which waits for the data anyway,
-so the \SI{3.0}{\milli\second} after the last input word is essentially
-unchanged.
-
-\paragraph{Cost.} The front end is about the size of a decoder in logic
-(\SI{7}{\percent} of the chip's LUTs) but uses 296 DSP slices, more than either
-compressor. With it the whole system uses \SI{47}{\percent} (DRHE) and
-\SI{46}{\percent} (LPC) of the LUTs (Table~\ref{tab:builds}).
 
 % -------------------------------------------------------------------
 \section{The two algorithms side by side}
@@ -648,10 +502,7 @@ Side information                                 & \textbf{none} & \SI{1.04}{\pe
 \end{table}
 
 Table~\ref{tab:headtohead} collects the results. The two algorithms are close
-on compression ratio, and which one leads depends on the dictionary: DRHE by
-\SI{1.5}{\percent} with the original one, and LPC by \SI{4.4}{\percent} with
-dictionaries matched to each. They are level on logic, and their decoders run
-at the same rate of one value per clock. On time, latency and memory DRHE is
-ahead: it compresses a frame five times faster, needs no frame buffer, and its
-output lags its input by microseconds rather than milliseconds.
-Chapter~\ref{ch:discussion} weighs these differences.
+on ratio, with the leader set by the dictionary, level on logic, and their
+decoders run at the same rate. On time, latency and memory DRHE is ahead: it
+compresses a frame five times faster, needs no frame buffer, and lags its input
+by microseconds rather than milliseconds.

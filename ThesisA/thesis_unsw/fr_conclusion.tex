@@ -7,113 +7,63 @@
 This thesis set out to compare data compression methods for SoC-based radar on
 real, public, multi-transmitter data, to select the best lossless ones, and to
 implement their encoders and decoders on an FPGA and measure them on a board.
-The four objectives of Section~\ref{sec:objectives} were met.
-
-Eight methods were compared in MATLAB on 50 frames of ColoRadar data from a
-twelve-transmitter, sixteen-receiver Texas Instruments cascade. Two lossless
-predictive coders, Doppler Redundancy Hybrid Encoding and a second-order linear
-predictive coder, were implemented in C++ for Vitis HLS with matching
-decompressors, and built with Vivado into a test system on an AMD KCU116 board,
-with a range-FFT front end so that the board can start from raw ADC samples.
-They were verified bit for bit from MATLAB through C-simulation and RTL
-co-simulation to the board, where the compressors' output matched the
-simulation byte for byte and the hardware decoders reconstructed every frame
-exactly. A third, independent implementation in Python reproduced their bit
-counts.
+The four objectives of Section~\ref{sec:objectives} were met. Eight methods
+were compared in MATLAB on 50 ColoRadar frames from a twelve-transmitter
+cascade. DRHE and a second-order LPC were implemented in C++ for Vitis HLS
+with matching decompressors and a range-FFT front end, built into a test system
+on an AMD KCU116 board, and verified bit for bit from MATLAB to the board.
 
 \section{Findings}
 
 \begin{enumerate}
 \item Only lossless predictive coding meets the requirement. DRHE (\num{3.75})
 and LPC (\num{3.70}) are the only methods that compress by more than three
-without adding a missed detection. The best lossy quantiser, BAQ, reaches
-\num{3.76} but misses \SI{10.4}{\percent} of the reference detections, the
-other two miss up to \SI{29}{\percent} at lower ratios, and floating-point
+without adding a missed detection; the best lossy quantiser reaches \num{3.76}
+but misses \SI{10.4}{\percent} of the reference detections, and floating-point
 storage compresses by only \num{1.04}. All detection loss in the lossless chain
-comes from the 16-bit quantisation step, not from compression.
+comes from the 16-bit quantisation step, which cannot be removed without
+losing almost all of the compression.
 
-\item On a TDM-MIMO radar, prediction must use the same transmitter.
-Predicting from the adjacent ramp, which on this radar is another transmitter,
-compresses worse than no prediction at all. Predicting $\nTx = 12$ ramps back,
-from the same antenna, makes prediction worth \SIrange{6}{8}{\percent}, and for
-DRHE the change is only an index into the state.
+\item On a TDM-MIMO radar, prediction must use the same transmitter, $\nTx$
+ramps back. Predicting from the adjacent ramp compresses worse than no
+prediction; predicting from the same antenna gains \SIrange{6}{8}{\percent}.
 
-\item Most of the ratio comes before prediction. Huffman coding alone
-compresses this data by \num{3.48}, mainly because the fixed 16-bit scaling
-leaves six bits of every value unused and because a range-FFT frame is sparse.
-Filling those bits removes the quantisation error but also almost all of the
-compression, so a no-prediction baseline should be reported with any radar
-compression ratio.
+\item Most of the ratio comes before prediction, from unused fixed-point
+headroom and the sparsity of the data, and the dictionary matters more than the
+predictor: dictionaries re-derived from five frames raise DRHE to \num{4.22}
+and LPC to \num{4.40} on the board, and hold on the 45 frames they did not see.
 
-\item The dictionary matters more than the predictor. A Huffman dictionary
-re-derived from five frames for each algorithm's prediction errors raises DRHE
-from \num{3.75} to \num{4.22} and LPC from \num{3.70} to \num{4.40} on the
-board. It holds on the 45 frames it was not trained on, only changes the
-contents of a table in hardware, and puts LPC ahead of DRHE on ratio.
+\item The hardware is exact and fast. Both compressors' output was
+byte-identical to the simulation on all 50 frames and the board's decoders
+reconstructed every frame exactly. DRHE compresses a frame in
+\SI{0.61}{\milli\second} (\SI{5.1}{Gbit/s}) with \SI{13}{\micro\second} of
+latency, LPC in \SI{3.25}{\milli\second} with \SI{3.0}{\milli\second}, and both
+decoders in about \SI{2}{\milli\second}. Encoder and decoder together use about
+\SI{23}{\percent} of the chip's logic.
 
-\item The hardware is exact and fast. On the KCU116 at \SI{100}{\mega\hertz},
-both compressors produced output byte-identical to the simulation on all 50
-frames, and the board's own decoders reconstructed every frame exactly. DRHE
-compresses a frame in \SI{0.61}{\milli\second} (\SI{5.1}{Gbit/s}) with
-\SI{13}{\micro\second} of latency, and LPC in \SI{3.25}{\milli\second} with
-\SI{3.0}{\milli\second} of latency, because it must see the whole frame first.
-Both decoders reconstruct one value per clock, about \SI{2}{\milli\second} per
-frame (\SI{1.97}{\milli\second} and \lpcDecTime). Encoder and decoder together
-use about \SI{23}{\percent} of the chip's logic for either algorithm. With the
-range FFT also on the FPGA, the codes differ from MATLAB's in
-\SI{0.016}{\percent} of values, by one step, and DRHE still takes in
-\SI{8.3}{Gbit/s} of raw ADC data.
-
-\item DRHE is the better choice for a streaming sensor. The two algorithms are
-close on ratio and level on logic, but DRHE needs no frame buffer, streams its
-output and scales with the data rate, whereas LPC's buffer and latency grow
-with the frame until, at the frame size of Kiem's use case, it could not keep
-up.
-
-\item The baseline carries over with one change. Kiem's DRHE is reproduced bit
-for bit and works on a cascade once the prediction lag is set to the
-transmitter count; with a matched dictionary it compresses public cascade data
-by \num{4.2}. Unlike his system it has a hardware decoder, and the board's
-compressed output is reconstructed exactly on the board.
+\item DRHE is the better choice for a streaming sensor: it needs no frame
+buffer and scales with the data rate, whereas LPC's buffer and latency grow
+with the frame. Kiem's DRHE carries over to a cascade with only the prediction
+lag changed.
 \end{enumerate}
 
 \section{Future work}
 \label{sec:futurework}
 
-\paragraph{Measuring power.} The board's power draw should be measured for each
-build, to give the energy cost of compression and decompression.
-
-\paragraph{Fixed-point DRHE.} The floating-point datapath is the most
-expensive design decision and buys only \SI{0.07}{\percent} of ratio. Kiem's
-fixed-point types would remove most of its logic, DSPs and pipeline depth whilst
-remaining exactly lossless, since the closed loop makes the decoder follow
-whatever arithmetic the encoder uses. With fixed point, reading the state as
-zero on the first ramps instead of writing it would also reach
-$\mathrm{II} = 1$ at little cost.
-
-\paragraph{A streaming LPC.} A backward-adaptive LPC that fits its coefficients
-to previous frames would need no frame buffer and add no frame of latency,
-combining LPC's better prediction with DRHE's streaming. For the current
-forward-adaptive LPC, overlapping the three passes and amortising the per-bin
-pipeline fill would cut its time per frame by about a third, and processing
-several bins in parallel would cut it further.
-
-\paragraph{Adaptive dictionaries.} Dictionaries could be trained on more varied
-scenes, the hardware could hold several and choose one per frame, or one could
-be updated slowly from past frames. A seventeenth category for the value
-$-32768$ would remove the need for saturation.
-
-\paragraph{All sixteen channels.} Widening the stream, or time-multiplexing the
-cores and the range-FFT front end, would allow all sixteen receive channels to
-be compressed.
-
-\paragraph{The quantisation trade-off.} Adaptive or companded scaling could be
-studied as a deliberate design choice: how many bits of the noise floor are
-worth keeping for the detection margin they buy, and what that costs in link
-bandwidth.
-
-\paragraph{Other multiplexing schemes and methods.} Doppler- and code-division
-MIMO distribute the slow-time structure differently, and whether slow-time
-prediction helps on them is an open question. Learned and spectral methods such
-as AdaRadar \cite{park2026} define the upper end of achievable ratios and could
-be compared with the lossless coders on the same data.
+\begin{itemize}
+\item \textbf{Fixed-point DRHE.} Kiem's fixed-point types would remove most of
+the logic, DSPs and pipeline depth for \SI{0.07}{\percent} of ratio, and remain
+exactly lossless because the closed loop makes the decoder follow the encoder's
+arithmetic.
+\item \textbf{A streaming LPC.} A backward-adaptive LPC, fitted to previous
+frames, would need no frame buffer and add no frame of latency.
+\item \textbf{Adaptive dictionaries} trained on more varied scenes, chosen or
+updated per frame.
+\item \textbf{All sixteen channels and measured power}, by widening or
+time-multiplexing the cores, and measuring the board's power draw.
+\item \textbf{The quantisation trade-off}: how many bits of the noise floor are
+worth keeping for the detection margin they buy.
+\item \textbf{Other multiplexing schemes and methods}: Doppler- and
+code-division MIMO, and learned methods such as AdaRadar \cite{park2026} on the
+same data.
+\end{itemize}

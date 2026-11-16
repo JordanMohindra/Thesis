@@ -64,15 +64,10 @@ the input exactly; it matters only for the lossy methods.
 \section{Metrics}
 \label{sec:metrics}
 
-\paragraph{Compression ratio.}
-\begin{equation}
-\mathrm{CR} = \frac{B_{\mathrm{in}}}{B_{\mathrm{out}}},
-\qquad
-B_{\mathrm{in}} = N_{\mathrm{ramps}} \times N \times N_{\mathrm{RX}} \times 32,
-\end{equation}
-with $B_{\mathrm{out}}$ the compressed length \emph{including} the padding of
-the last 256-bit word. Ratios are computed per frame and reported as the mean
-over 50 frames.
+\paragraph{Compression ratio.} Equation~\eqref{eq:cr}, with
+$N_{\text{input bits}} = 32$ bits per complex value and the compressed length
+\emph{including} the padding of the last 256-bit word, computed per frame and
+averaged over 50 frames.
 
 \paragraph{Losslessness.} The maximum absolute difference between input and
 reconstruction over every real and imaginary component must be zero, with no
@@ -81,21 +76,15 @@ tolerance.
 \paragraph{Detection.}
 \label{sec:detectionmetrics}
 With $D_{\mathrm{ref}}$ the detections of the double-precision reference and
-$D_{\mathrm{test}}$ those of the reconstructed data,
-\begin{equation}
-\mathrm{FN}\% = \frac{|D_{\mathrm{ref}} \setminus D_{\mathrm{test}}|}{|D_{\mathrm{ref}}|},
-\qquad
-\mathrm{FDR}\% = \frac{|D_{\mathrm{test}} \setminus D_{\mathrm{ref}}|}{|D_{\mathrm{test}}|}.
-\end{equation}
-A detection is a cell of the range--Doppler map that the detector marks, so
-these metrics count cells, not physical objects, and one object can occupy
-several cells. The first metric is the share of reference detections missed.
-The second is labelled a false positive rate in Kiem's thesis, but since it
-normalises by the test detections it is a false discovery rate. Matching is
-cell by cell with no positional tolerance, and the \SI{15}{\decibel} threshold
-is not swept. FX16, DRHE and LPC reconstruct identical data, so their detection
-metrics are identical by construction: for the lossless methods they measure
-the cost of the FX16 step alone.
+$D_{\mathrm{test}}$ those of the reconstructed data, the miss rate
+(Equation~\eqref{eq:fnr}) is $|D_{\mathrm{ref}} \setminus D_{\mathrm{test}}| /
+|D_{\mathrm{ref}}|$ and the false discovery rate (Equation~\eqref{eq:fdr})
+$|D_{\mathrm{test}} \setminus D_{\mathrm{ref}}| / |D_{\mathrm{test}}|$. A
+detection is a cell of the range--Doppler map, so these count cells, not
+objects, matched cell by cell with no positional tolerance. Kiem labels the
+second a false positive rate, but it is normalised by the test detections.
+FX16, DRHE and LPC reconstruct identical data, so for the lossless methods
+these metrics measure the cost of the FX16 step alone.
 
 \paragraph{Baselines.} Every predictive result is reported against a
 \emph{no-prediction baseline}, the FX16 codes fed straight into the same
@@ -105,10 +94,9 @@ what the predictor achieves from what the dictionary wastes.
 
 \paragraph{Timing.} \emph{Time per frame} runs from the start of a frame's DMA
 transfer to the last output word written, and \emph{throughput} is input bits
-per frame divided by it. \emph{Latency} runs from the last input word read from
-memory to the last output word written back, measured by the board firmware
-with a hardware timer. This is Kiem's definition, and it measures how long the
-compressed data lags the raw data.
+per frame divided by it. \emph{Latency} is Kiem's definition of $L$: from the
+last input word read from memory to the last output word written back,
+measured by the board firmware with a hardware timer.
 
 \section{The verification ladder}
 \label{sec:ladder}
@@ -197,18 +185,13 @@ int16-min        & $-32768$ specifically & 1 \\
 \label{sec:indep}
 
 MATLAB and the HLS C++ share a specification, so they could also share a
-misunderstanding. As a further check, the whole compression chain was written a
-third time in Python and NumPy from the descriptions in
-Chapters~\ref{ch:methods} and~\ref{ch:evaluation}, without reusing any code. It
-reads raw ColoRadar frames, applies the TDM flattening, DC removal, window,
-range FFT and FX16 scaling, runs DRHE and LPC with the same coefficient
-quantisation as the hardware, and counts the bits of the $S_4$, APPEND and
-Huffman coder with and without 256-bit padding. With the original dictionary it
-reproduces the HLS bit counts of both algorithms exactly on all 50 frames, and
-with the re-derived dictionaries it reproduces the hardware's residuals exactly
-on the frames checked. It is also the source of the no-prediction baseline, the
-entropy figures and the LPC coefficient statistics reported in
-Chapter~\ref{ch:results}. Appendix~\ref{app:verify} lists what was checked.
+misunderstanding. The whole compression chain was therefore written a third
+time in Python and NumPy, from the descriptions in this thesis and without
+reusing any code. With the original dictionary it reproduces the HLS bit counts
+of both algorithms exactly on all 50 frames, and with the re-derived
+dictionaries it reproduces the hardware's residuals exactly on the frames
+checked. It is also the source of the no-prediction baseline and the entropy
+figures of Chapter~\ref{ch:results} (Appendix~\ref{app:verify}).
 
 \section{Tools}
 

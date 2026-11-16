@@ -1,138 +1,66 @@
 % ===================================================================
-\chapter{The Baseline: Kiem's Thesis}
+% Chapter 3 follows the Thesis A baseline study (Section 3.1 of Thesis A)
+% word for word, corrected and completed with the facts later chapters use.
+% ===================================================================
+\chapter{Baseline Study: Kiem's Thesis}
 \label{ch:kiem}
 
-Many results in this thesis are compared with those of Lukas Kiem's
-master's thesis \cite{kiem2025}, carried out at Infineon. This chapter
-summarises what he did, on what data, and what he concluded. Section and table numbers
-quoted here (``his Table~3.5'') refer to his thesis.
-
-\section{His problem and his data}
+\section{Overview and Objectives}
 \label{sec:kc_problem}
+The baseline for this thesis is the master's thesis by Lukas Kiem~\cite{kiem2025}, titled \textit{Design and Implementation of Data Compression Methods for SoC-based Radar Systems}. His research was motivated by the same problem statement. His primary objective was to design, evaluate, and implement an automotive radar data compression algorithm on an AMD Zynq UltraScale+ MPSoC.
 
-Kiem addressed the transport problem of Section~\ref{sec:motivation} with a
-use case (his Section~3.3): one Infineon CTRX8191F MMIC with four receive
-channels and 12-bit samples at \SI{50}{MS/s} produces
+His use case (his Section~3.3) was one Infineon CTRX8191F MMIC with four
+receive channels and 12-bit samples at \SI{50}{MS/s}, which produces
 \begin{equation}
 \label{eq:kc_rate}
 50\,\mathrm{MS/s} \times 12\,\mathrm{bit} \times 4 = \SI{2.4}{Gbit/s},
 \end{equation}
 so one Gigabit Ethernet link needs a compression ratio of 2.4, or 2.7 with
-protocol headers. The sensor cycles at \SI{20}{\hertz}; a frame of 1024 ramps
-takes about \SI{21}{\milli\second} to acquire, and he allowed compression
-\SI{15}{\milli\second} of the remaining \SI{29}{\milli\second}.
+protocol headers. A frame of 1024 ramps takes about \SI{21}{\milli\second} to
+acquire in a \SI{50}{\milli\second} cycle, and he allowed compression
+\SI{15}{\milli\second}. His radar uses one transmitter, so consecutive ramps
+come from the same antenna, and it delivers real samples, so he keeps half of
+each range FFT. His evaluation chain, which this thesis adopts, takes the range
+FFT, quantizes it to FX16, compresses and decompresses, and then runs a Doppler
+FFT, non-coherent integration (NCI) over the receive channels and a peak
+detector, comparing the detections with those of an FP16 reference. Every
+compression result he publishes was measured on his own recordings, which are
+not public.
 
-His setting differs from this thesis's in two ways. His radar uses one
-transmitter, so consecutive ramps are consecutive observations by the same
-antenna pair, and the question of which ramp to predict from
-(Section~\ref{sec:predaxis}) never arises. It also delivers real samples, whose
-spectrum is symmetric, so he keeps half of each range FFT because the other
-half is redundant; ColoRadar's samples are complex.
-
-His evaluation chain (his Figure~3.1), which this thesis adopts almost
-unchanged, shifts the ADC samples into a 32-bit word, applies a Hanning window
-and a range FFT divided by the number of samples, compresses and decompresses,
-and then runs a Doppler FFT, non-coherent integration (NCI) over the receive
-channels and a peak detector, comparing the detections with those of an FP16
-reference path. Every compression result he publishes, in simulation and in
-hardware, was measured on his own recordings: one MMIC, $512 \times 512$
-samples, four receive channels, 14-bit data. They are not public. He also
-shows a synthetic five-target scene in white noise (his Table~3.2), but only
-as an illustration of the chain.
-
-\section{His design space and result}
+\section{Results and Algorithm Evaluation}
 \label{sec:kc_dse}
+To determine the most viable compression algorithm, Kiem conducted a comprehensive design space exploration. He compared and simulated a large variety of standard compression algorithms, including Texas Instruments' Exponential-Golomb Encoding (EGE) variants, Infineon's common exponent formats (CMPRA and CMPRB), and predictive coding methods (such as DRHE).
 
-He compared FP16 (the reference), 16-bit fixed point (FX16), two Infineon
-common-exponent formats (CMPRA and CMPRB, fixed ratios 2 and 4), Texas
-Instruments' exponential-Golomb engine at four settings (EGE10 to EGE4, ratios
-1.6 to 4), and Doppler Redundancy Hybrid Encoding (DRHE)
-\cite{li2014,zivkovic2015}: prediction along the slow-time axis of the
-range-FFT output with two IIR filters in polar form, then Huffman coding of the
-differences. He excluded one method, the LPC-Huffman of Meucci and Mancuso
-\cite{meucci2022}, in these words:
+Upon comparing these algorithms in their performance metrics, specifically Compression Ratio (CR), Signal-to-Noise Ratio (SNR), and target detection accuracy, Kiem identified Doppler Redundancy Hybrid Encoding (DRHE) as the ``best''. While the commercial deterministic formats (like EGE and CMPRB) successfully reduced data size, they raised the noise floor and led to high rates of false-positive and false-negative detections. As summarized in Figure~\ref{fig:kiemresults}, DRHE achieved the highest compression ratio of the methods that kept FX16's detection accuracy, \num{3.25}, with the lowest impact on the noise floor.
 
-\begin{quote}\small
-``LPC-Huffman compression is not taken because it has the same approach as
-DRHE, but instead of compressing range FFT data, it operates on raw ADC data;
-the results for DRHE are more promising.'' (his Section~3.4.1)
-\end{quote}
-
-\noindent
-He assumed that method's domain from its int16 input, did not run it, and
-compared published figures from different data. Table~\ref{tab:kc_t35} gives his
-result. DRHE reached a ratio of 3.25 with exactly FX16's detection metrics,
-since it is lossless with respect to the 16-bit codes; the lossy schemes either
-stayed below the requirement or lost detections. One miss in about 170
-(\SI{0.59}{\percent}) shows that his recording held about 170 reference
-detections, at an SNR of about \SI{22}{\decibel}.
-
-\begin{table}[htbp]
+\begin{figure}[htbp]
 \centering
-\caption[Kiem's design-space results]{Kiem's design-space exploration on his
-recordings (his Table~3.5). FP\% is normalised by test detections, so it is a
-false discovery rate (Section~\ref{sec:detectionmetrics}).}
-\label{tab:kc_t35}
-\small
-\begin{tabular}{@{}lrrrrr@{}}
-\toprule
-Algorithm & CR & FN\% & FP\% & NF (dBFS) & SNR (dB)\\
-\midrule
-FP16  & 1    & 0     & 0     & $-70.714$ & 22.407\\
-FX16  & 1    & 0.59  & 1.18  & $-70.691$ & 22.330\\
-CMPRA & 2    & 0.59  & 0.59  & $-70.687$ & 22.418\\
-CMPRB & 4    & 7.69  & 4.73  & $-70.253$ & 22.111\\
-EGE10 & 1.6  & 1.18  & 1.18  & $-70.689$ & 22.403\\
-EGE8  & 2    & 2.37  & 2.37  & $-70.640$ & 22.289\\
-EGE6  & 2.67 & 7.69  & 7.10  & $-70.367$ & 22.197\\
-EGE4  & 4    & 40.24 & 26.63 & $-74.689$ & 28.245\\
-\textbf{DRHE} & \textbf{3.25} & 0.59 & 1.18 & $-70.691$ & 22.330\\
-\bottomrule
-\end{tabular}
-\end{table}
+\includegraphics[width=0.8\textwidth]{kiemresults.png}
+\caption[Kiem's compression algorithm analysis]{Compression algorithm analysis done by Kiem \cite{kiem2025} (his Table~3.5). His FP column is normalised by the test detections, so it is a false discovery rate.}
+\label{fig:kiemresults}
+\end{figure}
 
-\section{His final scheme}
-\label{sec:kc_adapt}
+He excluded one method, the LPC-Huffman of Meucci and
+Mancuso~\cite{meucci2022}, without running it, because ``it has the same
+approach as DRHE, but instead of compressing range FFT data, it operates on raw
+ADC data; the results for DRHE are more promising'' (his Section~3.4.1). For
+hardware he removed the run-length half of DRHE's original coder, which changed
+the ratio only from 3.25 to 3.24, and fixed the Huffman dictionary from one of
+his recordings; this is the \emph{original dictionary} of this thesis
+(Section~\ref{sec:dict}). His final scheme is Equations~\eqref{eq:magpred}
+and~\eqref{eq:phasepred} of Chapter~\ref{ch:methods} at a lag of one ramp.
 
-Two simplifications made DRHE suitable for hardware. He removed the run-length
-half of the original coder, which changed the ratio only from 3.25 to 3.24 and
-lets every value be coded independently in one clock. He also fixed the Huffman
-dictionary, built once from the $S_4$ statistics of one of his recordings (his
-Appendix~A); it is the \emph{original dictionary} of this thesis
-(Section~\ref{sec:dict}). For each range bin $n$ of ramp $m$ and each channel,
-his final scheme (his Section~3.5.3) predicts
-\begin{align}
-\hat{a}[m,n] &= \alpha\hat{a}[m-1,n] + (1-\alpha)\,a[m-1,n],
-\label{eq:kc_mag}\\
-\hat{\theta}[m,n] &= \beta\hat{\theta}[m-1,n] + (2-\beta)\,\theta[m-1,n] - \theta[m-2,n],
-\label{eq:kc_phase}
-\end{align}
-with $\alpha = 0.6$ and $\beta = 0.4$, wraps the phase once into $[-\pi,\pi]$,
-converts the prediction back to Cartesian with rounding, and codes the 16-bit
-difference as its size category $S_4$ (Table~\ref{tab:catranges}) and the
-APPEND bits. The state starts at zero and is updated from the input samples.
-These are Equations~\eqref{eq:magpred} and~\eqref{eq:phasepred} of
-Chapter~\ref{ch:methods} at a lag of one ramp.
-
-\section{His hardware}
-\label{sec:kc_hw}
-
-He implemented the scheme with Vitis HLS and Vivado 2022.2 on an AMD Zynq
-UltraScale+ \texttt{XCZU3CG-SFVC784-1-e}, in a system that streams
-pre-windowed ADC data from an SD card through a Xilinx FFT core into the
-compressor. The compressor reads one 128-bit word per cycle (one complex bin
-for each of four channels), uses fixed point throughout, holds its state in
-block-RAM arrays of 1024 words per channel, packs each channel's codes into a
-58-bit word, and runs at $\mathrm{II} = 1$ at \SI{100}{\mega\hertz}.
-Table~\ref{tab:kc_hwres} collects the figures he reports. His throughput is
-theoretical, $128 \times \SI{100}{\mega\hertz}$ expressed in binary units; his
-hardware ratio is below his simulated one because the hardware FFT is fixed
-point.
+He implemented it with Vitis HLS 2022.2 on a \texttt{XCZU3CG-1} device, in a
+system that streams ADC data from an SD card through a Xilinx FFT core into the
+compressor, which reads four channels per clock in fixed point at
+$\mathrm{II} = 1$ and \SI{100}{\mega\hertz}. Table~\ref{tab:kc_hwres} lists
+the figures he reports. His throughput is theoretical, and his hardware ratio
+is below his simulated one because the hardware FFT is fixed point.
 
 \begin{table}[htbp]
 \centering
 \caption[Kiem's hardware results]{Kiem's published hardware figures (his
-Section~5.2, Tables~5.2, 5.3 and~5.5). BRAM in 36\,Kb blocks.}
+Section~5.2). BRAM in 36\,Kb blocks.}
 \label{tab:kc_hwres}
 \small
 \begin{tabular}{@{}lr@{}}
@@ -140,7 +68,6 @@ Section~5.2, Tables~5.2, 5.3 and~5.5). BRAM in 36\,Kb blocks.}
 Quantity & Value\\
 \midrule
 Compression IP: LUT / FF / BRAM / DSP & \num{45892} / \num{9243} / 10 / 44\\
-Whole system: LUT / FF / BRAM / DSP & \num{59353} / \num{32552} / 38 / 80\\
 IP latency (HLS estimate) & 23 cycles, \SI{230}{\nano\second}\\
 System latency (last DMA read to last DMA write) & \SI{79.4}{\micro\second}\\
 Input throughput & ``\SI{11.92}{Gbit/s}''\\
@@ -149,16 +76,31 @@ CR: MATLAB / bit-accurate simulation / hardware & 3.25 / 3.24 / 3.17\\
 \end{tabular}
 \end{table}
 
-\section{What he left open}
+\section{Limitations and Future Work}
 \label{sec:kc_open}
+Whilst Kiem did successfully demonstrate the viability of the DRHE algorithm, achieving a compression ratio of 3.2 with a latency of 0.08 milliseconds, his work left some gaps. His work had four main limitations:
 
-He concluded that DRHE met every requirement of his use case. His future work
-included floating-point arithmetic for the prediction, since his core far
-exceeded its real-time requirement; a bit-accurate decompression model; tests
-with a real sensor; safe error handling; and a guaranteed compression ratio.
-This thesis takes up the first two. Its DRHE predicts in floating point, and
-Chapter~\ref{ch:hwinterpret} measures what that costs; it also implements and
-verifies a hardware decompressor for every design. Its saturation of the one
-residual the code cannot represent (Section~\ref{sec:robust}) is a form of the
+\subsection{Quantization Error from Fixed-Point Representation}
+The most significant issue lay in his implementation of the mandatory data conversion step before the actual compression. To meet the strict latency requirement, he implemented the algorithm using 16-bit fixed-point representation (FX16).
+
+This use of linear fixed-point quantization introduced false positives and negatives, as seen in the results of both FX16 and DRHE in Figure~\ref{fig:kiemresults}. His thesis acknowledged this loss of precision as the source of degradation, noting that reducing quantization error was important for future implementations.
+
+\subsection{Omission of Newer State-of-the-Art Algorithms}
+Secondly, whilst his design space exploration was thorough, covering a wide range of compression algorithms, some remained uninvestigated, especially those that had recently emerged. The LPC-Huffman coder he excluded was compared only through published figures from different data.
+
+\subsection{Incomplete End-to-End System Implementation}
+Thirdly, the scope of his hardware implementation was limited to just the compression pipeline on the Zynq UltraScale+ MPSoC; he did not implement the full compression and decompression pipeline on hardware, and listed a bit-accurate decompression model as future work. To fully evaluate the algorithm's performance, the full pipeline needs to be implemented.
+
+\subsection{Single-Transmitter Data}
+Lastly, his results come from private recordings of a single-transmitter radar.
+DRHE predicts each ramp from the previous one, which on his radar is the same
+antenna; on a TDM-MIMO cascade it is not (Section~\ref{sec:tdm}).
+
+This thesis takes up these gaps. It measures the cost of the FX16 step
+separately from compression, compares eight methods including an LPC on public
+cascade data, sets the prediction lag to the transmitter count, and implements
+and verifies a hardware decompressor for every design. It also follows two of
+his suggestions: its DRHE predicts in floating point, and it saturates the one
+residual the code cannot represent (Section~\ref{sec:robust}), a form of the
 safe error handling he asked for.
 \label{ch:kiem:end}

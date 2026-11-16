@@ -1,165 +1,106 @@
 % ===================================================================
+% Chapter 2 follows the Thesis A background word for word and in the same
+% structure, corrected where later work changed the facts, with the material
+% the later chapters need added (TDM, ColoRadar, lossless coding, FX16, HLS).
+% ===================================================================
 \chapter{Background}
 \label{ch:background}
+This chapter provides the fundamental knowledge needed to interpret and evaluate the data compression methods discussed in this thesis. This means understanding the operating principles of automotive radar, outlining the compression DSP pipeline, and introducing the hardware platform needed to actually implement the algorithm.
 
-This chapter covers how the radar measures range, velocity and angle, why its
-data is large, how lossless compression works, and the FPGA concepts used in
-the hardware chapters.
-
-\section{How an FMCW radar measures range}
+\section{Automotive Radar}
+\subsection{Introduction of Automotive Radar}
 \label{sec:fmcw}
+Modern automotive radar systems predominantly rely on Frequency-Modulated Continuous Wave (FMCW) technology. Unlike traditional pulsed radars, FMCW radars continuously transmit a radio frequency (RF) signal whose frequency increases linearly over a short duration. This frequency sweep is known as a ``chirp'', as seen in Figure~\ref{fig:radar_pipeline}(a).
 
-\subsection{The chirp}
+The operation begins with the chirp being transmitted through the transmit (TX) antennas. When this signal encounters an object in the environment, a portion of the energy is reflected back to the receiver (RX) antennas. Because the transmitted frequency is constantly changing, the received echo is a delayed and attenuated version of the transmission, meaning there is a frequency difference ($\Delta f$) between what is currently being transmitted and what is being received at any given instant due to the time delay ($\Delta t$).
 
-Automotive radar almost always uses \emph{frequency-modulated continuous wave}
-(FMCW) operation. Rather than emitting a short pulse and timing the echo, which
-would need impractically fast electronics at these distances, an FMCW radar
-transmits continuously whilst sweeping its frequency linearly upward over a
-short interval. One such sweep is called a \emph{chirp}. The sensor used here
-sweeps \SI{1.798}{\giga\hertz} of bandwidth around a \SI{77}{\giga\hertz}
-centre frequency and starts a new chirp every \SI{78.5}{\micro\second}.
+A mixer component combines the transmitted and received signals to produce a low-frequency ``beat'' or Intermediate Frequency (IF) signal. This IF signal is then passed through a low-pass filter and digitized by an Analog-to-Digital Converter (ADC). The frequency of this digitized IF signal is directly proportional to the distance of the reflecting object.
 
-When the chirp reflects off an object at range $R$, the echo arrives delayed by
-the round-trip time
-\begin{equation}
-\tau = \frac{2R}{c},
-\end{equation}
-where $c$ is the speed of light. Since the transmitter keeps sweeping in the
-meantime, the echo's frequency is lower than the frequency currently being
-transmitted, by an amount proportional to the delay. If the chirp sweeps $B$
-hertz in $T_c$ seconds, the sweep slope is $S = B/T_c$ and the frequency
-difference is
-\begin{equation}
-\label{eq:beat}
-f_b = S\,\tau = \frac{2 S R}{c}.
-\end{equation}
+As seen in Figure~\ref{fig:radar_pipeline}(b), getting meaningful data from the signal requires a structured DSP pipeline in which to transform the initial 1D range bins into a 3D radar data cube~\cite{meteer2021}.
 
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
-\begin{tikzpicture}[font=\small]
-% axes
-\draw[->,slate] (0,0) -- (10.8,0) node[right,font=\scriptsize]{time};
-\draw[->,slate] (0,0) -- (0,4.3) node[above,font=\scriptsize]{frequency};
-% legend (clear of the chirps)
-\draw[accent,line width=1.2pt] (0.45,4.0) -- (1.15,4.0);
-\node[font=\scriptsize,text=accent,anchor=west] at (1.25,4.0) {transmitted chirp};
-\draw[warm,line width=1.2pt,densely dashed] (4.3,4.0) -- (5.0,4.0);
-\node[font=\scriptsize,text=warm,anchor=west] at (5.1,4.0) {received echo (delayed by $\tau$)};
-% transmitted chirps
-\foreach \s in {0,3.2,6.4}{ \draw[accent,line width=1.2pt] (\s,0.35) -- (\s+2.6,2.9); }
-% received (delayed)
-\foreach \s in {0,3.2,6.4}{ \draw[warm,line width=1.2pt,densely dashed] (\s+0.55,0.35) -- (\s+3.15,2.9); }
-% delay + beat annotation on first chirp
-\draw[slate,dotted] (1.25,0.87) -- (2.05,0.87);
-\draw[<->,slate,line width=0.5pt] (1.25,0.87) -- (2.05,0.87)
-      node[midway,below,font=\scriptsize,text=slate,yshift=-1pt]{$\tau$};
-\draw[<->,slate,line width=0.5pt] (2.05,0.87) -- (2.05,1.65)
-      node[midway,right,font=\scriptsize,text=slate,xshift=1pt]{$f_b$};
-% chirp duration brace
-\draw[decorate,decoration={brace,amplitude=4pt,mirror},slate]
-   (0,-0.28) -- (2.6,-0.28) node[midway,below,font=\scriptsize,text=slate,yshift=-3pt]{$T_c$};
-\draw[decorate,decoration={brace,amplitude=4pt,mirror},slate]
-   (0,-1.15) -- (9.0,-1.15) node[midway,below,font=\scriptsize,text=slate,yshift=-3pt]
-   {one frame of many chirps: the \emph{slow time} axis};
-\end{tikzpicture}
-\caption[FMCW chirp and beat frequency]{FMCW operation. Each chirp sweeps
-linearly in frequency. The echo is a delayed copy, so at any instant the
-transmitted and received frequencies differ by $f_b = S\tau$, which is
-proportional to target range. A frame consists of many chirps in succession;
-the axis across chirps is called \emph{slow time} and carries the Doppler
-information.}
-\label{fig:chirp}
+\includegraphics[width=0.8\textwidth]{fmcw.jpg}
+\caption{(a) Transmitted and received chirp signals over time, and (b) the formation of the 3D Radar Data Cube \cite{meteer2021}.}
+\label{fig:radar_pipeline}
 \end{figure}
 
-A mixer multiplies the transmitted and received signals to produce a
-low-frequency \emph{beat} signal at $f_b$, which is low-pass filtered and
-digitised by an analog-to-digital converter (ADC) at a modest rate,
-\SI{8}{\mega\hertz} here. FMCW therefore turns a timing measurement that would
-need picosecond resolution into a frequency measurement that an ordinary ADC
-can make.
+This pipeline consists of 3 Fast Fourier Transforms (FFTs):
+\begin{enumerate}
+    \item Range FFT (1D FFT): The first FFT is applied to a single chirp. Peaks in the frequency domain correspond to the range (distance) of a detected object.
+    \item Doppler FFT (2D FFT): Taking a second FFT across the chirps at each range bin, the radar resolves phase shifts caused by the Doppler effect, which allows for the determination of relative velocity.
+    \item Angle FFT (3D FFT): Using Multiple-Input Multiple-Output (MIMO) antenna arrays, a third FFT is performed across the spatial domain (the different receive channels). The phase differences between physically separated antennas are used to calculate the Angle of Arrival (AoA).
+\end{enumerate}
 
-\subsection{From beat frequency to a range profile}
-
-Taking an $N_s$-point FFT across the $N_s$ ADC samples of one chirp gives a
-\emph{range profile}. Through Equation~\eqref{eq:beat}, bin $n$ of the FFT
-corresponds to range
-\begin{equation}
-R_n = n \cdot \frac{c}{2B},
-\end{equation}
-so the range resolution is
-\begin{equation}
-\Delta R = \frac{c}{2B} \approx \SI{8.3}{\centi\metre}
-\end{equation}
-for the \SI{1.798}{\giga\hertz} bandwidth used here. A peak in the range
-profile is an object. This first transform is the \emph{range FFT}, and its
-output is the data this thesis compresses.
-
-\subsection{Slow time and Doppler}
-
-A single chirp gives range but not velocity. To measure velocity, the radar
-transmits many chirps in quick succession, called a \emph{frame}, and tracks
-how the \emph{phase} of each range bin changes from chirp to chirp. DRHE relies
-on this behaviour. A target at range $R$ produces a range-FFT value with phase
-$\theta = -4\pi R/\lambda$, where $\lambda$ is the wavelength. Over the chirp
-interval $T$, a target moving at radial velocity $v$ changes range by $vT$, so
-its phase changes by
+The compressors in this thesis work on the output of the range FFT and rely on
+the second of these effects. A target at range $R$ produces a range-FFT value
+with phase $-4\pi R/\lambda$, where $\lambda$ is the wavelength, so if it moves
+at radial velocity $v$ its phase changes from one chirp to the next, $T$
+seconds later, by
 \begin{equation}
 \label{eq:dopplerphase}
 \Delta\theta = -\frac{4\pi v T}{\lambda}.
 \end{equation}
-At \SI{77}{\giga\hertz}, $\lambda \approx \SI{3.9}{\milli\metre}$, so even a
-slow target produces a measurable phase step. For compression, the important
-point is that $\Delta\theta$ is \emph{constant} for a target at constant
-velocity. The phase of a range bin therefore advances linearly across chirps
-whilst its magnitude barely changes, which is a highly predictable sequence.
+This step is \emph{constant} for a target at constant velocity, so the phase
+of a range bin advances linearly from chirp to chirp whilst its magnitude
+barely changes, which is a highly predictable sequence. The axis across chirps
+is called \emph{slow time}, and the axis of samples within a chirp \emph{fast
+time}.
 
-The axis across chirps within a frame is called \emph{slow time}, and the axis
-of samples within a chirp \emph{fast time}. A second FFT along slow time, the
-\emph{Doppler FFT}, resolves $\Delta\theta$ into velocity.
+\subsection{The AWR2243 Radar Sensor}
+The AWR2243 is a Texas Instruments FMCW transceiver chip that is designed for automotive applications. It features three TX and four RX channels.
 
-\section{Angle, MIMO and the virtual array}
+Crucially for this research, the AWR2243 acts as an RF front-end. It handles transmission and reception, mixing, and ADC conversion, but does not perform any DSP pipeline operations (FFTs). Instead, it streams the raw, uncompressed digitized ADC data out via a high-speed MIPI CSI-2 interface. This architecture makes the AWR2243 the ideal platform for evaluating raw data compression algorithms, as it exposes the exact data payload that would cause transmission bottlenecks in a centralized vehicle architecture.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{awr2243.png}
+\caption{AWR2243 Typical Application Diagram \cite{ti_awr2243}.}
+\label{fig:awr2443}
+\end{figure}
+
+\subsection{MMWCAS-RF-EVM}
 \label{sec:mimo}
 
-Angle is measured by comparing the phase of the same echo at separated receive
-antennas. A wavefront arriving at angle $\phi$ reaches adjacent antennas,
-spaced $d$ apart, with a phase difference
-\begin{equation}
-\label{eq:steering}
-\Delta\psi = \frac{2\pi d \sin\phi}{\lambda},
-\end{equation}
-and an FFT across the antennas, the \emph{angle FFT}, turns these differences
-into a bearing. Angular resolution grows with the size of the array.
-Multiple-Input Multiple-Output (MIMO) radar enlarges the array cheaply: if the
-signal of each of $N_t$ transmitters can be separated at each of $N_r$
-receivers, every transmit--receive pair acts as one element of a \emph{virtual
-array}. The sensor used here has $N_t = 12$ and $N_r = 16$, giving 192 virtual
-elements from 28 physical antennas.
+To achieve the high angular resolution required for advanced autonomous driving, a single AWR2243 chip with its 3 TX and 4 RX antennas is often insufficient. The MMWCAS-RF-EVM is an evaluation module that addresses this limitation by integrating four AWR2243 transceivers onto a single printed circuit board.
 
-\subsection{Time-division multiplexing}
+By cascading these four chips, the module creates a synchronized MIMO array comprising 12 transmit and 16 receive antennas. This cascaded setup synthesizes an array of 192 virtual antennas, providing great spatial resolution but simultaneously generating an immense volume of raw data.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{awr2243_evm.png}
+\caption{Image of MMWCAS-RF-EVM \cite{ti_mmwcas}.}
+\label{fig:awr2443_evm}
+\end{figure}
+
+\subsection{Time-Division Multiplexing}
 \label{sec:tdm}
 
-This sensor separates the transmitters by \emph{time-division multiplexing}
-(TDM): the transmitters fire one at a time in a fixed rotation, so whatever a
-receiver hears during transmitter $t$'s slot came from transmitter $t$. In
-every repetition of the frame, called a chirp loop, all $N_t$ transmitters fire
-in turn. When the data is laid out as a two-dimensional array of (ramp, range
-bin), which is how a streaming compressor sees it, the ramp index is
+Each of the 192 virtual antennas is one transmit--receive pair, so the receiver
+must know which transmitter each echo came from. The cascade separates them by
+\emph{time-division multiplexing} (TDM): the twelve transmitters fire one at a
+time in a fixed rotation, and in every repetition of the frame, called a chirp
+loop, all $N_t$ transmitters fire in turn. When the data is laid out as
+(ramp, range bin), which is how a streaming compressor sees it, the ramp index
+is
 \begin{equation}
 \label{eq:rampindex}
 m = q\,N_t + t,
 \qquad q \in [0, N_c), \quad t \in [0, N_t),
 \end{equation}
-where $q$ indexes the chirp loop and $t$ the transmitter, so the transmitter
-index varies fastest.
+where $q$ indexes the chirp loop and $t$ the transmitter.
 
-This order has one consequence that matters throughout this thesis
-(Figure~\ref{fig:tdm}). Ramps $m$ and $m-1$ come from different transmitters
-$N_t - 1$ times out of $N_t$. They are separated in space by the array baseline
-rather than in time, so the phase difference between them is set by the
-target's bearing (Equation~\eqref{eq:steering}), not its velocity
-(Equation~\eqref{eq:dopplerphase}). The slow-time neighbour of ramp $m$, whose
-phase differs by a Doppler step, is ramp $m - N_t$. From
-Chapter~\ref{ch:methods} on, this distance is written $\nTx$; on this sensor
+This order matters throughout this thesis (Figure~\ref{fig:tdm}). Ramps $m$
+and $m-1$ come from different transmitters eleven times out of twelve. They are
+separated in space rather than in time, so the phase difference between them
+is set by the target's bearing,
+\begin{equation}
+\label{eq:steering}
+\Delta\psi = \frac{2\pi d \sin\phi}{\lambda},
+\end{equation}
+for antennas $d$ apart and a target at angle $\phi$, not by its velocity
+(Equation~\eqref{eq:dopplerphase}). The previous chirp of the same antenna is
+ramp $m - N_t$. This distance is written $\nTx$; on this sensor
 $\nTx = N_t = 12$.
 
 \begin{figure}[t]
@@ -173,20 +114,16 @@ $\nTx = N_t = 12$.
 }
 \node[anchor=east,font=\scriptsize,text=slate] at (-0.55,0) {TX index};
 \node[anchor=west,font=\scriptsize,text=slate] at (26.0,0) {$\cdots$};
-% highlight the three cells that matter
 \node[draw=green2,line width=1.1pt,minimum width=0.46cm,minimum height=0.56cm,inner sep=0pt] at (2,0) {};
 \node[draw=warm,line width=1.1pt,minimum width=0.46cm,minimum height=0.56cm,inner sep=0pt] at (13,0) {};
 \node[draw=slate,line width=1.4pt,minimum width=0.46cm,minimum height=0.56cm,inner sep=0pt] at (14,0) {};
 \node[font=\scriptsize,text=slate,anchor=south] at (14,0.40) {ramp $m$};
-% ramp ruler
 \foreach \i/\l in {0/0,12/12,24/24}{ \node[font=\tiny,text=slate] at (\i,-0.62) {\l}; }
 \node[anchor=east,font=\scriptsize,text=slate] at (-0.55,-0.62) {ramp index};
-% chirp loop braces
 \draw[decorate,decoration={brace,amplitude=3pt},slate] (-0.3,1.55) -- (11.3,1.55)
    node[midway,above,font=\scriptsize,text=slate,yshift=-1pt]{chirp loop 0};
 \draw[decorate,decoration={brace,amplitude=3pt},slate] (11.7,1.55) -- (23.3,1.55)
    node[midway,above,font=\scriptsize,text=slate,yshift=-1pt]{chirp loop 1};
-% lag arrows, drawn under the strip
 \draw[warm,line width=1.0pt,-{Latex[length=1.8mm]}] (14,-1.05) -- (13.1,-1.05);
 \node[font=\scriptsize,text=warm,anchor=west] at (-0.3,-1.85)
    {\textbf{lag 1} lands on TX 1, a \emph{different antenna}: the phase step is the target's \emph{bearing}};
@@ -194,177 +131,32 @@ $\nTx = N_t = 12$.
 \node[font=\scriptsize,text=green2,anchor=west] at (-0.3,-3.55)
    {\textbf{lag $n_{\mathrm{Tx}}\!=\!12$} lands on TX 2, the \emph{same antenna}: the phase step is the target's \emph{velocity}};
 \end{tikzpicture}
-\caption[TDM-MIMO ramp interleaving]{The prediction lag on a TDM-MIMO cascade.
-Each cell is one ramp, labelled with the transmitter that produced it; the
-twelve transmitters rotate inside every chirp loop. Predicting ramp $m$ from
-ramp $m-1$ (red) crosses a transmitter boundary eleven times out of twelve, so
-the two ramps differ by the target's array steering phase. Predicting from ramp
-$m - n_{\mathrm{Tx}}$ (green) stays on the same physical antenna, and therefore
-on the Doppler axis.}
+\caption[TDM-MIMO ramp interleaving]{Ramp order on a TDM-MIMO cascade. Each
+cell is one ramp, labelled with its transmitter. Ramp $m-1$ (red) is another
+antenna eleven times in twelve; ramp $m - n_{\mathrm{Tx}}$ (green) is the same
+antenna, one chirp loop earlier.}
 \label{fig:tdm}
 \end{figure}
 
-
-\section{The radar data cube}
-\label{sec:cube}
-
-Together the three axes form the \emph{radar data cube}: fast time (samples
-within a chirp) $\times$ slow time (ramps) $\times$ receive channel. The range,
-Doppler and angle FFTs are applied along these axes in turn.
-Figure~\ref{fig:cube} shows the arrangement and where this thesis's compressor
-sits in the chain.
-
-\begin{figure}[t]
-\centering
-\begin{tikzpicture}[font=\small]
-% cube
-\begin{scope}[shift={(0,0)},scale=1.0]
-  \draw[fill=lightbg,draw=slate] (0,0) -- (2.6,0) -- (2.6,2.0) -- (0,2.0) -- cycle;
-  \draw[fill=accent!12,draw=slate] (2.6,0) -- (3.5,0.7) -- (3.5,2.7) -- (2.6,2.0) -- cycle;
-  \draw[fill=accent!22,draw=slate] (0,2.0) -- (2.6,2.0) -- (3.5,2.7) -- (0.9,2.7) -- cycle;
-  \node[font=\scriptsize,text=slate] at (1.3,-0.35) {fast time ($N_s$)};
-  \node[font=\scriptsize,text=slate,rotate=90] at (-0.35,1.0) {slow time ($N_c N_t$)};
-  \node[font=\scriptsize,text=slate,rotate=38] at (3.35,1.55) {RX ($N_r$)};
-\end{scope}
-% chain
-\begin{scope}[shift={(5.1,0.25)},
-  b/.style={draw=slate,fill=white,rounded corners=2pt,minimum width=19mm,minimum height=7.5mm,font=\scriptsize},
-  h/.style={draw=accent,line width=1pt,fill=lightbg,rounded corners=2pt,minimum width=19mm,minimum height=7.5mm,font=\scriptsize}]
-  \node[b] (a) at (0,2.1) {ADC samples};
-  \node[b] (b) at (0,1.05) {window + DC removal};
-  \node[b] (c) at (0,0.0) {\textbf{Range FFT}};
-  \node[h] (d) at (0,-1.05) {FX16 quantise};
-  \node[h] (e) at (0,-2.1) {\textbf{compress}};
-  \node[b] (f) at (4.4,-2.1) {transmit / store};
-  \node[h] (g) at (4.4,-1.05) {decompress};
-  \node[b] (h2) at (4.4,0.0) {Doppler FFT};
-  \node[b] (i) at (4.4,1.05) {Angle FFT};
-  \node[b] (j) at (4.4,2.1) {detection};
-  \foreach \x/\y in {a/b,b/c,c/d,d/e} {\draw[-{Latex[length=1.5mm]},slate] (\x) -- (\y);}
-  \draw[-{Latex[length=1.5mm]},slate] (e) -- (f);
-  \foreach \x/\y in {f/g,g/h2,h2/i,i/j} {\draw[-{Latex[length=1.5mm]},slate] (\x) -- (\y);}
-  \node[font=\scriptsize,text=accent,align=left,anchor=west] at (-1.5,-3.0)
-     {\textbf{scope of this thesis}};
-  \draw[accent,dashed,rounded corners=3pt] (-1.25,-2.6) rectangle (5.65,-0.6);
-\end{scope}
-\end{tikzpicture}
-\caption[Radar data cube and processing chain]{The radar data cube and the
-processing chain. The compressor sits immediately after the range FFT and
-fixed-point quantisation, before the data leaves the sensor. Everything
-downstream (Doppler FFT, angle FFT and detection) sees the reconstructed data,
-which for a lossless compressor is bit-identical to the original.}
-\label{fig:cube}
-\end{figure}
-
-For the sensor used here, one frame is
-\begin{equation}
-N_s \times N_c \times N_r \times N_t
- = 256 \times 16 \times 16 \times 12 = \num{786432}
-\end{equation}
-complex samples. Each is two 16-bit integers, so a frame is
-\SI{3145728}{\byte}, exactly \SI{3}{\mebi\byte}. At 20 frames per second, a
-common automotive rate, this is about half a gigabit per second from one
-sensor, and a vehicle carries several.
-
-\section{Lossless compression}
-\label{sec:compression}
-
-\subsection{Lossless and lossy compression}
-
-In \emph{lossless} compression the decompressed data is bit-identical to the
-input, whereas \emph{lossy} compression permanently discards some information
-in exchange for a smaller payload \cite{sayood2017}. Lossy compression can
-reach far higher ratios, but lossless compression is bounded by the
-information content of the data itself. Section~\ref{sec:lossless} explained
-why this application needs lossless compression.
-
-\subsection{Entropy}
-
-If a source emits symbols $x$ with probabilities $p(x)$, its \emph{order-0
-entropy} is
-\begin{equation}
-\label{eq:entropy}
-H = -\sum_x p(x) \log_2 p(x) \quad\text{bits per symbol},
-\end{equation}
-and no code that treats symbols independently can average fewer than $H$ bits
-per symbol \cite{sayood2017}. Comparing $H$ with what a coder achieves
-therefore gives the coder's inefficiency. Section~\ref{sec:decomp} uses this
-to separate what the predictor contributes from what the Huffman dictionary
-contributes.
-
-\subsection{Prediction and entropy coding}
-
-Most practical lossless compressors have two stages: \emph{decorrelation}
-followed by \emph{entropy coding}. If consecutive samples are similar, the
-first stage predicts each sample from its neighbours and transmits only the
-\emph{residual}, the difference between the prediction and the sample. When
-the prediction is good, the residuals cluster around zero even though the
-samples span the full dynamic range. Nothing is lost, since the decoder applies
-the same prediction rule and adds the residual back.
-
-The second stage exploits the skewed distribution of the residuals by giving
-frequent values short codewords and rare values long ones. Huffman coding
-\cite{huffman1952}\label{lit:huffman:bg} produces the optimal prefix-free code
-for a known symbol distribution.
-
-The two stages are independent. A predictor that does not help, and produces
-residuals no more skewed than its input, does not break the coder: the coder
-still compresses whatever it is given, and the ratio can still look
-reasonable. Hence this thesis reports a no-prediction baseline, the coder
-applied to the unpredicted data, alongside every predictive result.
-
-\subsection{Open-loop and closed-loop prediction}
-\label{sec:closedloop}
-
-The encoder predicts from past samples, and so does the decoder, but the
-decoder only has the past \emph{reconstructed} samples. In \emph{open-loop}
-prediction the encoder predicts from the original samples; in
-\emph{closed-loop} prediction, as in differential pulse-code modulation (DPCM),
-the encoder reconstructs each sample exactly as the decoder will and predicts
-from that. When compression is lossless the two are identical, because the
-reconstruction equals the original. However, if anything (a saturation, a
-rounding or a clamp) makes the reconstruction differ from the original by even
-one bit, an open-loop encoder and its decoder start predicting from different
-histories and \emph{diverge}. With an IIR predictor such as DRHE's, the
-divergence then carries through every later ramp, whereas a closed loop
-confines the error to the affected sample. The hardware of
-Chapter~\ref{ch:hardware} uses a closed loop for this reason
-(Section~\ref{sec:robust}).
-
-
-\section{The sensor and the dataset}
+\subsection{The ColoRadar Dataset}
 \label{sec:sensor}
 
-\subsection{AWR2243 and the MMWCAS-RF-EVM}
-
-The radar front end assumed throughout is the Texas Instruments AWR2243, a
-76--\SI{81}{\giga\hertz} FMCW transceiver with three transmit and four receive
-channels \cite{ti_awr2243}. The AWR2243 does no signal processing of its own:
-it transmits, receives, mixes and digitises, then streams raw ADC samples out
-over a MIPI CSI-2 interface. It therefore produces exactly the data that
-creates the transport bottleneck. The MMWCAS-RF-EVM evaluation module cascades
-four AWR2243 devices, giving \num{12} transmit and \num{16} receive channels on
-one synchronised board, and hence the \num{192}-element virtual array of
-Section~\ref{sec:mimo}.
-
-\subsection{ColoRadar}
-
-Rather than synthetic data, this thesis uses real captures from the public
-ColoRadar dataset \cite{kramer2022}\label{lit:kramer:bg}, which includes cascade
-recordings from this module in indoor, outdoor and subterranean environments.
-Table~\ref{tab:capture} lists the relevant parameters. Fifty consecutive
-frames, frames 0 to 49 of the cascade recording
-\texttt{12\_21\_2020\_ec\_hallways\_run4} (\SI{10}{\second} at the capture's
-\SI{5}{\hertz} frame rate), are used throughout: \num{39321600} complex ADC
-samples, or \SI{150}{\mebi\byte} of raw data over all sixteen receivers. The
-hardware path compresses four receivers' 128 range bins, \SI{19.7}{\mega\byte}
-over the 50 frames, and every one of those values is checked after
-decompression.
+Rather than capturing new data, this thesis uses recordings from the public
+ColoRadar dataset~\cite{kramer2022}\label{lit:kramer:bg}, which includes raw
+ADC captures from an MMWCAS-RF-EVM cascade in indoor, outdoor and subterranean
+environments. Fifty consecutive frames of the recording
+\texttt{12\_21\_2020\_ec\_hallways\_run4} (\SI{10}{\second} at its
+\SI{5}{\hertz} frame rate) are used throughout. Table~\ref{tab:capture} lists
+the capture parameters. One frame holds
+$N_s \times N_c \times N_r \times N_t = 256 \times 16 \times 16 \times 12
+= \num{786432}$ complex samples of two 16-bit integers each, exactly
+\SI{3}{\mebi\byte}.
 
 \begin{table}[t]
 \centering
 \caption{ColoRadar cascade capture parameters used throughout this thesis.}
 \label{tab:capture}
+\small
 \begin{tabular}{@{}llr@{}}
 \toprule
 Parameter & Symbol & Value \\
@@ -378,202 +170,243 @@ Fast-time sample rate      & $f_s$ & \SI{8}{\mega\hertz} \\
 Chirp bandwidth            & $B$ & \SI{1.798}{\giga\hertz} \\
 Ramp repetition interval   & $T_r$ & \SI{78.5}{\micro\second} \\
 Centre frequency           & $f_c$ & \SI{77}{\giga\hertz} \\
-Range resolution           & $\Delta R$ & \SI{8.34}{\centi\metre} \\
 Frame size (raw)           & --- & \SI{3145728}{\byte} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Each complex sample is stored as two contiguous \texttt{int16} values, and the
-sample at (fast-time $s$, chirp loop $q$, receiver $r$, transmitter $t$) is at
-index
-\begin{equation}
-i = 2\bigl(s + N_s(q + N_c(r + t N_r))\bigr),
-\end{equation}
-so the layout from slowest to fastest varying is $[t, r, q, s]$. Reshaping this
-into the (fast time, ramp, receiver) cube used by the processing chain gives
-the transmitter-interleaved ramp axis of Equation~\eqref{eq:rampindex}.
+\section{Data Compression for Automotive Applications}
 
-\subsection{What one cascade asks of its link}
+As MIMO radar scales quadratically with the number of antennas, the size of the resulting radar data cube is very large. A single frame from the cascade used in this thesis holds \SI{3}{\mebi\byte} of raw samples, and a vehicle carries several such sensors. At typical frame rates, this results in a large data stream of multiple Gigabits per second, which overwhelms the communication network and the SoC's processing and memory. To address this issue, we can implement data compression directly on the sensor edge.
+
+\subsection{Link Requirement}
 \label{sec:linkreq}
+A ColoRadar frame of 192 ramps is acquired in \SI{15.07}{\milli\second}, so
+whilst measuring the cascade produces \SI{1.67}{Gbit/s} of raw samples. The
+range FFT keeps 128 of the 256 bins, which halves this to \SI{0.835}{Gbit/s} of
+16-bit codes. Allowing for protocol headers as Kiem does (a ratio of 2.7 rather
+than 2.4 on Gigabit Ethernet, Section~\ref{sec:kc_problem}) leaves about
+\SI{0.89}{Gbit/s} of payload, so a link shared by several cascades, as in the
+zonal architectures of Section~\ref{sec:sdv}, needs a ratio of 0.94 per sensor:
+2.8 for three cascades and 3.8 for four. This thesis therefore requires a ratio
+above three.
 
-A frame of 192 ramps of \SI{78.5}{\micro\second} is acquired in
-\SI{15.07}{\milli\second}, so whilst it is measuring the cascade produces
-$\SI{3}{\mebi\byte} / \SI{15.07}{\milli\second} = \SI{1.67}{Gbit/s}$ of raw
-samples. The range FFT keeps 128 of the 256 bins, which halves this to
-\SI{0.835}{Gbit/s} of FX16 codes for all sixteen receivers. Kiem allows for
-protocol headers by requiring a ratio of 2.7 rather than 2.4 on a Gigabit
-Ethernet link (Section~\ref{sec:kc_problem}), which leaves about
-\SI{0.89}{Gbit/s} of payload. On this basis one cascade's range-FFT stream fits
-a link by itself, but its raw stream needs a ratio of 1.9, and a link shared by
-several sensors, as in the zonal architectures of Section~\ref{sec:motivation},
-needs 0.94 per sensor: 2.8 for three cascades and 3.8 for four. This thesis
-therefore requires a ratio above three, enough for three cascades on one
-Gigabit link; the ratios of 4.2 and 4.4 reached in Chapter~\ref{ch:results}
-carry four, at \SI{0.20}{Gbit/s} each. These are rates during acquisition,
-which a sensor must sustain unless it buffers whole frames, and avoiding that
-buffer is the point of a streaming compressor. ColoRadar itself records at only
-\SI{5}{\hertz}, so its average rate is far lower.
+\subsection{Introduction to Compression Algorithms}
+Data compression involves encoding information using fewer bits than what was originally used. Data compression falls into two main categories: lossless and lossy~\cite{sayood2017}.
 
-\section{Quantisation: the FX16 step}
-\label{sec:numbers}
-\label{sec:fx16}
+Lossless compression reduces data size whilst perfectly preserving all original information, meaning the decompressed data fully matches the original input. However, lossless techniques are typically restricted to lower compression ratios.
 
-The range-FFT output is a complex floating-point quantity. Before a fixed-point
-pipeline can compress it, it has to be quantised to 16-bit integers, which is
-the FX16 step. This is a scaling followed by rounding:
+Lossy compression can achieve much higher data compression ratios by permanently discarding information deemed ``less critical''. Whilst this results in fewer bits being used, the removed information is lost. In automotive applications, the choice of what is deemed less critical is vital, as the loss of environmental features can have disastrous consequences. Ultimately, selecting a compression algorithm would require a trade-off between compression ratio and data loss.
+
+\subsubsection{Prediction and Entropy Coding}
+\label{sec:compression}
+Most lossless compressors of sampled signals have two stages. The first
+predicts each sample from samples already sent and transmits only the
+\emph{residual}, the difference between the sample and its prediction; when
+the prediction is good the residuals cluster around zero, and the decoder
+recovers each sample by adding the residual back to the same prediction. The
+second stage, \emph{entropy coding}, gives frequent values short codewords and
+rare values long ones. Huffman coding~\cite{huffman1952}\label{lit:huffman:bg}
+gives the optimal prefix-free code for a known distribution, and no code that
+treats values independently can average fewer bits than the order-0 entropy
 \begin{equation}
-\label{eq:scale}
-\sigma = \frac{32767}{A_{\max}\,2^{\mathrm{shift}} \sum_k w_k \,/\, (2 N_s)},
-\qquad
-x_{\mathrm{FX16}} = \mathrm{round}(\sigma \cdot x),
+\label{eq:entropy}
+H = -\sum_x p(x) \log_2 p(x) \quad\text{bits per value}~\cite{sayood2017}.
 \end{equation}
-where $A_{\max} = 2^{b-1}-1$ is the full-scale amplitude of a $b$-bit ADC,
-$\mathrm{shift} = 32 - b$ is the left shift that places each sample at the top
-of a 32-bit word, $w$ is the window applied along fast time, $N_s$ is the number
-of samples per ramp, and $x$ is the range-FFT output normalised by $N_s$
-(Section~\ref{sec:refchain}). The denominator is the largest value a
-full-scale sinusoid can produce, so $\sigma$ maps it to the largest
-\texttt{int16}. For ColoRadar's 16-bit ADC and 256-point Hann window
-($\sum_k w_k = 127.5$) the step reduces to
-$x_{\mathrm{FX16}} = \mathrm{round}(X/63.75)$, where $X$ is the unnormalised
-FFT of the windowed ADC samples.
+The two stages are independent: a predictor that does not help still leaves a
+coder that compresses, so this thesis reports a \emph{no-prediction baseline},
+the coder applied to the unpredicted data, beside every predictive result.
 
-Equation~\eqref{eq:scale} has two consequences for this thesis. First, rounding
-introduces an error of up to half a least-significant bit, which acts as a
-wideband noise floor \cite{widrow2008}. This is the main source of detection
-loss in the whole chain, and Chapter~\ref{ch:results} separates it from the
-cost of compression. Second, the scale factor is \emph{fixed}: it is calibrated
-from a theoretical full-scale ADC sinusoid, not from the data. If the capture
-sits well below full scale, the top bits of every \texttt{int16} are only copies
-of the sign bit. On ColoRadar the largest FX16 code is \num{437}, so fewer than
-ten of the sixteen bits ever carry information. Section~\ref{sec:ratiomeaning}
-shows how much of the compression ratio this accounts for.
+\label{sec:closedloop}
+The decoder can only predict from \emph{reconstructed} samples. An
+\emph{open-loop} encoder predicts from the original samples, and a
+\emph{closed-loop} encoder from its own reconstruction, as in differential
+pulse-code modulation. For a lossless coder the two are identical, but if
+anything (a saturation or a rounding) makes the reconstruction differ by one
+bit, an open-loop encoder and its decoder diverge for every later sample of a
+recursive predictor, whereas a closed loop confines the error to one sample.
 
+\subsection{The Data Compression Process}
 
-% -------------------------------------------------------------------
-\section{FPGAs and high-level synthesis}
-\label{sec:fpga}
+The workflow for a data compression algorithm is illustrated in Figure~\ref{fig:compression_process}. The original data is passed through a compression block, which reduces it to a smaller payload. This compressed payload is then either stored in memory or, in the automotive context, sent to the SoC. When it reaches its destination, it is then passed back through a decompression block in order to reconstruct the original signal (as best as possible).
 
-A field-programmable gate array (FPGA) is a chip of configurable logic blocks
-and wiring that is configured into the required circuit, rather than executing
-instructions. It can process four receive channels in the same clock cycle
-with deterministic timing, and it can be changed after manufacture, which
-suits a proof of concept. A production design would normally move into an ASIC
-or a fixed-function block of a larger SoC \cite{kuon2008,nxp_an5375}. FPGA
-resources are counted in four units: look-up tables (LUTs), which implement
-logic; flip-flops (one-bit registers); block RAM (on-chip memory, counted here
-in \SI{36}{\kilo bit} blocks, each with two access ports); and DSP slices
-(hardened multiply--accumulate units). The device used throughout, an AMD
-Kintex UltraScale+ \texttt{xcku5p-ffvb676-2-e}, provides \num{216960} LUTs,
-\num{433920} flip-flops, 480 block RAMs and \num{1824} DSP slices. Fixed-point
-arithmetic maps onto these cheaply, whereas floating point needs a multi-cycle
-operator for every operation \cite{parhami2010,ieee754}.
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{compression_process.png}
+\caption{Basic Compression and Decompression Cycle \cite{convexapp2019}.}
+\label{fig:compression_process}
+\end{figure}
 
-\label{sec:pipelining}
-A \emph{pipeline} splits a computation into stages separated by registers so
-that several inputs are processed at once; its \emph{depth} is the number of
-cycles one input takes to pass through. The \emph{initiation interval} (II) is
-the number of cycles between accepting one input and the next: $\mathrm{II} =
-1$ is one input per clock, and $\mathrm{II} = 2$ halves the throughput.
-$F_{\max}$ is the fastest clock at which every path still settles within one
-period. A frame of $K$ input beats therefore takes about
-$K \cdot \mathrm{II} / f$ seconds, plus the pipeline depth once per loop
-invocation.
+\subsection{Compression Algorithm Metrics}
+\label{sec:metricsbg}
+Since automotive radar is used in critical systems such as Autonomous Emergency Braking (AEB), data compression algorithms cannot blindly remove information. Hence, we must assess the trade-off between the compression efficiency and the decompressed data fidelity. To evaluate this, we can quantifiably assess the performance metrics of these algorithms~\cite{sayood2017}.
 
-\emph{High-level synthesis} (HLS) generates the circuit from annotated C++:
-loops become pipelined state machines, arrays become memories, and pragmas set
-the II and the interfaces. Since the source is C++, the same code also runs as
-software against the MATLAB reference before any hardware exists, which makes
-the verification of Section~\ref{sec:ladder} possible. The cores in this thesis
-use AXI4-Stream interfaces, a valid/ready handshake carrying one fixed-width
-word per beat.
+\subsubsection{Compression Ratio (CR)}
+The compression ratio is the ratio of the uncompressed data size to the compressed data size:
+\begin{equation}
+\label{eq:cr}
+    CR = \frac{N_{\text{input bits}}}{N_{\text{output bits}}}
+\end{equation}
+For example, reducing a 32-bit number to 8 bits gives a compression ratio of 4. Whilst a higher compression ratio is the ultimate goal in our context, it typically results in greater information loss (in lossy algorithms).
 
-% -------------------------------------------------------------------
-\section{Related work}
+\subsubsection{Signal-to-Noise Ratio (SNR) and Noise Floor}
+If the compression algorithm is very aggressive, it introduces noise that raises the noise floor of the decompressed data. This directly affects the Signal to Noise ratio (SNR), which is defined as:
+\begin{equation}
+    SNR_{\text{dB}} = 10 \log_{10} \left( \frac{P_{\text{signal}}}{P_{\text{noise}}} \right) = S_{\text{dB}} - N_{\text{dB}}
+\end{equation}
+where $S_{\text{dB}}$ is the RMS signal power and $N_{\text{dB}}$ is the RMS noise floor, both measured in decibels. A high SNR is important for ensuring signal quality; if the SNR is too low, the weak reflections from smaller objects can disappear in the noise.
+
+\subsubsection{Detection Accuracy (False Positives and False Negatives)}
+The detection accuracy is measured by using False Positives ($FP$) and False Negatives ($FN$). If the compression algorithm removes too much relevant data, the SoC might not be able to detect a real target, resulting in False Negatives.
+
+This is evaluated using the False Negative Rate (Miss Rate):
+\begin{equation}
+\label{eq:fnr}
+    FNR = \frac{FN}{TP + FN}
+\end{equation}
+
+Conversely, if the compression introduces mathematical artifacts or ridges into the range-Doppler map, the system might detect a `ghost' target that does not actually exist, known as a False Positive. This is evaluated using the False Discovery Rate:
+\begin{equation}
+\label{eq:fdr}
+    FDR = \frac{FP}{FP + TP}
+\end{equation}
+Both of these detection failures are highly dangerous in an autonomous driving environment and must remain as close to zero as possible.
+
+\subsubsection{Real-Time Latency}
+The compression latency ($L$) is defined as the time difference between receiving the raw frame data ($t_{\text{in}}$) and successfully outputting the compressed data ($t_{\text{out}}$):
+\begin{equation}
+    L = t_{\text{out}} - t_{\text{in}}
+\end{equation}
+A compression algorithm cannot take hundreds of milliseconds to process a frame. It must operate with minimal latency and massive throughput to ensure true real-time performance at the sensor edge.
+
+\subsection{Automotive Compression Algorithm Approaches}
+
+The current state of the art in radar data compression is split into two paradigms: deterministic time-domain algorithms and spectral/neural algorithms.
+
+\subsubsection{Deterministic and Time-Domain Approaches}
+Because automotive safety systems require low latency, semiconductor manufacturers typically rely on lightweight, deterministic time-domain algorithms. Prominent examples include Texas Instruments' Exponential-Golomb Encoding (EGE)~\cite{ti_ege}, NXP Semiconductors' proprietary CP4 and CP8 formats~\cite{nxp_an5375}, and Doppler Redundancy Hybrid Encoding (DRHE)~\cite{zivkovic2015}.
+
+The primary advantage of these methods is their latency; hardware implementations of algorithms such as DRHE can achieve latency as low as 0.08 milliseconds~\cite{kiem2025}. However, these algorithms generally hit a hard compression ceiling of approximately 3x to 4x.
+
+\subsection{Neural Network-Based Approaches}
+
+Recent advancements have introduced Neural Network (NN) architectures to compress radar data by deploying an encoder at the sensor edge, and a decoder at the SoC~\cite{yao2023,hu2023}. While these models achieve very high compression ratios, deploying them on FPGAs requires significant resources.
+
+Modern frameworks like AdaRadar~\cite{park2026} address this computational burden by avoiding a full neural encoder at the edge. Instead, AdaRadar employs a simple spectral pruning process at the sensor, keeping both the edge compression and central decompression extremely lightweight. The computationally intensive neural network runs entirely on the SoC, enabling this type of compression in an automotive context.
+
+\section{Radar Data Compression in Other Fields}
+
+While data compression is utilized across various fields, existing methods are generally unsuitable for the automotive sector as they require low latency. Traditional radar compression can often be performed after scanning, and thus does not fall under this strict latency requirement. Automotive radar algorithms must execute with millisecond latency and minimal computational overhead, which precludes the use of complex compression schemes used in other radar applications.
+
+Synthetic aperture radar (SAR) faced the downlink problem first: block adaptive
+quantization (BAQ) was flown on Magellan~\cite{kwok1989}, and several
+algorithms for SAR raw data, BAQ among them, have been compared~\cite{benz1995}.
+Weather radar products are compressed by predicting each value from its
+neighbours and entropy-coding the residual~\cite{zeng2018}.
+
+The simple lossless predictive coders of audio, image and space data are an
+exception to the latency problem, and DRHE has their structure. Linear
+prediction fits each sample as a weighted sum of the previous ones by solving
+the Yule--Walker equations~\cite{makhoul1975}. Lossless audio coders such as
+Shorten~\cite{robinson1994}, FLAC~\cite{rfc9639} and MPEG-4
+ALS~\cite{liebchen2004} fit a predictor to each block, send its coefficients,
+and code the residuals exactly, usually with Golomb or Rice
+codes~\cite{golomb1966,rice1979}. The space agencies' lossless standard,
+CCSDS~121.0, predicts each sample from the previous one for simple flight
+hardware~\cite{ccsds121}, and LOCO-I (JPEG-LS) combines a fixed predictor with
+Golomb--Rice coding~\cite{weinberger2000}. DRHE's coder, which sends each
+value's size as a Huffman codeword followed by that many raw bits, is the
+scheme baseline JPEG uses for its DC coefficients~\cite{itut81}.
+
+\section{Automotive System Architectures}
+\label{sec:sdv}
+
+\subsection{Evolution of Automotive Architectures}
+
+Automotive system architectures are undergoing a shift with the emergence of the Software-Defined Vehicle (SDV), in which functionality is primarily managed via software rather than hardware. To manage the growing demands of autonomy and connectivity, as seen in automotive radar, SDV architectures have evolved through four distinct stages~\cite{khamis2025}:
+
+\subsubsection{Distributed (Modular) Architecture (SDV 0.0)} In early automotive electronics, features were implemented as standalone systems. Each new vehicle function required a dedicated Electronic Control Unit (ECU), leading to networks with over 100 separate ECUs. This resulted in a very high wiring harness weight and little adaptability to change.
+
+\subsubsection{Domain-Based Architecture (SDV 1.0)} To reduce the number of distributed ECUs, the industry grouped them into logical functional domains (e.g., powertrain, chassis, ADAS), each governed by a central domain controller. While this improved internal organization, it still required extensive cross-vehicle wiring because sensors had to connect to their respective domain controllers regardless of their physical location.
+
+\subsubsection{Zonal Architecture (SDV 2.0)} Sensors and actuators are grouped strictly by their physical location in the vehicle (e.g., front-left zone, rear-right zone) rather than their function. Zonal gateways get data from local sensors and route it over high-speed communication lines to a central High-Performance Computer (HPC).
+
+\subsubsection{Vehicle-Centralized Architecture (SDV 3.0)} The most recent SDV, where all logic is consolidated into a SoC.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{sdv.png}
+\caption{The four evolutionary stages of automotive architectures \cite{khamis2025}.}
+\label{fig:ee_evolution}
+\end{figure}
+
+\subsection{Implications for Automotive Radar Data Management}
+
+In this thesis, the focus is on Zonal Architecture (SDV 2.0), rather than the fully Vehicle-Centralized SDV 3.0 approach. By using the SDV 2.0 (Zonal) architecture, we can compress the data directly at the radar module, significantly reducing the data payload before it enters the network.
+
+\section{State of the Art Compression Algorithms}
 \label{sec:sota}
 \label{sec:kiem}
 
-This thesis draws on three bodies of work: compression built into radar
-processors and proposed for radar data; the lossless predictive coders of
-audio, image and space data, from which DRHE and LPC borrow their structure;
-and the baseline this thesis extends. Table~\ref{tab:relwork} summarises them.
+To address the specific constraints of automotive radar, several compression algorithms have been developed. These algorithms prioritize latency and low computational complexity, with minimal information loss (i.e., low false positives/negatives and SNR). This section outlines the high-level principles of the current industry standards and the baseline algorithms evaluated in this thesis.
 
-\subsection{Compression in radar sensors and processors}
+\subsection{Hardware-Accelerated Deterministic Compression (NXP CPX)}
+NXP has a series of radar processors, such as the S32R45 and the S32R27x, which utilize a hardware accelerator unit called the Signal Processing Toolbox (SPT) to handle the large data volumes~\cite{nxp_an5375}. This toolbox is designed to perform various functions, such as FFTs and windowing, with high efficiency compared to other DSPs. To achieve the required low latency, the toolbox uses Programmable Direct Memory Access (PDMA) units, which transfer data from the SPT's RAM to the system's larger SRAM. PDMA applies the compression algorithm, which typically uses Block Floating Point logic. For example, the CP4D format compresses four operands by maintaining eight 7-bit mantissas that share a single 4-bit exponent. These algorithms are designed to be ``near lossless'' in radar applications, often introducing less than 0.25 dB of signal loss at standard compression ratios.
 
-Radar processors compress to save on-chip memory and link bandwidth, using
-simple fixed-latency schemes. Texas Instruments' mmWave devices contain a
-compression engine that codes blocks of range-FFT samples with an order-$k$
-exponential-Golomb code \cite{teuhola1978}, choosing $k$ per block from the
-most common bit width. It meets a configured output size, so it is lossy, and
-more so as the ratio rises \cite{ti_ege,kiem2025}. NXP's S32R radar processors
-offer a family of fixed-ratio formats (CP4, CP4D, CP8 and others) that NXP
-describes as near lossless, with typically under \SI{0.25}{\decibel} of SNR
-loss at ratios of 2.8 to 3 and under \SI{1}{\decibel} at 6 \cite{nxp_an5375}.
-Infineon's common-exponent formats CMPRA and CMPRB, which Kiem evaluated, fix
-the ratio at 2 and 4 \cite{kiem2025}. All of these trade a bounded loss for a
-guaranteed ratio.
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{nxp.png}
+\caption{Technical specifications and ratios for the various NXP compression formats \cite{nxp_an5375}.}
+\label{fig:nxp}
+\end{figure}
 
-Synthetic aperture radar (SAR) faced the downlink problem first. Block adaptive
-quantisation (BAQ) sets a quantiser step from each block's statistics and was
-flown on Magellan \cite{kwok1989}, and Benz \emph{et al.}\ compared several
-algorithms for SAR raw data, including BAQ \cite{benz1995}. Weather radar
-products are compressed by predicting each value from its spatial and temporal
-neighbours and entropy-coding the residual \cite{zeng2018}. For automotive FMCW
-radar, Li \cite{li2014} proposed range-dependent variable-length encoding
-(RDVLE), which spends fewer bits on far range bins where the received power is
-lower, and Doppler Redundancy Hybrid Encoding (DRHE), which predicts each
-range-FFT sample along slow time with two IIR filters in polar form and codes
-the error \cite{li2014,zivkovic2015}. Meucci and Mancuso \cite{meucci2022}
-applied linear prediction along fast time to the raw ADC samples of each chirp,
-with Huffman-coded residuals. Learned methods reach far higher ratios by giving
-up exactness: an autoencoder with range coding \cite{hu2023}, and AdaRadar,
-which prunes and quantises discrete cosine transform coefficients of the radar
-cube at a rate set by feedback from the detector, reporting a hundredfold size
-reduction for about one point of detection accuracy \cite{park2026}. Both are
-lossy by design, which rules them out where every sample must reach the
-detector.
+\subsection{Block Adaptive Quantization (BAQ)}
+Originally developed for Synthetic Aperture Radar (SAR)~\cite{kwok1989}, Block Adaptive Quantization (BAQ) principles can be adapted to automotive applications. Like NXP, BAQ divides the radar data into blocks. However, BAQ estimates the statistical properties of the signal, such as its variance and average magnitude.
 
-\subsection{Lossless predictive coding outside radar}
+Based on this estimate, the algorithm adjusts its quantization step size. The blocks containing weak signals (from small objects) are quantized with smaller step sizes, with the stronger blocks using larger step sizes. This allows for a higher dynamic range, at the cost of slightly increased computational complexity.
 
-DRHE and this thesis's LPC both predict each value from its neighbours and then
-entropy-code the prediction error exactly. This is the standard structure of
-lossless coding for sampled signals, and it is well established in audio,
-images and space data.
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{baq.png}
+\caption{Flowchart of BAQ algorithm compressing process \cite{cheng2019}.}
+\label{fig:baq}
+\end{figure}
 
-Linear prediction models each sample as a weighted sum of the previous ones,
-with weights chosen to minimise the mean squared error; the autocorrelation
-method leads to the Yule--Walker equations, solved by the Levinson--Durbin
-recursion \cite{makhoul1975}. Speech coders send the coefficients and a coarse
-description of the residual, so the waveform is only approximated, whereas
-lossless coders send the residual exactly, so the decoder rebuilds every
-sample.
+\subsection{Doppler Redundancy Hybrid Encoding (DRHE)}
+Doppler Redundancy Hybrid Encoding (DRHE)~\cite{li2014,zivkovic2015} leverages redundancy in FMCW radar frames for compression. A radar frame consists of identical chirps transmitted in rapid succession. Because the physical scene changes negligibly between consecutive chirps, the range-FFT data exhibits extremely high correlation in the slow-time (Doppler) domain.
 
-In lossless audio, Shorten fits a low-order linear predictor to each block and
-entropy-codes the residuals \cite{robinson1994}. FLAC, now standardised as
-RFC~9639, chooses per block between fixed polynomial predictors of order 0 to 4
-and a quantised linear predictor of order up to 32 whose coefficients are sent
-in the stream, and codes the residuals with Rice codes whose parameter can
-change across partitions of the block \cite{rfc9639}. MPEG-4 ALS adds long-term
-prediction and higher prediction orders to the same scheme \cite{liebchen2004}.
-These coders are \emph{forward-adaptive}: the coefficients are fitted to the
-data being coded and sent as side information, as in this thesis's LPC
-(Section~\ref{sec:lpc}). A \emph{backward-adaptive} predictor instead updates
-from samples already decoded and sends no coefficients \cite{sayood2017};
-Section~\ref{sec:futurework} suggests it for a streaming LPC.
+Instead of quantizing the data directly, DRHE predicts each range-FFT sample from the same range bin in earlier chirps, with two IIR filters in polar form: one smooths the magnitude and the other extrapolates the phase, which advances by a constant step for a target at constant velocity (Equation~\eqref{eq:dopplerphase}). Only the difference between each sample and its prediction is sent. Because the scene is mostly static relative to the chirp rate, these differences are overwhelmingly small and cluster heavily around zero.
 
-Prediction errors are mostly small and roughly two-sided geometric, which
-Golomb codes \cite{golomb1966} and their power-of-two special case, Rice codes
-\cite{rice1979}, match without any table. The space agencies' lossless
-standard, CCSDS~121.0, predicts each sample from the previous one and chooses
-among Rice options block by block, a design intended for simple flight hardware
-\cite{ccsds121}. LOCO-I, the core of JPEG-LS, combines a fixed nonlinear
-predictor with context modelling and Golomb--Rice coding, and comes close to
-far more complex coders \cite{weinberger2000}. DRHE's entropy coder, which
-sends each value's size category as a Huffman codeword followed by that many
-raw bits (Section~\ref{sec:entropycoder}), is the scheme baseline JPEG uses for
-its DC coefficients \cite{itut81}; Rice and exponential-Golomb codes are
-table-free versions of the same idea.
+The DRHE algorithm then applies a lossless variable-length entropy encoder to these differences: each value's size is sent as a Huffman codeword, followed by the value itself in that many bits (Section~\ref{sec:entropycoder}). High-probability values near zero are assigned very short bit lengths, achieving significant data reduction. The main disadvantage of this algorithm lies in how to efficiently encode rare, large outliers (e.g., from fast-moving targets or noise spikes) for which standard lossless encoding becomes highly inefficient. DRHE was described for a radar with one transmitter, where the previous chirp is the right reference; on a TDM-MIMO cascade it is not (Section~\ref{sec:tdm}). Li~\cite{li2014} also proposed range-dependent variable-length encoding (RDVLE), which spends fewer bits on far range bins, where the received power is lower.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{drhe.png}
+\caption{High-level pipeline of the Doppler Redundancy Hybrid Encoding (DRHE) algorithm \cite{zivkovic2015}.}
+\label{fig:drhe_pipeline}
+\end{figure}
+
+\subsection{Rate-Adaptive Spectral Compression (AdaRadar)}
+While traditional algorithms operate in the spatial-temporal domain, recent advancements have introduced dynamic compression. An example is AdaRadar~\cite{park2026}, which uses an adaptive feedback loop to adjust its compression ratio.
+
+AdaRadar first converts localized patches of radar data into the frequency domain using a Discrete Cosine Transform (DCT). Because radar reflections are highly concentrated at specific frequencies, the algorithm can aggressively discard the near-zero coefficients. The remaining essential data is then scaled and quantized.
+
+The defining feature of AdaRadar is its closed-loop feedback mechanism. Rather than using a fixed compression rate, the algorithm continuously adjusts how aggressively it discards data based on the performance of a downstream perception task (such as an object detection neural network). This allows the sensor to heavily compress data and automatically adjust the compression ratio to preserve fine details.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{adaradar.png}
+\caption{Conceptual pipeline and feedback loop of the AdaRadar spectral compression framework \cite{park2026}.}
+\label{fig:adaradar_pipeline}
+\end{figure}
+
+\subsection{Linear Predictive Coding (LPC-Huffman)}
+Meucci and Mancuso~\cite{meucci2022} applied linear prediction to the raw ADC
+samples of each chirp, predicting each sample from the previous ones along
+fast time with coefficients fitted to each chirp, and Huffman-coded the
+residuals. It is lossless, and it is the method Kiem excluded in favour of DRHE
+(Chapter~\ref{ch:kiem}). Table~\ref{tab:relwork} summarises the methods of this
+chapter.
 
 \begin{table}[t]
 \centering
@@ -593,33 +426,112 @@ BAQ \cite{kwok1989} & SAR raw & none & block-scaled quantiser & no & spacecraft\
 RDVLE \cite{li2014} & range FFT & none & fewer bits at far range & no & ---\\
 DRHE \cite{li2014,kiem2025} & range FFT & slow time, polar IIR & size category + raw bits & yes & FPGA \cite{kiem2025}\\
 LPC-Huffman \cite{meucci2022} & raw ADC & fast time, LPC & Huffman & yes & ---\\
-Autoencoder \cite{hu2023} & radar data & learned & range coding & no & ---\\
 AdaRadar \cite{park2026} & radar cube & DCT & pruned, quantised & no & ---\\
-\midrule
-Shorten \cite{robinson1994} & audio & LPC per block & entropy code & yes & ---\\
 FLAC \cite{rfc9639} & audio & fixed or LPC $\le 32$ & partitioned Rice & yes & ---\\
 CCSDS 121.0 \cite{ccsds121} & instrument data & previous sample & adaptive Rice & yes & flight\\
-LOCO-I \cite{weinberger2000} & images & fixed nonlinear & context Golomb--Rice & yes & ---\\
 \midrule
 \textbf{This thesis} & range FFT, TDM & slow time, same TX; DRHE and LPC & size category + raw bits & yes & FPGA, enc.\ + dec.\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{The baseline and the gap}
+\section{Field-Programmable Gate Arrays (FPGAs)}
+\label{sec:fpga}
 
-The direct predecessor of this work is Lukas Kiem's master's thesis
-\cite{kiem2025}, which compared vendor schemes with DRHE on a
-single-transmitter Infineon radar, selected DRHE (3.25 in simulation) and
-implemented its compressor on a Zynq UltraScale+ device (3.17 in hardware).
-Chapter~\ref{ch:kiem} summarises it.
+The implementation of edge-based radar data compression requires a hardware platform that bridges the gap between fixed-functionality Application-Specific Integrated Circuits (ASICs) and flexible yet computationally slow general-purpose processors. Field-Programmable Gate Arrays (FPGAs) provide this essential middle ground, offering the performance of dedicated hardware with the flexibility of software-defined logic.
 
-Three things are missing from the work reviewed here. First, DRHE predicts from
-the previous ramp, which is only the right reference when consecutive ramps
-come from the same transmitter; on a time-division MIMO cascade they do not
-(Section~\ref{sec:tdm}). Second, the prediction and entropy-coding designs of
-audio and image coding have not been compared with the vendor schemes on the
-same radar data with the same metrics. Third, no lossless radar compressor has
-been built with its decoder in hardware and verified bit for bit on a board.
-Section~\ref{sec:objectives} turns these gaps into the objectives of this
-thesis.
+\subsection{Strategic Advantages for Radar DSP}
+FPGAs are to be used for the hardware implementation due to several advantages over other computing devices.
+
+\subsubsection{Massive Parallelism and Deterministic Latency}
+The biggest advantage of FPGAs in automotive radar applications is their ability to do parallel processing. A microcontroller must process the radar data one after another, whilst an FPGA can create an array of parallel pipelines to process multiple chirps and virtual antenna channels simultaneously~\cite{kuon2008}. This allows for deterministic latency, meaning the time required to compress the data is low and predictable.
+
+\subsubsection{Hardware-Software Co-Design}
+Modern System-on-Chip (SoC) FPGAs, such as the AMD Zynq UltraScale+ family, integrate Programmable Logic (PL) with a dedicated Processing System (PS) based on ARM Cortex processors. This enables a co-design approach where control-plane logic and management tasks run in software, while data-plane tasks (such as DRHE compression) are offloaded to hardware accelerators in the PL.
+
+\subsubsection{Reconfigurability for Iterative Design}
+Given the experimental designs explored in this thesis, reconfigurability is vital. The ability to modify hardware logic using Hardware Description Languages (HDLs) such as VHDL or C++ via High-Level Synthesis (HLS) enables iteration and testing without the cost and lead times associated with ASICs.
+
+\subsection{Deployment and Production Considerations}
+
+While FPGAs are the gold standard for prototyping and low- to medium-volume production, their cost and power consumption can make it undesirable for actual automotive use. In a commercial vehicle, the compression core developed on an FPGA is typically transitioned into one of two architectures for mass production:
+
+\begin{itemize}
+    \item ASIC Integration: For high-volume models, the logic is permanently etched into a custom chip, yielding the lowest power consumption and highest performance.
+    \item SoC Hardware Accelerators: The compression logic is integrated as a dedicated fixed-function block within a larger automotive SoC (similar to the NXP S32R series), providing a balance between cost-effectiveness and performance~\cite{nxp_an5375}.
+\end{itemize}
+
+This research focuses on the FPGA implementation as a critical proof of concept.
+
+\subsection{Resources, Pipelining and High-Level Synthesis}
+\label{sec:pipelining}
+FPGA resources are counted in four units: look-up tables (LUTs), which
+implement logic; flip-flops (FFs); block RAM (on-chip memory, counted here in
+\SI{36}{\kilo bit} blocks, each with two ports); and DSP slices (hardened
+multiply--accumulate units). The device used in this thesis, an AMD Kintex
+UltraScale+ \texttt{xcku5p-ffvb676-2-e} on a KCU116 board, provides
+\num{216960} LUTs, \num{433920} FFs, 480 block RAMs and \num{1824} DSPs.
+
+A \emph{pipeline} splits a computation into stages separated by registers so
+that several inputs are in flight at once; its \emph{depth} is the number of
+cycles one input takes to pass through, and its \emph{initiation interval}
+(II) is the number of cycles between successive inputs. $F_{\max}$ is the
+fastest clock at which every path still settles within one period. HLS
+generates such pipelines from annotated C++, so the same source also runs as
+software against the MATLAB reference before any hardware exists. The cores in
+this thesis use AXI4-Stream interfaces, a valid/ready handshake carrying one
+fixed-width word per clock.
+
+\section{Hardware Number Representations}
+\label{sec:numbers}
+In the context of implementing automotive radar compression algorithms on hardware (such as FPGAs or ASICs), the choice of number representation affects the latency, resource consumption, and signal fidelity. The two main methods of representing numbers are fixed-point and floating-point.
+
+\subsection{Fixed-Point Representation}
+Fixed-point representation uses a constant number of bits for the integer portion and for the fraction portion of the number. This is commonly denoted using Q-format (e.g., Q$m.n$, where $m$ bits represent the integer, $n$ bits represent the fraction, and an optional bit is reserved for the sign).
+
+The main benefit of using fixed-point arithmetic is that it's very hardware efficient~\cite{parhami2010}. Since the position of the decimal is fixed, the hardware does not need to have dynamic location functionality. Mathematical operations such as addition, subtraction, and multiplication can be performed using the standard Arithmetic Logic Unit (ALU). This allows for lower latency and reduced resource usage.
+
+However, fixed-point representation has a restricted dynamic range. If a signal is larger than the $m$ integer bits can represent, then an overflow occurs, which wraps the number around to a negative/incorrect value. Conversely, if a signal is smaller than the $n$ fractional bits can resolve, an underflow would occur, which typically rounds to zero. Hence, we must ensure that scaling is applied in the pipeline to keep the data within the dynamic range.
+
+\subsection{Floating-Point Representation}
+Floating-point representation dynamically adjusts the position of the decimal point by separating the number into three components: a sign bit, an exponent, and a mantissa~\cite{ieee754}. The final value is calculated as $\text{Sign} \times \text{Mantissa} \times 2^{\text{Exponent}}$.
+
+The advantage of using floating-point arithmetic is its dynamic range. Since the exponent acts as a sliding decimal point, we can maintain precision for small values whilst still representing larger values. This removes the need for bit-scaling.
+
+Despite this flexibility, floating-point numbers have a massive hardware disadvantage. Performing basic arithmetic requires aligning the exponents before adding the mantissas, normalizing the result, and handling special cases. This necessitates a dedicated, highly complex hardware block known as a Floating-Point Unit (FPU)~\cite{parhami2010}. Using FPUs on hardware consumes a vast number of logic gates and increases power consumption. FPU operations also require multiple clock cycles to complete, resulting in higher latency. On an FPGA, however, floating-point operators can be pipelined to accept a new input every clock, so their cost falls mainly on logic and pipeline depth rather than on throughput; Chapter~\ref{ch:hardware} measures this cost.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{fixedfloat.png}
+\caption{Fixed vs Float Representation \cite{guan2023}.}
+\label{fig:floatfixed}
+\end{figure}
+
+\subsection{Quantization Error in Fixed-Point Systems}
+\label{sec:fx16}
+
+Because edge hardware predominantly relies on fixed-point arithmetic to meet strict latency requirements, analog signals must eventually be mapped to discrete fixed-point values. The discrepancy between the ideal continuous value and its nearest discrete approximation is known as quantization error~\cite{widrow2008}.
+
+When converting to a fixed-point grid, the dynamic range is divided by a uniform step size, $\Delta$. If a signal value falls between two steps, it must be rounded or truncated. This rounding introduces an inherent error bounded by $\pm \frac{\Delta}{2}$. In signal processing, this error acts as a wideband noise floor, commonly referred to as quantization noise.
+
+This error is highly problematic for automotive radar compression. If a linear
+fixed-point quantization scheme is applied, the subtle variations of weak
+signals are crushed into the quantization noise floor. In this thesis, as in
+Kiem's, the range-FFT output is quantized to 16-bit integers by the
+\emph{FX16} step, a fixed scaling followed by rounding:
+\begin{equation}
+\label{eq:scale}
+\sigma = \frac{32767}{A_{\max}\,2^{\mathrm{shift}} \sum_k w_k \,/\, (2 N_s)},
+\qquad
+x_{\mathrm{FX16}} = \mathrm{round}(\sigma \cdot x),
+\end{equation}
+where $A_{\max} = 2^{b-1}-1$ is the full-scale amplitude of a $b$-bit ADC,
+$\mathrm{shift} = 32 - b$ places each sample at the top of a 32-bit word, $w$
+is the fast-time window and $x$ is the range-FFT output normalised by $N_s$.
+The scale maps the peak of a full-scale sinusoid to the largest
+\texttt{int16}, so it is calibrated from a theoretical signal rather than from
+the data. ColoRadar sits far below full scale: its largest FX16 code is
+\num{437}, so fewer than ten of the sixteen bits ever carry information.
+Chapter~\ref{ch:results} measures how much detection this step costs,
+separately from compression, and how much of the compression ratio the unused
+bits account for.

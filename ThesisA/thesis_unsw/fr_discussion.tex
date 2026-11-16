@@ -1,115 +1,70 @@
 % ===================================================================
+% One Discussion chapter, replacing the former chapters on the hardware
+% numbers, the comparison with the baseline, and the discussion.
+% ===================================================================
 \chapter{Discussion}
 \label{ch:discussion}
 
 \section{Which algorithm for a sensor front end?}
 \label{sec:choice}
 
-DRHE and LPC are close on compression ratio, and which one leads depends on the
-dictionary rather than on the predictors (Section~\ref{sec:dictresult}). They
-are also level on logic, so the deciding differences lie elsewhere.
-
-\paragraph{Streaming.} DRHE's output depends only on samples already received,
-so it emits compressed data as the raw data arrives, needs no frame buffer, and
-lags its input by \SI{13}{\micro\second}. LPC's coefficients are sums over
-every ramp of the frame, so its first output bit has to wait for its last input
-sample, giving \SI{3.0}{\milli\second} of latency and a \SI{3.0}{\mebi bit}
-buffer at this frame size. This is a property of the algorithm rather than of
-this implementation, and no scheduling removes it whilst the coefficients are
-fitted to the frame being compressed.
-
-\paragraph{Memory.} A compressor between the range FFT and the memory bus of a
-radar sensor has little memory to spare, and LPC's buffer grows with the frame
-(Section~\ref{sec:scaling}). DRHE's state also grows, with the number of range
-bins and transmitters, but remains a fraction of a frame.
-
-\paragraph{Where LPC is attractive.} LPC's costs fall mainly on the compressor.
-Its decoder is the cheaper of the two in memory and arithmetic (no block RAM,
-and fixed-point multiply--accumulates only) because the coefficients arrive in
-the bitstream, and it is as fast as DRHE's, at one value per clock
-(Section~\ref{sec:boardtiming}). Where a few milliseconds of latency are
-acceptable and the sensor has memory to spare, LPC's \SI{4}{\percent} better
-ratio is available. A backward-adaptive LPC, which fits its coefficients to
-\emph{previous} frames instead of the current one, would remove both the buffer
-and the latency at some cost in ratio.
+DRHE and LPC are close on compression ratio, with the leader set by the
+dictionary, and level on logic, so the deciding differences lie elsewhere.
+DRHE's output depends only on samples already received, so it streams, needs
+no frame buffer and lags its input by \SI{13}{\micro\second}. LPC's
+coefficients are sums over every ramp of the frame, so its first output bit
+must wait for its last input sample, giving \SI{3.0}{\milli\second} of latency
+and a \SI{3.0}{\mebi bit} buffer that grows with the frame. This is a property
+of the algorithm, not of this implementation. LPC's costs fall on the
+compressor: its decoder needs no block RAM, so where a few milliseconds of
+latency and the memory are available, its \SI{4}{\percent} better ratio can be
+had. A backward-adaptive LPC, fitted to previous frames, would remove the
+buffer and the latency at some cost in ratio.
 
 \paragraph{Why DRHE stays in floating point.} Kiem's fixed-point types would
 reduce the DRHE compressor to \HW{ablf}{LUT} LUTs and \HW{ablf}{DSP} DSPs for a
-\SI{0.07}{\percent} loss of ratio (Section~\ref{sec:hw_ladder}), so the
-floating-point datapath is not kept for its ratio. It is kept for three
-reasons. First, verification: single-precision prediction reproduces the
-double-precision MATLAB model's bit counts on every frame
-(Section~\ref{sec:verifres}), so each level of the ladder can be checked
-exactly against the one above it. A fixed-point design changes the residuals
-and would need its own bit-accurate model at every level, which is the kind of
-model Kiem listed as future work. Second, timing margin: the floating-point
-compressor closes at \HW{drhen}{fmax}\,MHz out of context against
-\HW{ablf}{fmax}\,MHz for the fixed-point one, whose 26-level carry chain leaves
-almost no slack at \SI{100}{\mega\hertz}. Third, generality: floating point
-needs no word-length analysis for a particular sensor's scaling, whereas Kiem's
-types were sized for his. On this device the cost is affordable, since the
-compressor is \SI{16}{\percent} of the chip and the whole system under half.
-Where silicon area dominates, as in an ASIC, the fixed-point datapath is the
-better trade-off (Section~\ref{sec:futurework}).
+\SI{0.07}{\percent} loss of ratio (Section~\ref{sec:hw_ladder}), so floating
+point is not kept for its ratio. It is kept for three reasons. First,
+verification: single-precision prediction reproduces the double-precision
+MATLAB model's bit counts on every frame, so each level of the ladder can be
+checked exactly against the one above, whereas a fixed-point design would need
+its own bit-accurate model, which Kiem listed as future work. Second, timing:
+the floating-point compressor closes at \HW{drhen}{fmax}\,MHz out of context
+against \HW{ablf}{fmax}\,MHz for the fixed-point one, which has almost no slack
+at \SI{100}{\mega\hertz}. Third, generality: floating point needs no
+word-length analysis for a particular sensor's scaling. On this device the
+cost is affordable, since the compressor is \SI{16}{\percent} of the chip; where
+silicon area dominates, as in an ASIC, fixed point is the better trade-off.
 
-For a streaming sensor-edge compressor, this thesis therefore recommends DRHE.
-It is lossless, compresses by \num{4.2} with a matched dictionary, keeps up
-with the data with a wide margin, needs no frame buffer, and adds microseconds
-rather than milliseconds of latency. LPC compresses about \SI{4}{\percent}
-better, but only by waiting for and storing every frame.
+For a streaming sensor-edge compressor this thesis therefore recommends DRHE:
+lossless, \num{4.2} with a matched dictionary, a wide throughput margin, no
+frame buffer, and microseconds rather than milliseconds of latency.
 
 \section{Scaling to larger frames}
 \label{sec:scaling}
 
-The hardware path compresses four of the cascade's sixteen receive channels,
-because four complex 16-bit samples fill the 128-bit stream. The following
-estimates scale the measured figures linearly and are not measurements.
-
-With all 16 receive channels the data per frame quadruples. DRHE would take
-about \SI{2.5}{\milli\second} per frame and LPC about \SI{13}{\milli\second},
-both well within the \SI{200}{\milli\second} frame period of the ColoRadar
-capture, but LPC would need a \SI{12}{\mebi bit} frame buffer and its latency
-would grow to about \SI{12}{\milli\second}.
-
-Kiem's use case (1024 ramps of 1024 samples, four channels, a
-\SI{50}{\milli\second} cycle and a \SI{15}{\milli\second} compression budget)
-needs \SI{2.4}{Gbit/s} at the ADC. After the range FFT each frame is
-\SI{8.4}{\mega\byte} of complex 16-bit data (512 bins of 16-bit $I$ and $Q$ per
-ramp and channel), delivered in the \SI{21}{\milli\second} of acquisition, which
-is about \SI{3.2}{Gbit/s} at the compressor's input. DRHE's measured
-\SI{5.1}{Gbit/s} keeps up without any buffer. LPC as built would take about
-\SI{69}{\milli\second} per frame, longer than the whole cycle, and would need
-an \SI{8.4}{\mega\byte} frame buffer against roughly \SI{4.4}{\mega\byte} of
-block RAM and UltraRAM on this device.
-
-Both decoders scale with the number of values, at about one per clock. At 16
-receive channels each would take about \SI{8}{\milli\second} per frame. A frame
-of Kiem's size holds 21 times as many values as the frames measured here, so
-either decoder would take about \SI{42}{\milli\second}, inside the
-\SI{50}{\milli\second} cycle but with little margin. However, a decoder sits at
-the central processor, where several copies or a wider design are easier to
-afford than at the sensor.
-
-Hence DRHE scales with the data rate, whereas LPC scales with the frame size
-and, on large frames, runs out of both time and memory. LPC's time per frame
-could be cut by about a third by overlapping its passes and amortising the
-per-bin pipeline fill (Section~\ref{sec:lpcimpl}), and further only by
-processing several bins in parallel, but its buffer and latency would remain.
+The hardware compresses four of the sixteen receive channels, because four
+complex 16-bit samples fill the 128-bit stream. Scaling the measured figures
+linearly, all 16 channels would take DRHE about \SI{2.5}{\milli\second} per
+frame and LPC about \SI{13}{\milli\second}, with a \SI{12}{\mebi bit} buffer.
+Kiem's use case delivers about \SI{3.2}{Gbit/s} of range-FFT codes during
+acquisition. DRHE's measured \SI{5.1}{Gbit/s} keeps up without a buffer, but
+LPC would take about \SI{69}{\milli\second} per frame, longer than his whole
+\SI{50}{\milli\second} cycle, and would need an \SI{8.4}{\mega\byte} frame
+buffer against about \SI{4.4}{\mega\byte} of on-chip memory on this device.
+DRHE scales with the data rate, whereas LPC scales with the frame size and, on
+large frames, runs out of both time and memory.
 
 \section{What the compression ratio measures}
 \label{sec:ratiomeaning}
 
-Figure~\ref{fig:bits} follows one value through the compressor, in bits. The
-16-bit container starts with 16. Since the FX16 scale is fixed to a theoretical
-full-scale signal and the ColoRadar capture sits far below it, the largest code
-over 50 frames is 437, so only $\log_2 437 + 1 = 9.77$ bits ever carry
-information and the other 6.2 are copies of the sign bit. Removing them is a
-factor of \num{1.64}, which any entropy coder achieves whether or not anything
-is predicted. The coder then exploits the sparsity of a range-FFT frame, in
-which most bins hold noise near zero and a few hold targets, for a further
-factor of \num{2.12}, reaching \num{4.60} bits per value. Prediction then takes
-DRHE to \num{4.27} bits (a factor of \num{1.08}), and the re-derived dictionary
-takes it to \num{3.79} (\num{1.12}).
+Figure~\ref{fig:bits} follows one value through the compressor. Since the FX16
+scale is fixed to a full-scale signal and the largest ColoRadar code is 437,
+only $\log_2 437 + 1 = 9.77$ of the 16 bits carry information; removing the
+other 6.2 is a factor of \num{1.64}, which any entropy coder achieves. The
+sparsity of a range-FFT frame, mostly noise near zero with a few targets, gives
+a further \num{2.12}. Prediction then adds \num{1.08} for DRHE and the
+re-derived dictionary \num{1.12}.
 
 \begin{figure}[htbp]
 \centering
@@ -121,118 +76,115 @@ Factors are for DRHE; LPC is shown hatched.}
 \label{fig:bits}
 \end{figure}
 
-This has two consequences. First, the ratios are partly a property of the
-capture. A sensor whose data filled the 16-bit container would have no unused
-top bits to remove; its extra bits would instead hold finer detail of the
-receiver noise, which a lossless coder must keep. Section~\ref{sec:quant}
-shows the effect: scaled to fill the container, the same frame compresses by
-only \num{1.2}. Ratios measured on different sensors are therefore only
-comparable if their gain staging is, and a no-prediction baseline should be
-reported alongside any radar compression ratio to separate the algorithm from
-the sensor.
+The ratios are therefore partly a property of the capture. A sensor whose data
+filled the container would have no unused bits to remove, and scaled to fill
+it the same frame compresses by only \num{1.2} (Section~\ref{sec:quant}).
+Ratios from different sensors are only comparable if their gain staging is,
+and a no-prediction baseline should be reported with any radar compression
+ratio. The unused bits are also why FX16 loses \SI{3.77}{\percent} of the
+detections: how many bits of the noise floor are worth transmitting is a choice
+for the radar designer, and a lossless compressor only makes that choice
+cheaper to carry.
 
-Second, the unused bits are a design choice. They are also why FX16 loses
-\SI{3.77}{\percent} of the reference detections, and filling the container
-removes that loss along with most of the compression (Section~\ref{sec:quant}).
-How many bits of the noise floor are worth transmitting is a decision for the
-radar system designer. A lossless compressor does not change that trade-off;
-it only makes whichever choice is made cheaper to carry.
-
-\section{How far the dictionary and the lag generalise}
-\label{sec:generalise}
-
-The re-derived dictionaries were trained on five frames of one recording and
-tested on 45 later frames of the same recording, where they hold within
-\SI{1}{\percent}. This shows that they do not over-fit the training frames,
-but not that they transfer to other scenes, sensors or gain settings. Since a
-dictionary is a sixteen-entry table, a production design could hold several
-and choose one per frame, or slowly update one from the statistics of past
-frames, without changing anything else in the hardware.
-
-The value of the prediction lag is specific to this radar, but the principle
-is general. The lag is $\nTx = 12$ because this radar rotates twelve
-transmitters in a fixed order; a radar that changed its MIMO schedule would need
-the lag reloaded, and one using Doppler- or code-division multiplexing has no
-interleaved ramp axis. The principle, that a slow-time predictor must predict
-from the same antenna, applies to any slow-time coder carried over from a
-single-transmitter design to a time-multiplexed one. The check is cheap: if
-the predictor does not beat the no-prediction baseline, it is predicting along
-the wrong axis.
-
-\section{Against the baseline}
+\section{Comparison with the baseline}
 \label{sec:hwvskiem}
+
+\subsection{Hardware}
+\label{sec:hw_ladder}
+\label{sec:hw_replica}
+
+Kiem's hardware figures are post-route, whereas HLS over-estimates logic by
+about three times, so every figure compared here is post-route. To separate the
+effects of this thesis's design decisions from those of tool version and
+device, Kiem's compressor was rebuilt from his description in this thesis's
+tool flow. The replica matches his block RAM exactly, his DSPs closely,
+$\mathrm{II} = 1$ and \SI{100}{\mega\hertz} on his speed grade, but not his
+LUT and flip-flop counts, which are higher than his design as described needs,
+so the replica is the fairer reference. Table~\ref{tab:hw_ladder} then changes
+one design decision per step, from this thesis's datapath predicting at lag 1
+(DRHE-1) to the replica, with every step lossless and routed.
+
+\begin{table}[htbp]
+\centering
+\caption[From DRHE-1 to the replica, one change per step]{From DRHE-1 to the
+replica of Kiem's design, one design decision per step. Every row is lossless
+and implemented through routing, out of context, on the \texttt{xcku5p} at
+\SI{10}{\nano\second}. II and depth are from HLS. BRAM in 36\,Kb blocks.}
+\label{tab:hw_ladder}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}cl rrrr cc r@{}}
+\toprule
+Step & Change from the row above & LUT & FF & DSP & BRAM & II & Depth & MHz\\
+\midrule
+0 & DRHE-1 (float, closed loop, lag 1) & \HW{drheone}{LUT} & \HW{drheone}{FF} & \HW{drheone}{DSP} & \HW{drheone}{BRAMT} & \HW{drheone}{hII} & \HW{drheone}{hDepth} & \HW{drheone}{fmax}\\
+1 & packer shift offset made unsigned & \HW{ablpone}{LUT} & \HW{ablpone}{FF} & \HW{ablpone}{DSP} & \HW{ablpone}{BRAMT} & \HW{ablpone}{hII} & \HW{ablpone}{hDepth} & \HW{ablpone}{fmax}\\
+2 & Kiem's 58-bit per-channel packer & \HW{ablptwo}{LUT} & \HW{ablptwo}{FF} & \HW{ablptwo}{DSP} & \HW{ablptwo}{BRAMT} & \HW{ablptwo}{hII} & \HW{ablptwo}{hDepth} & \HW{ablptwo}{fmax}\\
+3 & state cleared by read, not write & \HW{ablptwor}{LUT} & \HW{ablptwor}{FF} & \HW{ablptwor}{DSP} & \HW{ablptwor}{BRAMT} & \HW{ablptwor}{hII} & \HW{ablptwor}{hDepth} & \HW{ablptwor}{fmax}\\
+4 & Kiem's fixed-point arithmetic & \HW{ablfxc}{LUT} & \HW{ablfxc}{FF} & \HW{ablfxc}{DSP} & \HW{ablfxc}{BRAMT} & \HW{ablfxc}{hII} & \HW{ablfxc}{hDepth} & \HW{ablfxc}{fmax}\\
+5 & open loop $=$ replica of Kiem & \HW{ablk}{LUT} & \HW{ablk}{FF} & \HW{ablk}{DSP} & \HW{ablk}{BRAMT} & \HW{ablk}{hII} & \HW{ablk}{hDepth} & \HW{ablk}{fmax}\\
+\midrule
+--- & Kiem, published \cite{kiem2025} & \num{45892} & \num{9243} & \num{44} & \num{10} & 1 & 23 & 100\\
+--- & DRHE, lag $\nTx$ (final design) & \HW{drhen}{LUT} & \HW{drhen}{FF} & \HW{drhen}{DSP} & \HW{drhen}{BRAMT} & \HW{drhen}{hII} & \HW{drhen}{hDepth} & \HW{drhen}{fmax}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Each difference has an identified cause. Floating point accounts for every
+extra DSP, most of the logic and, with 32-bit state words, twice the block RAM;
+per-transmitter state doubles the block RAM again. DRHE's packer costs about
+\num{4200} LUTs more than Kiem's. The closed loop, which keeps encoder and
+decoder in step, adds 26 of DRHE's 58 pipeline cycles, \SI{260}{\nano\second}
+that has no practical effect here. $\mathrm{II} = 2$ comes from one extra
+state write per cycle to clear the state at the start of a frame; removing it
+reaches $\mathrm{II} = 1$ but doubles the DSPs, and with 24 times the
+throughput four ColoRadar channels need, half the rate allows half the
+arithmetic. Measured as Kiem's figures are, the final compressor uses fewer
+LUTs than his IP (0.77$\times$), meets the same clock, fits his
+\texttt{XCZU3CG} at half its logic, and adds \SI{21.3}{\micro\second} of
+latency with the range FFT included, against his \SI{79.4}{\micro\second}.
+
+\subsection{Compression ratio}
 \label{sec:vskiem}
+\label{sec:kr_lpcraw}
 
-Kiem's DRHE carries over to a twelve-transmitter cascade with only the
-prediction lag changed. With his dictionary it compresses ColoRadar by 3.75 in
-hardware, against his 3.17, and with a matched dictionary by 4.22, but these
-figures come from different sensors and scenes, so they are not directly
-comparable (Chapter~\ref{ch:vskiem}). In hardware, this thesis adds a decoder
-for every design and byte-for-byte agreement between the board and
-simulation. Every hardware difference from his design has an identified cause
-(Chapter~\ref{ch:hwinterpret}), the largest being the floating-point
-predictor, which buys only \SI{0.07}{\percent} of ratio over fixed point.
+To compare ratios, Kiem's MATLAB simulation was rebuilt from his text alone,
+with his five-target scene in white noise, and every coder was run on it. At
+his stated noise floor of $-75$\,dBFS DRHE gives \num{2.28}, not \num{3.25};
+his 3.25 is reproduced only at $-87.9$\,dBFS, and there no prediction gives
+\num{3.26}, since noise at one ramp says nothing about the next. On such data
+the ratio is set by how many bits of noise each value carries, so his 3.25 is a
+property of his recordings, and neither the similarity nor the difference of
+3.25 and this thesis's 3.75 says anything about the algorithms. The LPC-Huffman
+he excluded, run on the raw ADC samples of his scene, reaches only 1.32 to
+1.54. His ranking therefore holds, but mainly because his chain's FFT scaling
+and truncation discard about 4.2 bits of noise per value before DRHE sees the
+data, which a lossless coder of the raw samples must keep. This thesis's
+slow-time LPC predicts in the same domain as DRHE and is level with it, on his
+scene (\num{3.38} against \num{3.23}) and on ColoRadar.
 
-\section{Observations on verifying a compressor}
-\label{sec:lessons}
-
-Real data and synthetic tests find different problems. Fifty real frames
-exercise the typical case thoroughly and the extreme case not at all:
-ColoRadar's prediction errors never leave category 10, so a third of the coder
-is never used. The eight-case synthetic suite exercises that third, and it
-found both the saturation of Section~\ref{sec:robust} and the missing
-end-of-frame word of Section~\ref{sec:interface}. However, it says nothing
-about whether a predictor helps on real data.
-
-Equally, a compressor can be bit-exact at every level and compress by a
-plausible ratio whilst its predictor contributes nothing, as lag-1 prediction
-on this radar shows (Section~\ref{sec:predaxisres}). Only the no-prediction
-baseline detects this.
+The algorithm itself is Kiem's: at lag 1, this thesis's DRHE model produces
+exactly the bits of the replication written from his text
+(\num{18186374} at $-75$\,dBFS). It is extended in one way, the lag $\nTx$,
+and implemented differently in four: a closed loop with saturation
+(Section~\ref{sec:robust}), floating point, a per-transmitter state reset each
+frame, and bit-reversed codewords for a least-significant-bit-first packer.
 
 \section{Threats to validity}
 \label{sec:threats}
 
 \begin{itemize}
-\item The ratios are specific to the capture. Much of the ratio comes from an
-under-filled container (Section~\ref{sec:ratiomeaning}), which is a property
-of this recording's gain staging.
-
-\item All results use one recording: 50 consecutive frames (\SI{10}{\second})
-of the ColoRadar sequence \texttt{12\_21\_2020\_ec\_hallways\_run4}. Scenes
-with more or faster targets would give larger prediction errors and lower
-ratios, and the re-derived dictionaries were trained and tested on the same
-recording.
-
-\item The detection metrics measure the quantisation step, since the three
-lossless schemes share FX16's detection metrics by construction. The detection
-chain is also simpler than a production one: its Doppler FFT runs across all
-192 ramps in recorded order, it has no angle FFT, detections are matched cell
-by cell with no positional tolerance, and the threshold is not swept. The
-absolute rates of the lossy schemes should therefore be read as relative.
-
-\item The method study uses MATLAB's double-precision range FFT. The range FFT
-on the FPGA gives the same codes except for \SI{0.016}{\percent} that differ
-by one step, which changes the ratios in the fifth significant figure and the
-detection totals by three of \num{11148} (Section~\ref{sec:feresults}).
-
-\item BAQ is represented by a block-floating-point quantiser. A better-tuned,
-statistics-driven BAQ could lose fewer detections at the same ratio, but it
-would still be lossy.
-
-\item Stage~1 uses all 16 receive channels, whereas Stage~2 and the hardware
-use four. The two stages' ratios are close (\num{3.75} and \num{3.751} for
-DRHE) but not identical by construction.
-
-\item Power was estimated from Vivado's power report with default switching
-activity (Section~\ref{sec:resources}); the board's power draw was not
-measured.
-
-\item Co-simulation covers one frame. The 50-frame results are from
-C-simulation and the board, which exercise the same logic, but the
-cycle-accurate RTL simulation was run on one frame.
-
-\item The baseline was rebuilt from its description, since Kiem's source code
-and recordings are not public. The replicas of his hardware and simulation
-follow every type, function and parameter his thesis states; where it is
-silent, they follow this thesis's reading of it.
+\item All results use 50 frames of one indoor recording, and much of the ratio
+comes from its gain staging (Section~\ref{sec:ratiomeaning}). Busier scenes
+would give lower ratios, and the dictionaries were trained and tested on the
+same recording.
+\item The lag $\nTx$ is specific to TDM; Doppler- or code-division MIMO has no
+interleaved ramp axis.
+\item The detection chain is simpler than a production one (no angle FFT, no
+positional tolerance, a fixed threshold), so the lossy schemes' rates should be
+read as relative. BAQ is represented by a block-floating-point quantiser.
+\item Stage~1 uses 16 receive channels and the hardware four, and power is a
+Vivado estimate, not a measurement.
+\item The baseline was rebuilt from its description, since Kiem's code and
+recordings are not public.
 \end{itemize}
