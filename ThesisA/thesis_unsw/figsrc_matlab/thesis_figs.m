@@ -18,43 +18,31 @@ FONT  = 'Times New Roman';
 
 %% ---------------- fig_bits: bits per value through the compressor ----------------
 % Bits per (real or imaginary) value, 50 frames, 4 RX, from the Stage 2 ratios.
-lab  = {{'int16', 'container'}, {'occupied', 'range'}, {'Huffman,', 'no prediction'}, ...
-        {'+ prediction'}, {'+ re-derived', 'dictionary'}};
+% A plain grouped bar chart in MATLAB's default colours, styled like the
+% Chapter 7 figures (thesis_figs_results.m). The first three stages are shared
+% by both algorithms, so DRHE and LPC have the same height there.
+stage = {'int16\newlinecontainer', 'occupied\newlinerange', 'Huffman,\newlineno prediction', ...
+         '+ prediction', '+ re-derived\newlinedictionary'};
 drhe = [16, 9.77, 16/3.479, 16/3.751, 16/4.218];
-lpc  = [NaN, NaN, NaN, 16/3.697, 16/4.404];
-cols = [51 65 79; 107 123 140; 64 96 125; 47 109 79; 122 163 59] / 255;
-
-f = figure('Color', 'w', 'Units', 'centimeters', 'Position', [2 2 15.5 7.2]);
+lpc  = [16, 9.77, 16/3.479, 16/3.697, 16/4.404];
+f = figure('Color', 'w', 'Units', 'centimeters', 'Position', [2 2 13 7.5], 'Visible', 'off');
 ax = axes(f); hold(ax, 'on');
-w = 0.3;
-for i = 1:5
-    if isnan(lpc(i))
-        bar(ax, i, drhe(i), 0.5, 'FaceColor', cols(i, :), 'EdgeColor', 'none');
-        text(ax, i, drhe(i) + 0.35, sprintf('%.2f', drhe(i)), 'HorizontalAlignment', 'center', ...
-             'FontName', FONT, 'FontSize', 8);
-    else
-        hD = bar(ax, i - w/2, drhe(i), w, 'FaceColor', cols(i, :), 'EdgeColor', 'none');
-        hL = bar(ax, i + w/2, lpc(i), w, 'FaceColor', cols(i, :), 'FaceAlpha', 0.45, ...
-                 'EdgeColor', cols(i, :), 'LineWidth', 0.8);
-        text(ax, i - w/2, drhe(i) + 0.35, sprintf('%.2f', drhe(i)), 'HorizontalAlignment', 'center', ...
-             'FontName', FONT, 'FontSize', 7.5);
-        text(ax, i + w/2, lpc(i) + 0.35, sprintf('%.2f', lpc(i)), 'HorizontalAlignment', 'center', ...
-             'FontName', FONT, 'FontSize', 7.5);
-        if i == 4, legDRHE = hD; legLPC = hL; end
-    end
+b = bar(ax, 1:5, [drhe; lpc]', 'grouped');
+fmt = @(v) compose('%.2f', v);
+for k = 1:2
+    y = b(k).YEndPoints; s = fmt(y); s(y >= 10) = compose('%.1f', y(y >= 10));
+    text(ax, b(k).XEndPoints, y, s, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', ...
+         'FontName', FONT, 'FontSize', 7.5);
 end
 for i = 2:5   % reduction factor between successive stages (DRHE)
-    text(ax, i - 0.5, (drhe(i-1) + drhe(i)) / 2 + 1.2, sprintf('\\div%.2f', drhe(i-1) / drhe(i)), ...
-         'HorizontalAlignment', 'center', 'FontName', FONT, 'FontSize', 8, 'Color', [0.3 0.3 0.3]);
+    text(ax, i - 0.5, (drhe(i-1) + drhe(i)) / 2 + 1.5, sprintf('\\div%.2f', drhe(i-1) / drhe(i)), ...
+         'HorizontalAlignment', 'center', 'FontName', FONT, 'FontSize', 8.5);
 end
-set(ax, 'XTick', 1:5, 'XTickLabel', {}, 'FontName', FONT, 'FontSize', 8.5, 'Box', 'off', ...
-    'YGrid', 'on', 'GridAlpha', 0.2, 'TickDir', 'out');
-for i = 1:5   % two-line category labels under the axis
-    text(ax, i, -0.6, lab{i}, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'top', ...
-         'FontName', FONT, 'FontSize', 8.5);
-end
+set(ax, 'XTick', 1:5, 'XTickLabel', stage, 'TickLabelInterpreter', 'tex', 'FontName', FONT, ...
+    'FontSize', 9, 'Box', 'on', 'YGrid', 'on', 'XGrid', 'off', 'GridAlpha', 0.15, 'TickDir', 'out', ...
+    'LineWidth', 0.6);
 ylabel(ax, 'bits per value'); ylim(ax, [0 18]); xlim(ax, [0.4 5.6]);
-legend(ax, [legDRHE legLPC], {'DRHE', 'LPC'}, 'Box', 'off', 'Location', 'northeast', 'FontSize', 8.5);
+legend(ax, {'DRHE', 'LPC'}, 'Location', 'northeast', 'FontSize', 8.5);
 exportgraphics(f, fullfile(outDir, 'fig_bits.pdf'), 'ContentType', 'vector', 'BackgroundColor', 'white');
 close(f);
 
