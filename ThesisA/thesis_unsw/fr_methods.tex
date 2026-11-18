@@ -52,12 +52,13 @@ coder, the class BAQ already represents, and Kiem's own results show its cost.
 At the ratios a Gigabit link needs, his EGE6 (2.67) and EGE4 (4.0) missed
 \SI{7.7}{\percent} and \SI{40}{\percent} of his detections
 (Figure~\ref{fig:kiemresults}). Neural and spectral methods such as AdaRadar
-\cite{park2026} were out of scope, since their decoders run a neural network on the central
-processor, beyond the hardware this thesis builds.
+\cite{park2026} were out of scope, since they rely on a neural network at the central
+processor, as the decoder or as the detector that sets the rate, which the
+detection chain of this thesis does not include.
 
 The rest of this chapter covers DRHE and LPC, which Section~\ref{sec:stage1}
 shows give the best trade-off of the eight: they compress by more than three
-without losing detections.
+with no detections lost beyond the 16-bit quantisation they share.
 
 \section{The shared entropy coder}
 \label{sec:entropycoder}
@@ -102,7 +103,7 @@ no code.
 Coding one residual costs
 \begin{equation}
 \label{eq:cost}
-L(v) = \ell\bigl(S_4(v)\bigr) + S_4(v)
+C(v) = \ell\bigl(S_4(v)\bigr) + S_4(v)
 \end{equation}
 bits, where $\ell(\cdot)$ is the codeword length. The dictionary is fixed, which
 saves transmitting it and removes a serial dependency from the hardware. The
@@ -331,16 +332,17 @@ as \texttt{ap\_fixed<16,2>} (range $[-2, 2)$, step $2^{-14}$) and $a_2$ as
 truncation towards $-\infty$, which is the HLS default. The prediction is then
 formed in fixed point and rounded to an integer before the residual is taken,
 so encoder and decoder agree to the bit. The MATLAB model and the independent
-Python implementation of Appendix~\ref{app:verify} both reproduce this
+Python implementation of Section~\ref{sec:indep} both reproduce this
 quantisation, and the latter matches the HLS bit counts exactly on all 50
 frames.
 
 
-\subsection{Relation to Kiem's LPC-Huffman}
+\subsection{Relation to the LPC-Huffman of Meucci and Mancuso}
 \label{sec:lpc_notkiem}
 
-Kiem's thesis mentions an ``LPC-Huffman'' method \cite{meucci2022} that he
-judged less promising than DRHE and did not implement. That method predicts
+Kiem's thesis mentions the ``LPC-Huffman'' method of Meucci and Mancuso
+\cite{meucci2022}, which he judged less promising than DRHE and did not
+implement. That method predicts
 each raw ADC sample from earlier samples of the \emph{same chirp}, along fast
 time before the range FFT, and codes the residuals with a Huffman code derived
 from the data. The LPC here instead predicts each range-FFT code from the same
@@ -348,7 +350,6 @@ range bin in earlier \emph{ramps}, along slow time after the range FFT where
 DRHE predicts, and uses DRHE's own entropy coder. It was designed this way so
 that DRHE's input, axis and coder are kept and only the predictor changes, so
 any difference in compression ratio can be attributed to the predictor alone.
-Section~\ref{sec:kr_lpcraw} compares the two methods called LPC.
 
 \section{The Huffman dictionary}
 \label{sec:dict}
@@ -398,10 +399,9 @@ algorithms before any measurement.
 structure, before any measurement.}
 \label{tab:algcompare}
 \small
-\begin{tabular}{@{}p{38mm}p{45mm}p{45mm}@{}}
-\toprule
+\begin{tabular}{>{\raggedright}p{38mm}|>{\raggedright}p{45mm}|>{\raggedright\arraybackslash}p{45mm}}
 & \textbf{DRHE} & \textbf{LPC} \\
-\midrule
+\hline
 Prediction domain & polar (magnitude, phase) & Cartesian, $I$ and $Q$
   independently \\[3pt]
 Model & fixed IIR filters, $\alpha,\beta$ chosen a priori &
@@ -418,6 +418,5 @@ Per-sample arithmetic & 4 floating-point transcendentals
 Per-frame arithmetic & --- & one division per (channel, bin, part) \\[3pt]
 Entropy back end & \multicolumn{2}{c}{identical: $S_4$ + APPEND + Huffman
   dictionary} \\
-\bottomrule
 \end{tabular}
 \end{table}

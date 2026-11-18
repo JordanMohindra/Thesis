@@ -22,10 +22,9 @@ false discovery rate (Section~\ref{sec:metrics}); NF is the noise floor. DRHE
 and LPC predict at lag $\nTx$ and use the original dictionary.}
 \label{tab:stage1}
 \small
-\begin{tabular}{@{}llrrrrr@{}}
-\toprule
-Method & Type & CR & Missed (\%) & FDR (\%) & NF (dBFS) & SNR (dB)\\
-\midrule
+\begin{tabular}{l|l|c|c|c|c|c}
+\textbf{Method} & \textbf{Type} & \textbf{CR} & \textbf{Missed (\%)} & \textbf{FDR (\%)} & \textbf{NF (dBFS)} & \textbf{SNR (dB)}\\
+\hline
 FP16       & reference & 1.00 & 0.00  & 0.00 & $-105.64$ & 35.50\\
 FX16       & reference & 1.00 & 3.77  & 1.11 & $-105.37$ & 35.36\\
 BAQ        & lossy     & 3.76 & 10.44 & 9.69 & $-105.08$ & 35.08\\
@@ -34,7 +33,6 @@ RDVLE+UDRE & lossy     & 2.56 & 28.73 & 4.44 & $-101.78$ & 33.00\\
 DRHE fp16  & lossless\textsuperscript{*} & 1.04 & 0.05 & 0.01 & $-105.64$ & 35.51\\
 \textbf{DRHE} & lossless & \textbf{3.75} & 3.77 & 1.11 & $-105.37$ & 35.36\\
 \textbf{LPC}  & lossless & \textbf{3.70} & 3.77 & 1.11 & $-105.37$ & 35.36\\
-\bottomrule
 \multicolumn{7}{@{}l}{\footnotesize\textsuperscript{*}lossless with respect to its FP16 input, which is itself rounded from the reference.}
 \end{tabular}
 \end{table}
@@ -86,16 +84,14 @@ range--Doppler map in dB; ``int16 use'' is the largest code as a fraction of
 \num{32767}; the last column is the lossless DRHE ratio on the resulting codes.}
 \label{tab:quant}
 \small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lrrrrr@{}}
-\toprule
-Quantiser & relRMS (\%) & PSNR (dB) & RD error (dB) & int16 use (\%) & DRHE CR\\
-\midrule
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{l|c|c|c|c|c}
+\textbf{Quantiser} & \textbf{relRMS (\%)} & \textbf{PSNR (dB)} & \textbf{RD error (dB)} & \textbf{int16 use (\%)} & \textbf{DRHE CR}\\
+\hline
 FP16 (reference)            & 0.0205 & 101.97 & 0.0049 & ---   & ---\\
 FX16, fixed scaling         & 1.8636 & 64.44  & 0.4336 & 1.33  & \textbf{3.80}\\
 FX16, scaled to frame peak  & 0.0278 & 101.09 & 0.0054 & 89.20 & 1.18\\
 FX16, companded \cite{deng2024} & 0.0048 & 114.38 & 0.0011 & 94.28 & 0.78\\
-\bottomrule
 \end{tabular}
 \end{table}
 
@@ -122,16 +118,14 @@ baseline, 50 frames, four receive channels, original dictionary, 256-bit
 padding. The predictor rows are HLS C-simulation; all are lossless.}
 \label{tab:predaxis}
 \small
-\begin{tabular}{@{}lrr@{}}
-\toprule
-Configuration & CR & vs.\ no prediction\\
-\midrule
+\begin{tabular}{l|c|c}
+\textbf{Configuration} & \textbf{CR} & \textbf{vs.\ no prediction}\\
+\hline
 No prediction (Huffman coding only)            & \num{3.479} & ---\\
 DRHE, lag 1 (adjacent ramp)                    & \num{3.310} & $-4.9\,\%$\\
 LPC, lags 1, 2                                 & \num{3.385} & $-2.7\,\%$\\
 \textbf{DRHE, lag $\nTx$}                      & \textbf{\num{3.751}} & $\mathbf{+7.8\,\%}$\\
 \textbf{LPC, lags $\nTx$, $2\nTx$}             & \textbf{\num{3.697}} & $\mathbf{+6.3\,\%}$\\
-\bottomrule
 \end{tabular}
 \end{table}
 
@@ -163,14 +157,12 @@ the total on frames 5--49 only, which the re-derived dictionary was not trained
 on.}
 \label{tab:decomp}
 \small
-\begin{tabular}{@{}lrrrrr@{}}
-\toprule
-& Huffman coding & + prediction & + re-derived & \textbf{Total} & Total,\\
-& only & & dictionary & & held out\\
-\midrule
+\begin{tabular}{l|c|c|c|c|c}
+& \textbf{Huffman coding} & \textbf{+ prediction} & \textbf{+ re-derived} & \textbf{Total} & \textbf{Total,}\\
+& \textbf{only} & & \textbf{dictionary} & & \textbf{held out}\\
+\hline
 DRHE & \num{3.479} & $+\num{0.272}$ & $+\num{0.466}$ & \textbf{\num{4.218}} & \num{4.207}\\
 LPC  & \num{3.479} & $+\num{0.218}$ & $+\num{0.707}$ & \textbf{\num{4.404}} & \num{4.372}\\
-\bottomrule
 \end{tabular}
 \end{table}
 
@@ -207,14 +199,12 @@ errors by size $S_4$, and the codeword length each dictionary assigns
 (50 frames, four receive channels). Bold marks the three commonest sizes.}
 \label{tab:dictshare}
 \small
-\begin{tabular}{@{}lrrrrrrr@{}}
-\toprule
-Size $S_4$ & 0 & 1 & 2 & 3 & 4 & 5 & Average code\\
-\midrule
+\begin{tabular}{l|c|c|c|c|c|c|c}
+\textbf{Size $S_4$} & \textbf{0} & \textbf{1} & \textbf{2} & \textbf{3} & \textbf{4} & \textbf{5} & \textbf{Average code}\\
+\hline
 Share of errors (\%)      & \textbf{17.6} & \textbf{30.9} & \textbf{34.1} & 13.8 & 2.5 & 0.6 & ---\\
 Code length, original     & 4 & 3 & 2 & 2 & 2 & 5 & \num{2.70} bits\\
 Code length, re-derived   & \textbf{3} & \textbf{2} & \textbf{1} & 4 & 5 & 6 & \textbf{\num{2.24} bits}\\
-\bottomrule
 \end{tabular}
 \end{table}
 
@@ -231,7 +221,7 @@ difference.
 \label{sec:coderlimit}
 
 Table~\ref{tab:coderlimit} compares the coder with the order-0 entropy
-(Equation~\eqref{eq:entropy}) and with an \emph{ideal} $S_4$ dictionary built
+(Section~\ref{sec:metrics}) and with an \emph{ideal} $S_4$ dictionary built
 on each design's own counts. The ideal dictionary comes within 3 to
 \SI{7}{\percent} of the entropy, so the $S_4$ construction loses little; the
 original dictionary's excess is almost all due to the dictionary, and grows
@@ -245,14 +235,12 @@ with the original dictionary, with an ideal $S_4$ dictionary, and the order-0
 entropy of the values.}
 \label{tab:coderlimit}
 \small
-\begin{tabular}{@{}lrrrr@{}}
-\toprule
-Residuals & Original dictionary & Ideal $S_4$ & Entropy & Overhead of original\\
-\midrule
+\begin{tabular}{l|c|c|c|c}
+\textbf{Residuals} & \textbf{Original dict.} & \textbf{Ideal $S_4$} & \textbf{Entropy} & \textbf{Overhead of original}\\
+\hline
 No prediction (raw FX16 codes)   & 4.586 & 4.214 & 4.094 & \SI{12.0}{\percent}\\
 DRHE, lag $\nTx$                 & 4.240 & 3.711 & 3.516 & \SI{20.6}{\percent}\\
 LPC, lags $\nTx$, $2\nTx$        & 4.102 & 3.242 & 3.040 & \SI{34.9}{\percent}\\
-\bottomrule
 \end{tabular}
 \end{table}
 
@@ -320,21 +308,19 @@ reconstructed word written. Compressor figures are from the original-dictionary
 run; with the re-derived dictionaries they differ by at most 13 cycles.}
 \label{tab:timing}
 \small
-\begin{tabular}{@{}lrr@{}}
-\toprule
+\begin{tabular}{l|c|c}
 & \textbf{DRHE} & \textbf{LPC}\\
-\midrule
+\hline
 Clock cycles per frame          & \num{61472}   & \num{325366}\\
 Time per frame                  & \textbf{\SI{0.61}{\milli\second}} & \SI{3.25}{\milli\second}\\
 Frames per second               & \num{1627}    & \num{307}\\
 Input throughput                & \textbf{\SI{5.12}{Gbit/s}} & \SI{0.97}{Gbit/s}\\
 End-to-end latency              & \textbf{\SI{13.1}{\micro\second}} & \SI{3006}{\micro\second}\\
 \quad as a share of the frame time & \SI{2}{\percent} & \SI{92}{\percent}\\
-\midrule
+\hline
 Decompressor cycles per frame   & \num{196881}  & \lpcDecCycles\\
 Decompression time per frame    & \SI{1.97}{\milli\second} & \lpcDecTime\\
 Decompressor latency            & \SI{339}{\micro\second} & \lpcDecLat\\
-\bottomrule
 \end{tabular}
 \end{table}
 
@@ -342,8 +328,8 @@ Decompressor latency            & \SI{339}{\micro\second} & \lpcDecLat\\
 \centering
 \includegraphics[width=0.8\textwidth]{fig_timing.pdf}
 \caption[Time per frame on the FPGA]{Time to encode and decode one frame on the
-FPGA, measured on the board with the re-derived dictionaries, with each
-encoder's output delay. DRHE outputs as the data arrives, whereas LPC must wait
+FPGA, measured on the board in the same runs as Table~\ref{tab:timing}, with
+each encoder's output delay. DRHE outputs as the data arrives, whereas LPC must wait
 for the whole frame before it can output anything. Both decoders decode one
 value per clock.}
 \label{fig:timing}
@@ -358,7 +344,7 @@ this comes \emph{after} the last input word, because its coefficients cannot be
 computed until every ramp is in: 230 times DRHE's latency, and no scheduling
 removes it whilst the coefficients are fitted to the frame being compressed.
 Both decoders run at almost exactly one value per clock, \SI{1.97}{\milli\second}
-for DRHE and \lpcDecTime{} for LPC, independent of the data; their latencies
+each, independent of the data; their latencies
 are the backlog left when the compressed input ends. All are fast against
 ColoRadar's \SI{200}{\milli\second} frame period: DRHE's compressor uses
 \SI{0.3}{\percent} of it, LPC's under \SI{2}{\percent}, and each decoder about
@@ -375,18 +361,16 @@ ColoRadar's \SI{200}{\milli\second} frame period: DRHE's compressor uses
 BRAM is in 36\,Kb blocks.}
 \label{tab:resources}
 \small
-\begin{tabular}{@{}llrrrr@{}}
-\toprule
-& & LUT & FF & BRAM & DSP\\
-\midrule
+\begin{tabular}{l|l|c|c|c|c}
+& & \textbf{LUT} & \textbf{FF} & \textbf{BRAM} & \textbf{DSP}\\
+\hline
 DRHE & compressor   & \num{35444} & \num{23528} & 40   & 132\\
      & decompressor & \num{14155} & \num{9245}  & 32.5 & 46\\
      & \textbf{both} & \textbf{\num{49599}} (\SI{23}{\percent}) & \num{32773} & 72.5 & 178\\
-\midrule
+\hline
 LPC  & compressor   & \num{33820} & \num{20083} & 108  & 158\\
      & decompressor & \num{15212} & \num{7207}  & 0    & 23\\
      & \textbf{both} & \textbf{\num{49032}} (\SI{23}{\percent}) & \num{27290} & 108 & 181\\
-\bottomrule
 \end{tabular}
 \end{table}
 
@@ -406,9 +390,10 @@ compressors use almost the same logic but differ in memory: LPC needs 108 block
 RAMs, 96 of them for its frame buffer, against DRHE's 40 for predictor state.
 The decoders are the other way round, since the LPC decoder receives its
 coefficients in the bitstream and needs no block RAM. Power was not measured on
-the board; Vivado estimates \HW{drhen}{ptotal}\,W for DRHE and
-\HW{lpcn}{ptotal}\,W for LPC with default switching activity, or
-\HW{drhen}{pJbit} and \HW{lpcn}{pJbit}\,pJ per input bit.
+the board. With default switching activity, Vivado estimates
+\HW{drhen}{ptotal}\,W for the DRHE compressor core and \HW{lpcn}{ptotal}\,W
+for the LPC one, of which about \HW{drhen}{pstatic}\,W is static; the dynamic
+part is \HW{drhen}{pJbit} and \HW{lpcn}{pJbit}\,pJ per input bit.
 
 % -------------------------------------------------------------------
 \section{Starting from raw ADC samples}
@@ -426,18 +411,16 @@ samples for the second; latency is from the last input word read to the last
 compressed word written.}
 \label{tab:fe}
 \small
-\begin{tabular}{@{}lrrrr@{}}
-\toprule
-& \multicolumn{2}{c}{\textbf{DRHE}} & \multicolumn{2}{c}{\textbf{LPC}}\\
-\cmidrule(lr){2-3}\cmidrule(l){4-5}
-FFT in & MATLAB & FPGA & MATLAB & FPGA\\
-\midrule
+\begin{tabular}{l|c|c|c|c}
+& \multicolumn{2}{c|}{\textbf{DRHE}} & \multicolumn{2}{c}{\textbf{LPC}}\\
+\cline{2-3}\cline{4-5}
+\textbf{FFT in} & \textbf{MATLAB} & \textbf{FPGA} & \textbf{MATLAB} & \textbf{FPGA}\\
+\hline
 Compression ratio     & \num{4.21704} & \num{4.21696} & \num{4.40345} & \num{4.40338}\\
 Cycles per frame      & \num{61472}   & \num{75626}   & \num{325366}  & \num{375957}\\
 Time per frame        & \SI{0.61}{\milli\second} & \SI{0.76}{\milli\second} & \SI{3.25}{\milli\second} & \SI{3.76}{\milli\second}\\
 Input rate            & \SI{5.12}{Gbit/s} & \SI{8.32}{Gbit/s} & \SI{0.97}{Gbit/s} & \SI{1.67}{Gbit/s}\\
 End-to-end latency    & \SI{13.1}{\micro\second} & \SI{21.3}{\micro\second} & \SI{3006}{\micro\second} & \SI{3024}{\micro\second}\\
-\bottomrule
 \end{tabular}
 \end{table}
 
@@ -461,14 +444,12 @@ receive channels (\num{11148} reference detections). FP\% is a false discovery
 rate (Section~\ref{sec:detectionmetrics}).}
 \label{tab:fedet}
 \small
-\begin{tabular}{@{}lrrrrr@{}}
-\toprule
-Codes & FN (\%) & FP (\%) & NF (dBFS) & SNR (dB) & error (LSB RMS)\\
-\midrule
+\begin{tabular}{l|c|c|c|c|c}
+\textbf{Codes} & \textbf{FN (\%)} & \textbf{FP (\%)} & \textbf{NF (dBFS)} & \textbf{SNR (dB)} & \textbf{error (LSB RMS)}\\
+\hline
 Reference (double)  & ---  & ---  & $-106.06$ & 36.56 & ---\\
 FX16, MATLAB        & 4.19 & 1.81 & $-105.81$ & 36.40 & 0.2887\\
 FX16, FPGA          & 4.17 & 1.80 & $-105.81$ & 36.40 & 0.2887\\
-\bottomrule
 \end{tabular}
 \end{table}
 
@@ -482,10 +463,9 @@ FX16, FPGA          & 4.17 & 1.80 & $-105.81$ & 36.40 & 0.2887\\
 quantity. Bold marks the better of the two on each row.}
 \label{tab:headtohead}
 \small
-\begin{tabular}{@{}lrr@{}}
-\toprule
+\begin{tabular}{l|c|c}
 & \textbf{DRHE} & \textbf{LPC}\\
-\midrule
+\hline
 Lossless on the board (50 frames, both dictionaries) & yes & yes\\
 Compression ratio, original dictionary (board)    & \textbf{\num{3.75}} & \num{3.70}\\
 Compression ratio, re-derived dictionary (board)  & \num{4.22} & \textbf{\num{4.40}}\\
@@ -497,7 +477,6 @@ Compressor frame buffer                          & \textbf{none} & \SI{3.0}{\meb
 Encoder + decoder LUTs                           & \SI{23}{\percent} & \SI{23}{\percent}\\
 Encoder + decoder BRAM (36\,Kb blocks)          & \textbf{72.5} & 108\\
 Side information                                 & \textbf{none} & \SI{1.04}{\percent}\\
-\bottomrule
 \end{tabular}
 \end{table}
 

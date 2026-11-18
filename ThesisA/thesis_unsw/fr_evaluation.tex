@@ -12,10 +12,13 @@ All eight methods of Section~\ref{sec:candidates} are run in MATLAB over the
 same 50 consecutive ColoRadar frames with all 16 receive channels, and each is
 scored on compression ratio and on its effect on target detection: the higher
 the ratio and the fewer detections lost, the better. The methods with the best
-trade-off at a ratio above three go forward. A ratio of three is enough for
-three ColoRadar cascades to share one Gigabit Ethernet link
-(Section~\ref{sec:linkreq}) and gives a margin over the \num{2.4}--\num{2.7} of
-Kiem's sensor (Chapter~\ref{ch:kiem}).
+trade-off at a ratio above three go forward.\label{sec:linkreq} Whilst it
+measures, one ColoRadar cascade produces \SI{0.835}{Gbit/s} of 16-bit
+range-FFT codes, and a Gigabit Ethernet link carries about \SI{0.89}{Gbit/s} of
+payload once protocol headers are allowed for, as Kiem does
+(Section~\ref{sec:kc_problem}). A ratio of 2.8 therefore lets three cascades
+share one link, and a ratio above three leaves a margin over this and over the
+\num{2.4}--\num{2.7} of Kiem's sensor.
 
 \paragraph{Stage 2: breakdown and hardware.}
 The selected methods, DRHE and LPC, are evaluated on the four-receiver frames
@@ -34,9 +37,10 @@ $\times$ ramp $\times$ receiver) with the TDM flattening of
 Equation~\eqref{eq:rampindex}, and the per-ramp mean is subtracted to remove
 the DC and transmitter-leakage term. A Hann window is applied along fast time,
 followed by an $N_s$-point range FFT normalised by $N_s$. Only the positive
-half of the spectrum is kept, giving 128 range bins; since the input is
-complex, this is a choice to keep positive ranges rather than a consequence of
-symmetry. The result is scaled by Equation~\eqref{eq:scale} and rounded to
+half of the spectrum is kept, giving 128 range bins. Since the input is complex,
+the other 128 bins hold negative beat frequencies, which no target at a
+positive range produces; they contain mainly noise and image artefacts of the
+receiver's I/Q imbalance. The result is scaled by Equation~\eqref{eq:scale} and rounded to
 \texttt{int16}. Four receive channels are exported to the hardware path,
 because four complex \texttt{int16} samples make one 128-bit AXI4-Stream beat;
 one such frame is \SI{393216}{\byte} (Figure~\ref{fig:input}).
@@ -89,12 +93,13 @@ these metrics measure the cost of the FX16 step alone.
 \paragraph{Baselines.} Every predictive result is reported against a
 \emph{no-prediction baseline}, the FX16 codes fed straight into the same
 entropy coder; a predictor that does not beat it is not helping. The order-0
-entropy of Equation~\eqref{eq:entropy}, evaluated on the residuals, separates
-what the predictor achieves from what the dictionary wastes.
+entropy of the residuals, the fewest bits per value that any code treating
+values independently can reach \cite{sayood2017}, separates what the
+predictor achieves from what the dictionary wastes.
 
 \paragraph{Timing.} \emph{Time per frame} runs from the start of a frame's DMA
 transfer to the last output word written, and \emph{throughput} is input bits
-per frame divided by it. \emph{Latency} is Kiem's definition of $L$: from the
+per frame divided by it. \emph{Latency} is Kiem's definition of $T_{\text{lat}}$ (Equation~\eqref{eq:latency}): from the
 last input word read from memory to the last output word written back,
 measured by the board firmware with a hardware timer.
 
@@ -165,10 +170,9 @@ Section~\ref{sec:robust}. Uniformly random \texttt{int16} input produces a
 residual of $-32768$ by chance, so it is one of them.}
 \label{tab:edgecases}
 \small
-\begin{tabular}{@{}llc@{}}
-\toprule
-Case & What it exercises & Allowed $\mathrm{MaxDiff}$ \\
-\midrule
+\begin{tabular}{l|l|c}
+\textbf{Case} & \textbf{What it exercises} & \textbf{Allowed $\mathrm{MaxDiff}$} \\
+\hline
 all-zeros        & the $S_4 = 0$ path and the best case & 0 \\
 dc-constant      & a perfectly predictable sequence & 0 \\
 random-int16     & the worst case: incompressible input & 1 \\
@@ -177,7 +181,6 @@ tone-1ramp       & a sequence too short to fit & 0 \\
 max-amplitude    & full-scale values, and 128-bit correlations & 0 \\
 max-alternating  & $\pm 32767$ alternating: the largest residuals & 1 \\
 int16-min        & $-32768$ specifically & 1 \\
-\bottomrule
 \end{tabular}
 \end{table}
 
@@ -189,9 +192,9 @@ misunderstanding. The whole compression chain was therefore written a third
 time in Python and NumPy, from the descriptions in this thesis and without
 reusing any code. With the original dictionary it reproduces the HLS bit counts
 of both algorithms exactly on all 50 frames, and with the re-derived
-dictionaries it reproduces the hardware's residuals exactly on the frames
+dictionaries it reproduces the hardware's residuals exactly on frames 0 to 2, the frames
 checked. It is also the source of the no-prediction baseline and the entropy
-figures of Chapter~\ref{ch:results} (Appendix~\ref{app:verify}).
+figures of Chapter~\ref{ch:results}.
 
 \section{Tools}
 
@@ -200,5 +203,5 @@ work used AMD Vitis HLS 2026.1 and Vivado 2026.1, targeting the
 \texttt{xcku5p-ffvb676-2-e} device of the KCU116 at a \SI{100}{\mega\hertz}
 clock, with XSIM for co-simulation and Vitis for the MicroBlaze firmware. The
 board is controlled from a host PC over JTAG with \texttt{xsdb} scripts, and
-results are checked with Python. Appendix~\ref{app:repro} lists the source
-files and build commands.
+results are checked with Python. The source code is listed in
+Appendix~\ref{app:code}.

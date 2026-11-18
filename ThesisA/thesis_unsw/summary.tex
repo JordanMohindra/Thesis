@@ -8,7 +8,8 @@
 %   - pointers: page numbers on the left; contributions in the same order as D;
 %     literature: reference identifier on the right, citing pages on the left
 %     with the page of most impact leftmost
-% Page numbers are \pageref, so they follow the document. Sign and date by hand.
+% Page numbers are \pageref, so they follow the document. Signed electronically
+% (typed signature) and dated 19/11/2026.
 % ===================================================================
 \pagestyle{empty}
 \begingroup
@@ -58,7 +59,6 @@ Same-transmitter prediction lag for time-division MIMO radar\\ \hline
 Comparison of eight compression methods on real cascade radar data\\ \hline
 Breakdown of the compression ratio; Huffman dictionaries matched to the errors\\ \hline
 Encoders, decoders and range FFT measured on the FPGA board\\ \hline
-Reconstruction of, and comparison with, the baseline design\\ \hline
 \end{tabular}
 \vspace{3mm}
 
@@ -73,7 +73,7 @@ All sixteen receive channels and power measurement\\ \hline
 While I may have benefited from discussion with other people, I certify that
 this report is entirely my own work, except where appropriately documented
 acknowledgements are included.\\[9mm]
-Signature: \rule{6cm}{0.4pt} \hfill Date: \rule{1cm}{0.4pt}\,/\,\rule{1cm}{0.4pt}\,/\,\rule{1.5cm}{0.4pt}
+Signature: \parbox[b]{6cm}{\centering{\fontfamily{pzc}\selectfont\LARGE Jordan Mohindra}\\[-0.5mm]\rule{6cm}{0.4pt}} \hfill Date: \parbox[b]{3.5cm}{\centering 19/11/2026\\[-0.5mm]\rule{3.5cm}{0.4pt}}
 
 \newpage
 \enlargethispage{2\baselineskip}
@@ -91,7 +91,7 @@ selective: Don't list all pages of your report!\\[1mm]
 
 \ptab{\textbf{Theory} (up to 5 most relevant ideas)}{%
 \ptr{\pageref{sec:tdm}}{Time-division MIMO radar and the data cube}
-\ptr{\pageref{sec:compression}}{Lossless compression and entropy coding}
+\ptr{\pageref{sec:compression}}{Lossless and lossy compression}
 \ptr{\pageref{sec:fx16}}{Fixed-point (FX16) quantisation}
 \ptr{\pageref{sec:fpga}}{FPGAs and high-level synthesis}
 \ptr{\pageref{ch:kiem}}{The baseline: Kiem's DRHE design}}
@@ -109,16 +109,16 @@ selective: Don't list all pages of your report!\\[1mm]
 \ptr{\pageref{sec:stage1}}{Comparison of eight compression methods}
 \ptr{\pageref{sec:decomp}, \pageref{sec:dictresult}}{Breakdown of the ratio; matched Huffman dictionaries}
 \ptr{\pageref{sec:boardtiming}, \pageref{sec:feresults}}{Encoders, decoders and range FFT measured on the board}
-\ptr{\pageref{sec:hwvskiem}}{Reconstruction of, and comparison with, the baseline}}
+}
 
 \ptab{\textbf{My work}}{%
 \ptr{\pageref{sec:drhe}--\pageref{sec:dict}, \pageref{ch:hardware}--\pageref{sec:system}}{System block diagrams/algorithms/equations solved}
-\ptr{\pageref{sec:metrics}--\pageref{sec:detectionmetrics}}{Description of assessment criteria used}
+\ptr{\pageref{sec:metricsbg}, \pageref{sec:metrics}}{Description of assessment criteria used}
 \ptr{\pageref{sec:stages}, \pageref{sec:ladder}, \pageref{sec:system}}{Description of procedure (e.g.\ for experiments)}}
 
 \ptab{Results}{%
 \ptr{\pageref{sec:headtohead}, \pageref{sec:stage1}}{Succinct presentation of results}
-\ptr{\pageref{sec:decomp}, \pageref{sec:ratiomeaning}, \pageref{sec:hwvskiem}}{Analysis}
+\ptr{\pageref{sec:decomp}, \pageref{sec:ratiomeaning}}{Analysis}
 \ptr{\pageref{sec:choice}}{Significance of results}}
 
 \ptab{Conclusion}{%
@@ -126,11 +126,11 @@ selective: Don't list all pages of your report!\\[1mm]
 \ptr{\pageref{sec:futurework}}{Suggestions for future research}}
 
 \ptab{\textbf{Literature}: (up to 5 most important references)}{%
-\ptr{\pageref{ch:kiem}--\pageref{ch:kiem:end}, \pageref{sec:hwvskiem}--\pageref{sec:threats}}{\cite{kiem2025} L.~Kiem, master's thesis, 2025 (the baseline design)}
+\ptr{\pageref{ch:kiem}--\pageref{ch:kiem:end}, \pageref{sec:choice}}{\cite{kiem2025} L.~Kiem, master's thesis, 2025 (the baseline design)}
 \ptr{\pageref{lit:kramer:bg}, \pageref{lit:kramer:intro}}{\cite{kramer2022} A.~Kramer \emph{et al.}, ColoRadar dataset, 2022}
 \ptr{\pageref{sec:drhe}, \pageref{sec:candidates}, \pageref{sec:sota}}{\cite{li2014} L.~Li, MSc thesis, 2014 (origin of DRHE)}
-\ptr{\pageref{sec:kr_lpcraw}, \pageref{sec:lpc_notkiem}, \pageref{sec:kc_dse}}{\cite{meucci2022} G.~Meucci and F.~Mancuso, LPC-Huffman, 2022}
-\ptr{\pageref{lit:huffman:dict}, \pageref{lit:huffman:bg}}{\cite{huffman1952} D.~A.~Huffman, minimum-redundancy codes, 1952}}
+\ptr{\pageref{sec:lpc_notkiem}, \pageref{sec:kc_dse}, \pageref{sec:sota}}{\cite{meucci2022} G.~Meucci and F.~Mancuso, LPC-Huffman, 2022}
+\ptr{\pageref{lit:huffman:dict}}{\cite{huffman1952} D.~A.~Huffman, minimum-redundancy codes, 1952}}
 \endgroup
 \clearpage
 \pagestyle{plain}

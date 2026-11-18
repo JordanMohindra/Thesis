@@ -21,7 +21,7 @@ acquire in a \SI{50}{\milli\second} cycle, and he allowed compression
 \SI{15}{\milli\second}. His radar uses one transmitter, so consecutive ramps
 come from the same antenna, and it delivers real samples, so he keeps half of
 each range FFT. His evaluation chain, which this thesis adopts, takes the range
-FFT, quantizes it to FX16, compresses and decompresses, and then runs a Doppler
+FFT, quantises it to FX16, compresses and decompresses, and then runs a Doppler
 FFT, non-coherent integration (NCI) over the receive channels and a peak
 detector, comparing the detections with those of an FP16 reference. Every
 compression result he publishes was measured on his own recordings, which are
@@ -31,7 +31,7 @@ not public.
 \label{sec:kc_dse}
 To determine the most viable compression algorithm, Kiem conducted a comprehensive design space exploration. He compared and simulated a large variety of standard compression algorithms, including Texas Instruments' Exponential-Golomb Encoding (EGE) variants, Infineon's common exponent formats (CMPRA and CMPRB), and predictive coding methods (such as DRHE).
 
-Upon comparing these algorithms in their performance metrics, specifically Compression Ratio (CR), Signal-to-Noise Ratio (SNR), and target detection accuracy, Kiem identified Doppler Redundancy Hybrid Encoding (DRHE) as the ``best''. While the commercial deterministic formats (like EGE and CMPRB) successfully reduced data size, they raised the noise floor and led to high rates of false-positive and false-negative detections. As summarized in Figure~\ref{fig:kiemresults}, DRHE achieved the highest compression ratio of the methods that kept FX16's detection accuracy, \num{3.25}, with the lowest impact on the noise floor.
+Upon comparing these algorithms in their performance metrics, specifically Compression Ratio (CR), Signal-to-Noise Ratio (SNR), and target detection accuracy, Kiem identified Doppler Redundancy Hybrid Encoding (DRHE) as the best. While the commercial deterministic formats (like EGE and CMPRB) successfully reduced data size, they raised the noise floor and led to high rates of false-positive and false-negative detections. As summarised in Figure~\ref{fig:kiemresults}, DRHE achieved the highest compression ratio of the methods that kept FX16's detection accuracy, \num{3.25}, with the lowest impact on the noise floor.
 
 \begin{figure}[htbp]
 \centering
@@ -63,16 +63,14 @@ is below his simulated one because the hardware FFT is fixed point.
 Section~5.2). BRAM in 36\,Kb blocks.}
 \label{tab:kc_hwres}
 \small
-\begin{tabular}{@{}lr@{}}
-\toprule
-Quantity & Value\\
-\midrule
+\begin{tabular}{l|c}
+\textbf{Quantity} & \textbf{Value}\\
+\hline
 Compression IP: LUT / FF / BRAM / DSP & \num{45892} / \num{9243} / 10 / 44\\
 IP latency (HLS estimate) & 23 cycles, \SI{230}{\nano\second}\\
 System latency (last DMA read to last DMA write) & \SI{79.4}{\micro\second}\\
 Input throughput & ``\SI{11.92}{Gbit/s}''\\
 CR: MATLAB / bit-accurate simulation / hardware & 3.25 / 3.24 / 3.17\\
-\bottomrule
 \end{tabular}
 \end{table}
 
@@ -80,13 +78,13 @@ CR: MATLAB / bit-accurate simulation / hardware & 3.25 / 3.24 / 3.17\\
 \label{sec:kc_open}
 Whilst Kiem did successfully demonstrate the viability of the DRHE algorithm, achieving a compression ratio of 3.2 with a latency of 0.08 milliseconds, his work left some gaps. His work had four main limitations:
 
-\subsection{Quantization Error from Fixed-Point Representation}
-The most significant issue lay in his implementation of the mandatory data conversion step before the actual compression. To meet the strict latency requirement, he implemented the algorithm using 16-bit fixed-point representation (FX16).
+\subsection{Quantisation Error from Fixed-Point Representation}
+The most significant issue lay in his implementation of the mandatory data conversion step before the actual compression. His compressor takes its input as 16-bit fixed-point values (FX16), the format his range FFT produces, so every method he evaluated inherits the error of this conversion.
 
-This use of linear fixed-point quantization introduced false positives and negatives, as seen in the results of both FX16 and DRHE in Figure~\ref{fig:kiemresults}. His thesis acknowledged this loss of precision as the source of degradation, noting that reducing quantization error was important for future implementations.
+This use of linear fixed-point quantisation introduced false positives and negatives, as seen in the results of both FX16 and DRHE in Figure~\ref{fig:kiemresults}. His thesis acknowledged this loss of precision as the source of degradation, noting that reducing quantisation error was important for future implementations.
 
-\subsection{Omission of Newer State-of-the-Art Algorithms}
-Secondly, whilst his design space exploration was thorough, covering a wide range of compression algorithms, some remained uninvestigated, especially those that had recently emerged. The LPC-Huffman coder he excluded was compared only through published figures from different data.
+\subsection{Methods Left Unevaluated}
+Secondly, whilst his design space exploration was thorough, covering a wide range of compression algorithms, some methods were left unevaluated: block adaptive quantisation and range-dependent coding were not run, and the LPC-Huffman coder he excluded was compared only through published figures from different data.
 
 \subsection{Incomplete End-to-End System Implementation}
 Thirdly, the scope of his hardware implementation was limited to just the compression pipeline on the Zynq UltraScale+ MPSoC; he did not implement the full compression and decompression pipeline on hardware, and listed a bit-accurate decompression model as future work. To fully evaluate the algorithm's performance, the full pipeline needs to be implemented.

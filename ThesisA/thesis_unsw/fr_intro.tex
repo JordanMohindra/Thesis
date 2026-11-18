@@ -13,23 +13,23 @@ Radar has long been integral to Advanced Driver Assistance Systems (ADAS), initi
 \label{sec:motivation}
 \label{sec:problem}
 
-The motivation behind this research stems from this increase in resolution. As automotive systems architecture has evolved from domain-based to centralized design, the demands on data transmission infrastructure have intensified~\cite{bandur2021,liu2022}. In a centralized architecture, raw sensor data from multiple radars distributed around the vehicle must be sent to a central processing unit. Since transmitting data in its raw form allows maximum flexibility for downstream processing, it places a high demand on the vehicle's communication bandwidth.
+The motivation behind this research stems from this increase in resolution. As automotive systems architecture has evolved from domain-based to centralised design, the demands on data transmission infrastructure have intensified~\cite{bandur2021,liu2022}. In a centralised architecture, raw sensor data from multiple radars distributed around the vehicle must be sent to a central processing unit. Since transmitting data in its raw form allows maximum flexibility for downstream processing, it places a high demand on the vehicle's communication bandwidth.
 
-To better illustrate this, consider the architecture seen in Figure~\ref{fig:serdes_arch}. This architecture is known as Serializer/Deserializer (SerDes)~\cite{ti_serdes}, which uses high-speed serial data lines to transport data from sensors to a central processor. In this example, various radar modules are placed around the car, with two radar modules aggregated at the front. Each of these radar modules uses 4 receive antennas that transmit at 600 Mbit/s. This data is transmitted from the radar module over 4 parallel data lines using Camera Serial Interface (CSI-2) to a serializer unit, which takes the 4 600~Mbit/s data lines (or in the case of the front module, 8 data lines) and serializes them into a 2.5~Gbit/s data line (5~Gbit/s for the front). Then, at the central System-on-Chip (SoC), a corresponding deserializer reconstructs the parallel data lines. While SerDes architectures are capable of handling these extremely high data rates, they carry the significant disadvantage of requiring expensive shielded cabling to maintain signal integrity, and require the SoC and deserializer to have substantial processing capacity and memory bandwidth to ingest the incoming data~\cite{matheus2021}.
+To better illustrate this, consider the architecture seen in Figure~\ref{fig:serdes_arch}. This architecture is known as Serialiser/Deserialiser (SerDes)~\cite{ti_serdes}, which uses high-speed serial data lines to transport data from sensors to a central processor. In this example, various radar modules are placed around the car, with two radar modules aggregated at the front. Each of these radar modules has four receive channels, each producing 600 Mbit/s. This data is transmitted from the radar module over 4 parallel data lines using Camera Serial Interface (CSI-2) to a serialiser unit, which takes the 4 600~Mbit/s data lines (or in the case of the front module, 8 data lines) and serialises them into a 2.5~Gbit/s data line (5~Gbit/s for the front). Then, at the central System-on-Chip (SoC), a corresponding deserialiser reconstructs the parallel data lines. While SerDes architectures are capable of handling these extremely high data rates, they carry the significant disadvantage of requiring expensive shielded cabling to maintain signal integrity, and require the SoC and deserialiser to have substantial processing capacity and memory bandwidth to ingest the incoming data~\cite{matheus2021}.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.8\textwidth]{serdes_arch.png}
-\caption{Centralized architecture with SerDes \cite{kiem2025}.}
+\includegraphics[width=\textwidth]{serdes_arch.png}
+\caption{Centralised architecture with SerDes \cite{kiem2025}.}
 \label{fig:serdes_arch}
 \end{figure}
 
-An alternative approach (and the one that motivates this thesis) is to apply data compression directly at the sensor edge before transmission to the SoC, as illustrated in Figure~\ref{fig:compression_arch}. By compressing the data at the source, we are able to substantially reduce the required transmission bandwidth. In this example, compressing the 2.5~Gbit/s data stream by a factor of 2.5 or greater would reduce the throughput to 1~Gbit/s or below, enabling the use of Gigabit Ethernet~\cite{ieee8023bp}. Gigabit Ethernet offers a cost-effective and well-standardized interconnect solution, and its adoption would yield reductions in cabling cost and system complexity compared to the SerDes solution~\cite{ieee8023ch}.
+An alternative approach (and the one that motivates this thesis) is to apply data compression directly at the sensor edge before transmission to the SoC, as illustrated in Figure~\ref{fig:compression_arch}. Compressing the data at the source substantially reduces the required transmission bandwidth. In this example, compressing the 2.5~Gbit/s data stream by a factor of 2.5 or greater would reduce the throughput to 1~Gbit/s or below, enabling the use of Gigabit Ethernet~\cite{ieee8023bp}. Gigabit Ethernet offers a cost-effective and well-standardised interconnect solution, and its adoption would yield reductions in cabling cost and system complexity compared to the SerDes solution~\cite{ieee8023ch}.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.8\textwidth]{compression_arch.png}
-\caption{Centralized architecture with applied compression \cite{kiem2025}.}
+\includegraphics[width=\textwidth]{compression_arch.png}
+\caption{Centralised architecture with applied compression \cite{kiem2025}.}
 \label{fig:compression_arch}
 \end{figure}
 
@@ -49,16 +49,16 @@ The primary objective of this thesis is to extend and improve the radar data com
 Specifically, this thesis pursues the following objectives:
 
 \begin{enumerate}
-    \item Kiem's implementation required that radar data be converted to a 16-bit fixed-point format prior to compression. This linear quantization step was identified as the dominant source of information loss in the processing chain, as it crushes weak radar signals, which are critical for detecting small or distant objects such as pedestrians, into the noise floor. This thesis measures what this step costs in detection, separately from the cost of compression, and investigates whether floating-point storage, re-scaling or a non-linear (companding) quantizer~\cite{deng2024} avoids it.
+    \item Kiem's implementation required that radar data be converted to a 16-bit fixed-point format prior to compression. This linear quantisation step was identified as the dominant source of information loss in the processing chain, as it buries weak radar signals, which are critical for detecting small or distant objects such as pedestrians, in the noise floor. This thesis measures what this step costs in detection, separately from the cost of compression, and investigates whether floating-point storage, re-scaling or a non-linear (companding) quantiser~\cite{deng2024} avoids it.
 
     \item Kiem's results were measured on private recordings of a single-transmitter radar, leaving the performance of his design on a multi-transmitter (MIMO) radar unvalidated. This thesis uses real-world data recorded with the Texas Instruments AWR2243 cascaded MIMO radar sensor, taken from the public ColoRadar dataset~\cite{kramer2022}\label{lit:kramer:intro}, enabling more accurate analysis of compression algorithms performance.
 
-    \item This thesis expands the list of compression algorithms evaluated, including both newer and older methods that promise the same, if not better, performance metrics than those investigated by Kiem. Eight methods are compared on the same data with the same metrics, including a linear predictive coder (LPC) designed for this thesis as a controlled comparison with DRHE.
+    \item This thesis re-runs the comparison on public cascade data with eight methods under one set of metrics, adding block adaptive quantisation (BAQ), range-dependent variable-length encoding with and without uniform dynamic-range re-encoding (RDVLE, RDVLE+UDRE), and a slow-time linear predictive coder (LPC) designed as a controlled comparison with DRHE. Neural methods are reviewed but not evaluated.
 
     \item Kiem implemented only the compressor. This thesis implements the full compression and decompression pipeline in hardware for the selected algorithms, verifies it bit for bit from MATLAB to the board, and measures its throughput, latency and resources on an AMD KCU116 FPGA board.
 \end{enumerate}
 
-The ultimate goal of this thesis is to advance the state of the art in automotive data compression by implementing a solution that achieves high compression ratios whilst meeting the strict requirements of low latency.
+The ultimate goal of this thesis is to implement a compressor for automotive radar that achieves a high compression ratio with as little loss as possible, and keeps up with the sensor.
 
 \section{Contributions}
 \label{sec:contributions}
@@ -67,7 +67,7 @@ The ultimate goal of this thesis is to advance the state of the art in automotiv
 \item A comparison of eight compression methods on real cascade radar data
 (Section~\ref{sec:stage1}): the lossless predictive coders DRHE (\num{3.75})
 and LPC (\num{3.70}) give the best trade-off, compressing by more than three
-without losing detections.
+with no detections lost beyond the 16-bit quantisation they share.
 \item The correct prediction lag for time-division MIMO radar
 (Sections~\ref{sec:predaxis} and~\ref{sec:predaxisres}): slow-time prediction
 must use the previous ramp of the same transmitter, $\nTx$ ramps back, or it
@@ -79,8 +79,6 @@ which raise DRHE to \num{4.22} and LPC to \num{4.40}.
 end, running on an FPGA board (Chapter~\ref{ch:hardware} and
 Section~\ref{sec:verifres}), whose output is byte-identical to the simulation
 and is reconstructed exactly on the board.
-\item A reconstruction of, and comparison with, the baseline design
-(Section~\ref{sec:hwvskiem}).
 \end{enumerate}
 
 \section{Thesis Outline}

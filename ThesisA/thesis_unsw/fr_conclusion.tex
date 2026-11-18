@@ -33,6 +33,9 @@ prediction; predicting from the same antenna gains \SIrange{6}{8}{\percent}.
 headroom and the sparsity of the data, and the dictionary matters more than the
 predictor: dictionaries re-derived from five frames raise DRHE to \num{4.22}
 and LPC to \num{4.40} on the board, and hold on the 45 frames they did not see.
+At \num{4.22}, the \SI{0.835}{Gbit/s} one cascade produces becomes about
+\SI{0.20}{Gbit/s}, so four cascades fit one Gigabit Ethernet link; at the worst
+frame (\num{3.5}), three still do.
 
 \item The hardware is exact and fast. Both compressors' output was
 byte-identical to the simulation on all 50 frames and the board's decoders
