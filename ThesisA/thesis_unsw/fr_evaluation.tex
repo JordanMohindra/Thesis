@@ -65,7 +65,7 @@ magnitudes plus \SI{15}{\decibel}, with 8-connected local-maximum suppression.
 There is no angle FFT. None of this affects a lossless result, which returns
 the input exactly; it matters only for the lossy methods.
 
-\section{Metrics}
+\section{Evaluation metrics and baselines}
 \label{sec:metrics}
 
 \paragraph{Compression ratio.} Equation~\eqref{eq:cr}, with
@@ -193,7 +193,7 @@ dictionaries it reproduces the hardware's residuals exactly on frames 0 to 2, th
 checked. It is also the source of the no-prediction baseline of
 Chapter~\ref{ch:results}.
 
-\section{Tools}
+\section{Software and hardware tools}
 
 All MATLAB work used R2026a with the Signal Processing Toolbox. All hardware
 work used AMD Vitis HLS 2026.1 and Vivado 2026.1, targeting the
