@@ -217,33 +217,6 @@ DRHE leads by \SI{1.5}{\percent} with the original dictionary, LPC by
 smaller but a dictionary that codes nothing in fewer than four bits hid the
 difference.
 
-\subsection{How close to the limit}
-\label{sec:coderlimit}
-
-Table~\ref{tab:coderlimit} compares the coder with the order-0 entropy
-(Section~\ref{sec:metrics}) and with an \emph{ideal} $S_4$ dictionary built
-on each design's own counts. The ideal dictionary comes within 3 to
-\SI{7}{\percent} of the entropy, so the $S_4$ construction loses little; the
-original dictionary's excess is almost all due to the dictionary, and grows
-from \SI{12}{\percent} to \SI{35}{\percent} as prediction improves.
-
-\begin{table}[htbp]
-\centering
-\caption[How close the coder gets to the entropy]{Bits per value of the
-residuals (coefficient table excluded), five frames, four receive channels:
-with the original dictionary, with an ideal $S_4$ dictionary, and the order-0
-entropy of the values.}
-\label{tab:coderlimit}
-\small
-\begin{tabular}{l|c|c|c|c}
-\textbf{Residuals} & \textbf{Original dict.} & \textbf{Ideal $S_4$} & \textbf{Entropy} & \textbf{Overhead of original}\\
-\hline
-No prediction (raw FX16 codes)   & 4.586 & 4.214 & 4.094 & \SI{12.0}{\percent}\\
-DRHE, lag $\nTx$                 & 4.240 & 3.711 & 3.516 & \SI{20.6}{\percent}\\
-LPC, lags $\nTx$, $2\nTx$        & 4.102 & 3.242 & 3.040 & \SI{34.9}{\percent}\\
-\end{tabular}
-\end{table}
-
 % -------------------------------------------------------------------
 \section{Frame-to-frame variation}
 \label{sec:perframe}

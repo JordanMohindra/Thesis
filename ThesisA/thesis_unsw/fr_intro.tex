@@ -68,10 +68,11 @@ The ultimate goal of this thesis is to implement a compressor for automotive rad
 (Section~\ref{sec:stage1}): the lossless predictive coders DRHE (\num{3.75})
 and LPC (\num{3.70}) give the best trade-off, compressing by more than three
 with no detections lost beyond the 16-bit quantisation they share.
-\item The correct prediction lag for time-division MIMO radar
-(Sections~\ref{sec:predaxis} and~\ref{sec:predaxisres}): slow-time prediction
-must use the previous ramp of the same transmitter, $\nTx$ ramps back, or it
-does worse than no prediction at all.
+\item A prediction lag for time-division MIMO radar
+(Sections~\ref{sec:predaxis} and~\ref{sec:predaxisres}): each ramp is
+predicted from the previous ramp of the same transmitter, $\nTx$ ramps back.
+Predicting from the adjacent ramp, as single-transmitter designs do, compresses
+worse on this radar than not predicting at all.
 \item A breakdown of the compression ratio and Huffman dictionaries matched to
 the prediction errors (Sections~\ref{sec:decomp} and~\ref{sec:dictresult}),
 which raise DRHE to \num{4.22} and LPC to \num{4.40}.

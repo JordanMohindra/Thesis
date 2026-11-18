@@ -92,10 +92,7 @@ these metrics measure the cost of the FX16 step alone.
 
 \paragraph{Baselines.} Every predictive result is reported against a
 \emph{no-prediction baseline}, the FX16 codes fed straight into the same
-entropy coder; a predictor that does not beat it is not helping. The order-0
-entropy of the residuals, the fewest bits per value that any code treating
-values independently can reach \cite{sayood2017}, separates what the
-predictor achieves from what the dictionary wastes.
+entropy coder; a predictor that does not beat it is not helping.
 
 \paragraph{Timing.} \emph{Time per frame} runs from the start of a frame's DMA
 transfer to the last output word written, and \emph{throughput} is input bits
@@ -193,8 +190,8 @@ time in Python and NumPy, from the descriptions in this thesis and without
 reusing any code. With the original dictionary it reproduces the HLS bit counts
 of both algorithms exactly on all 50 frames, and with the re-derived
 dictionaries it reproduces the hardware's residuals exactly on frames 0 to 2, the frames
-checked. It is also the source of the no-prediction baseline and the entropy
-figures of Chapter~\ref{ch:results}.
+checked. It is also the source of the no-prediction baseline of
+Chapter~\ref{ch:results}.
 
 \section{Tools}
 
