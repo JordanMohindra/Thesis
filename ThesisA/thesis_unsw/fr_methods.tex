@@ -2,102 +2,108 @@
 \chapter{Compression Methods}
 \label{ch:methods}
 
-This chapter describes the eight candidate methods and then the two taken to
-hardware: their shared entropy coder, the axis along which they predict, the
-two predictors, and the Huffman dictionary.
+This chapter first describes the eight compression methods that were compared.
+It then describes the two methods that were taken to hardware, DRHE and LPC.
+This covers the entropy coder they share, the ramps they predict from, the two
+predictors, and the Huffman dictionary.
 
 \section{The eight candidate methods}
 \label{sec:candidates}
 
-Every method operates on the same input, the range-FFT output of each frame
-quantised to 16-bit integers by the FX16 step of Section~\ref{sec:fx16}, except
-where a method replaces that step. All eight were implemented in the same
-MATLAB chain and scored with the same metrics (Chapter~\ref{ch:evaluation}).
+Every method takes the same input. This is the range-FFT output of each frame,
+converted to 16-bit integers by the FX16 step of Section~\ref{sec:fx16}. The
+only exceptions are the methods that replace this step. All eight methods were
+run in the same MATLAB chain and measured with the same metrics
+(Chapter~\ref{ch:evaluation}).
 
 \begin{description}[leftmargin=!,labelwidth=26mm,style=nextline,font=\normalfont\bfseries]
-\item[FP16, FX16] The two reference formats, as in Kiem's thesis: 16-bit
-floating point, and the 16-bit integer codes of the FX16 step. Neither
-compresses. FX16 is the input to every integer method below, so its detection
-losses are the lowest that any of them can reach.
-\item[BAQ] Block adaptive quantisation in block-floating-point form: each block
-of 16 range bins shares an 8-bit exponent chosen from the block maximum, and
-each real and imaginary part keeps a 4-bit mantissa, so the ratio is fixed at
-$32/(8 + 8/16) = 3.76$. It represents both the block-floating-point family
-(NXP's CP4/CP8 and Infineon's CMPRA/CMPRB) and BAQ proper \cite{kwok1989}.
-Lossy.
-\item[RDVLE] Range-dependent variable-length encoding \cite{li2014}: fewer
-bits for far range bins, following the fall of received power with range, here
-capped at three bits removed. Lossy.
-\item[RDVLE+UDRE] RDVLE followed by uniform dynamic-range re-encoding of
-blocks of 16 bins at six bits \cite{li2014}. Lossy.
-\item[DRHE] Doppler Redundancy Hybrid Encoding, as specified by Kiem
-(Section~\ref{sec:drhe}): slow-time prediction in polar form, followed by the
-entropy coder of Section~\ref{sec:entropycoder}. Lossless with respect to the
-FX16 codes.
-\item[DRHE fp16] The same predictor applied to FP16 values instead of FX16
-codes, to test whether floating-point storage, which Kiem suggested as a
-remedy for quantisation error, can be compressed.
-\item[LPC] A second-order linear predictive coder designed for this thesis
-(Section~\ref{sec:lpc}). It predicts along the same axis as DRHE and uses the
-same entropy coder, so that only the predictor differs. Lossless with respect
-to the FX16 codes.
+\item[FP16, FX16] These are the two reference formats used in Kiem's thesis.
+FP16 is 16-bit floating point, and FX16 is the 16-bit integer output of the
+FX16 step. Neither format compresses the data. FX16 is the input to every
+integer method below, so no integer method can lose fewer detections than FX16.
+\item[BAQ] This is block adaptive quantisation in block-floating-point form.
+Each block of 16 range bins shares an 8-bit exponent, chosen from the largest
+value in the block. Each real and imaginary part then keeps a 4-bit mantissa,
+so the ratio is fixed at $32/(8 + 8/16) = 3.76$. This method stands in for
+both BAQ \cite{kwok1989} and the block-floating-point formats of NXP (CP4,
+CP8) and Infineon (CMPRA, CMPRB). It is lossy.
+\item[RDVLE] Range-dependent variable-length encoding \cite{li2014} gives fewer
+bits to far range bins, because the received power falls with range. Here at
+most three bits are removed. It is lossy.
+\item[RDVLE+UDRE] This is RDVLE followed by uniform dynamic-range re-encoding,
+which codes each block of 16 bins with six bits \cite{li2014}. It is lossy.
+\item[DRHE] This is Doppler Redundancy Hybrid Encoding as described by Kiem
+(Section~\ref{sec:drhe}). It predicts each value along slow time in polar
+form, and then codes the prediction error with the entropy coder of
+Section~\ref{sec:entropycoder}. It is lossless with respect to the FX16 codes.
+\item[DRHE fp16] This is the same predictor applied to FP16 values instead of
+FX16 codes. Kiem suggested floating-point storage as a way to avoid the
+quantisation error, so this method tests whether that data can still be
+compressed.
+\item[LPC] This is a second-order linear predictive coder designed for this
+thesis (Section~\ref{sec:lpc}). It predicts from the same ramps as DRHE and
+uses the same entropy coder, so the only difference between the two is the
+predictor. It is lossless with respect to the FX16 codes.
 \end{description}
 
 \noindent
-NXP's formats were not implemented separately, since their exact bit layouts
-are proprietary and the block-floating-point quantiser represents the family.
-Texas Instruments' exponential-Golomb engine \cite{ti_ege}, which Kiem
-evaluated, was left out for a similar reason: it is a lossy fixed-budget block
-coder, the class BAQ already represents, and Kiem's own results show its cost.
-At the ratios a Gigabit link needs, his EGE6 (2.67) and EGE4 (4.0) missed
+NXP's formats were not implemented separately, as their exact bit layouts are
+not public. The block-floating-point quantiser above represents them instead.
+Texas Instruments' exponential-Golomb engine \cite{ti_ege}, which Kiem tested,
+was also left out. It is a lossy block coder with a fixed bit budget, which is
+the same kind of method as BAQ, and Kiem's results already show its cost. At
+the ratios a Gigabit link needs, his EGE6 (2.67) and EGE4 (4.0) settings missed
 \SI{7.7}{\percent} and \SI{40}{\percent} of his detections
 (Figure~\ref{fig:kiemresults}). Neural and spectral methods such as AdaRadar
-\cite{park2026} were out of scope, since they rely on a neural network at the central
-processor, as the decoder or as the detector that sets the rate, which the
-detection chain of this thesis does not include.
+\cite{park2026} were not tested. These methods need a neural network at the
+central processor, either as the decoder or as the detector that sets the
+compression rate, and the detection chain in this thesis does not have one.
 
-The rest of this chapter covers DRHE and LPC, which Section~\ref{sec:stage1}
-shows give the best trade-off of the eight: they compress by more than three
-with no detections lost beyond the 16-bit quantisation they share.
+The rest of this chapter covers DRHE and LPC. Section~\ref{sec:stage1} shows
+that these two methods give the best trade-off of the eight. Both compress by
+more than three, and neither loses any detections beyond those already lost to
+the 16-bit quantisation.
 
 \section{The shared entropy coder}
 \label{sec:entropycoder}
 \label{sec:whatresidual}
 
-A predictor $P$ estimates the sample $x[m]$ from samples already sent,
-$\hat{x}[m] = P\bigl(x[m-L],\, x[m-2L],\, \ldots\bigr)$, and the encoder sends
-the residual
+A predictor $P$ estimates the sample $x[m]$ from samples that have already been
+sent, $\hat{x}[m] = P\bigl(x[m-L],\, x[m-2L],\, \ldots\bigr)$. The encoder then
+sends only the residual
 \begin{equation}
 \label{eq:residualdef}
-d[m] = x[m] - \hat{x}[m],
+d[m] = x[m] - \hat{x}[m].
 \end{equation}
-from which the decoder, running the same rule, recovers $x[m]$ exactly. The lag
-$L$ is the distance back along the ramp axis (Section~\ref{sec:predaxis}).
-Both compressors code each residual the way JPEG codes its DC coefficients: a
-Huffman codeword for its size category
+The decoder runs the same prediction and adds the residual back, so it recovers
+$x[m]$ exactly. The lag $L$ is how many ramps back the predictor looks
+(Section~\ref{sec:predaxis}).
+
+Both compressors code each residual in the same way that JPEG codes its DC
+coefficients. First, a Huffman codeword gives the size category of the value,
 \begin{equation}
 \label{eq:s4}
 S_4(v) =
 \begin{cases}
 0 & v = 0,\\[2pt]
-\min\bigl(15,\ \lfloor \log_2 |v| \rfloor + 1\bigr) & v \neq 0,
+\min\bigl(15,\ \lfloor \log_2 |v| \rfloor + 1\bigr) & v \neq 0.
 \end{cases}
 \end{equation}
-followed by the payload
+This is followed by the value itself in $S_4(v)$ raw bits, called the payload,
 \begin{equation}
 \label{eq:append}
 A(v) =
 \begin{cases}
 v & v \geq 0,\\
-v + 2^{S_4(v)} - 1 & v < 0,
+v + 2^{S_4(v)} - 1 & v < 0.
 \end{cases}
 \end{equation}
-in $S_4(v)$ raw bits. Category $k \geq 1$ covers $|v| \in [2^{k-1}, 2^k - 1]$,
-exactly the $2^k$ values that $k$ bits can hold, and the offset puts the
-negative values on the patterns with the top bit clear, so no separate sign bit
-is needed. The prefix-free table therefore has sixteen entries rather than
-\num{65536}. Section~\ref{sec:robust} deals with $-32768$, the one value with
-no code.
+Category $k \geq 1$ covers $|v| \in [2^{k-1}, 2^k - 1]$. This is exactly
+$2^k$ values, which is how many $k$ bits can hold. The offset for negative
+values places them on the bit patterns with the top bit clear, so no separate
+sign bit is needed. As a result, the Huffman table only needs sixteen entries
+rather than \num{65536}. The one value that has no code, $-32768$, is handled
+in Section~\ref{sec:robust}.
 
 \label{sec:huffman}
 Coding one residual costs
@@ -105,70 +111,74 @@ Coding one residual costs
 \label{eq:cost}
 C(v) = \ell\bigl(S_4(v)\bigr) + S_4(v)
 \end{equation}
-bits, where $\ell(\cdot)$ is the codeword length. The dictionary is fixed, which
-saves transmitting it and removes a serial dependency from the hardware. The
-\emph{original} dictionary, Kiem's, has lengths
+bits, where $\ell(\cdot)$ is the length of the codeword. The dictionary is
+fixed. This means it does not have to be sent with the data, and the hardware
+does not have to wait for it to be built. The original dictionary, taken from
+Kiem, has the lengths
 $\ell = [\,4,3,2,2,2,5,6,7,8,9,10,11,14,14,13,12\,]$ bits
-(Appendix~\ref{app:huffman}). A residual in $[-15, +15]$ costs four to six
-bits, the cost jumps to ten at category 5, and no value costs fewer than four
-bits. The shortest codes go to categories 2 to 4, so the dictionary assumes
-residuals of magnitude 2 to 15; Section~\ref{sec:dict} derives dictionaries
-matched to the smaller errors of this thesis.
+(Appendix~\ref{app:huffman}). With this dictionary, a residual between $-15$
+and $+15$ costs four to six bits. The cost jumps to ten bits at category 5, and
+no value can be coded in fewer than four bits. The shortest codewords go to
+categories 2 to 4, so the dictionary expects residuals of size 2 to 15.
+Section~\ref{sec:dict} builds new dictionaries that suit the smaller errors
+found in this thesis.
 
 \section{Predicting on a time-division MIMO radar}
 \label{sec:predaxis}
 
-Both predictors work along slow time, predicting a range bin's value from its
-values in earlier ramps. On the cascade, ramps $m$ and $m-1$ come from
-different transmitters eleven times in twelve (Section~\ref{sec:tdm}), so both
-predictors are applied at a lag of $L = \nTx = 12$ ramps, from the previous
-ramp of the \emph{same} transmitter.
+Both predictors work along slow time. They predict the value of a range bin
+from its values in earlier ramps. On the cascade, ramps $m$ and $m-1$ come from
+different transmitters eleven times out of twelve (Section~\ref{sec:tdm}).
+Hence, both predictors use a lag of $L = \nTx = 12$ ramps, so that each ramp is
+predicted from the previous ramp of the same transmitter.
 
-The difference is large. On sixteen consecutive ramps of one range bin of
-ColoRadar, DRHE at lag 1 produces residuals ($-136$, $+23$, $-22$, $-70$,
-\ldots) that are often larger than the samples themselves, costing
-\num{11.00} bits per value, whereas at lag $\nTx$ the same predictor gives
-residuals no larger than 4 at \num{4.12} bits per value. Against ramp $m-1$
-the phase step varies over most of $[-\pi, \pi]$, because it is set by the
-target's bearing (Equation~\eqref{eq:steering}); against ramp $m-\nTx$ it is
-almost zero, because this target is stationary. Over a whole frame, lag $\nTx$
-moves \SI{86}{\percent} of values into categories 0--2, which cost four bits
-each, whereas lag 1 pushes values \emph{up} into the expensive categories,
-which is why it does worse than not predicting at all
-(Section~\ref{sec:predaxisres}).
+This makes a large difference. On sixteen ramps of one ColoRadar range bin,
+DRHE at lag 1 gives residuals such as $-136$, $+23$, $-22$ and $-70$. These are
+often larger than the samples themselves, and they cost \num{11.00} bits per
+value. At lag $\nTx$, the same predictor gives residuals no larger than 4, which
+cost \num{4.12} bits per value. The reason is the phase. Between ramp $m$ and
+ramp $m-1$ the phase changes by almost any amount, because the change depends
+on the target's bearing (Equation~\eqref{eq:steering}). Between ramp $m$ and
+ramp $m-\nTx$ the phase barely changes, because this target is not moving.
+Over a whole frame, lag $\nTx$ puts \SI{86}{\percent} of the values into
+categories 0 to 2, which cost four bits each. Lag 1 instead pushes values up
+into the expensive categories, which is why it does worse than not predicting
+at all (Section~\ref{sec:predaxisres}).
 
-Another way to stay on one antenna is to split each frame into twelve
-independent 16-ramp blocks, one per transmitter. For DRHE this is equivalent,
-but for LPC it multiplies the side information by twelve, to
-\SI{12.5}{\percent} of the frame, and leaves only 16 ramps to estimate each
-set of coefficients; over five frames it compresses by only \num{2.63}. On a
-TDM-MIMO radar it is the \emph{lag} that should change, not the partitioning.
+Another way to keep each prediction on one antenna is to split every frame into
+twelve separate blocks of 16 ramps, one per transmitter. For DRHE this gives
+the same result. For LPC, however, it means twelve times as many coefficients
+must be sent, which is \SI{12.5}{\percent} of the frame, and each set of
+coefficients is fitted to only 16 ramps. Over five frames this compresses by
+only \num{2.63}. On a TDM-MIMO radar it is therefore better to change the lag
+than to split the frame.
 
 \section{DRHE: Doppler Redundancy Hybrid Encoding}
 \label{sec:drhe}
 
-DRHE \cite{li2014,zivkovic2015} exploits the redundancy of radar data along the
-slow-time (Doppler) axis. It is a \emph{hybrid} of prediction and entropy
-coding: a predictor removes the slow-time structure, and an entropy coder codes
-what is left. The original coder was run-length plus Huffman coding; here it is
-the $S_4$ coder of Section~\ref{sec:entropycoder}.
+DRHE \cite{li2014,zivkovic2015} uses the redundancy in radar data along the
+slow-time (Doppler) axis. It is called a hybrid because it combines prediction
+with entropy coding. The predictor removes the slow-time structure, and the
+entropy coder codes what is left. The original method used run-length and
+Huffman coding. Here it uses the coder of Section~\ref{sec:entropycoder}.
 
 \subsection{Why predict in polar coordinates}
 
-Section~\ref{sec:fmcw} showed that, for a target at constant velocity, the
-\emph{magnitude} of a range bin is nearly constant across slow time whilst its
-\emph{phase} advances by a constant step. In Cartesian $(I,Q)$ coordinates this
-is a point rotating on a circle: both components oscillate, and the difference
-between consecutive samples is large. In polar coordinates the same sequence is
-a constant and a ramp. DRHE therefore converts to polar form, predicts the
-magnitude and phase separately with filters suited to these two shapes,
-converts the prediction back to Cartesian form, and subtracts.
+Section~\ref{sec:fmcw} showed that for a target moving at a constant speed, the
+magnitude of a range bin stays almost the same from ramp to ramp, whilst its
+phase moves on by a fixed step. In Cartesian $(I,Q)$ form this is a point
+moving around a circle, so both parts change and the difference between
+samples is large. In polar form the same sequence is a constant magnitude and a
+steadily increasing phase, which are both easy to predict. DRHE therefore
+converts each sample to polar form and predicts the magnitude and the phase
+separately. It then converts the prediction back to Cartesian form and
+subtracts it.
 
 \subsection{The two predictors}
 
-For ramp $m$ and range bin $n$, with $a[m,n] = |x[m,n]|$ the magnitude and
-$\theta[m,n] = \angle x[m,n]$ the phase, and $L = \nTx$ the prediction lag of
-Section~\ref{sec:predaxis}, the predictions are
+For ramp $m$ and range bin $n$, let $a[m,n] = |x[m,n]|$ be the magnitude,
+$\theta[m,n] = \angle x[m,n]$ the phase, and $L = \nTx$ the lag of
+Section~\ref{sec:predaxis}. The predictions are
 \begin{align}
 \label{eq:magpred}
 \hat{a}[m,n] &= \alpha\,\hat{a}[m-L,n] + (1-\alpha)\,a[m-L,n],\\[3pt]
@@ -176,27 +186,26 @@ Section~\ref{sec:predaxis}, the predictions are
 \hat{\theta}[m,n] &= \beta\,\hat{\theta}[m-L,n]
    + (2-\beta)\,\theta[m-L,n] - \theta[m-2L,n],
 \end{align}
-with $\alpha = 0.6$ and $\beta = 0.4$ \cite[Table~4.4]{kiem2025}, and
-$\hat{\theta}$ wrapped into $[-\pi, \pi]$.
+with $\alpha = 0.6$ and $\beta = 0.4$ \cite[Table~4.4]{kiem2025}. The phase
+prediction $\hat{\theta}$ is wrapped into $[-\pi, \pi]$.
 
-Equation~\eqref{eq:magpred} is a first-order infinite-impulse-response (IIR)
-smoother that blends the previous prediction with the previous observation. For
-a constant magnitude it converges to that constant, and the $\alpha$ term
-reduces the effect of noise on any single ramp. With $\beta = 0$,
-Equation~\eqref{eq:phasepred} reduces to
-$\hat{\theta}[m] = 2\theta[m-L] - \theta[m-2L]$, which extrapolates the last
-two phases along a straight line. For a phase advancing by a constant
-$\Delta\theta$ per ramp, as in Equation~\eqref{eq:dopplerphase}, this
-prediction is exact; the $\beta$ term mixes in the previous prediction to damp
-the response to noise.
+Equation~\eqref{eq:magpred} is a first-order infinite impulse response (IIR)
+filter. It blends the previous prediction with the previous measured
+magnitude. For a constant magnitude it settles on that value, and the $\alpha$
+term reduces the effect of noise on any one ramp. With $\beta = 0$,
+Equation~\eqref{eq:phasepred} becomes
+$\hat{\theta}[m] = 2\theta[m-L] - \theta[m-2L]$, which continues the last two
+phases along a straight line. For a phase that grows by a fixed step every
+ramp, as in Equation~\eqref{eq:dopplerphase}, this prediction is exact. The
+$\beta$ term mixes in the previous prediction to reduce the effect of noise.
 
-The prediction is then converted back and subtracted, with int16 wraparound
-$\mathcal{W}(\cdot)$:
+The prediction is then converted back to Cartesian form and subtracted, with
+16-bit wraparound $\mathcal{W}(\cdot)$:
 \begin{align}
 d_{\Re} &= \mathcal{W}\bigl(x_{\Re} - \mathrm{round}(\hat{a}\cos\hat{\theta})\bigr),\\
-d_{\Im} &= \mathcal{W}\bigl(x_{\Im} - \mathrm{round}(\hat{a}\sin\hat{\theta})\bigr),
+d_{\Im} &= \mathcal{W}\bigl(x_{\Im} - \mathrm{round}(\hat{a}\sin\hat{\theta})\bigr).
 \end{align}
-and $d_{\Re}$, $d_{\Im}$ are passed to the entropy coder of
+The residuals $d_{\Re}$ and $d_{\Im}$ are then coded with the entropy coder of
 Section~\ref{sec:entropycoder}.
 
 \begin{figure}[t]
@@ -228,7 +237,7 @@ Section~\ref{sec:entropycoder}.
 \draw[a] (pred.east) -- (11.6,-2.3) -- (11.6,1.15) -- node[above,font=\scriptsize,text=slate]{prediction} (3.2,1.15) -- (sum);
 
 \node[font=\scriptsize,text=warm,anchor=north,align=center] at (6.95,-3.25)
-  {closed loop: the encoder's state is driven by what the \emph{decoder} will reconstruct};
+  {closed loop: the encoder's state follows what the decoder will reconstruct};
 \end{tikzpicture}
 \caption[DRHE block diagram]{DRHE as implemented. The magnitude and phase are
 predicted in polar form with two filters suited to a constant-velocity target,
@@ -241,32 +250,31 @@ sample.}
 
 \subsection{Streaming}
 
-DRHE is \emph{causal and streaming}: each output depends only on the current
-sample and on state carried from earlier ramps of the same transmitter. The
-implementation holds five floating-point values per (transmitter, receive
-channel, range bin): the magnitude prediction, the previous magnitude, the
-phase prediction and the previous two phases. This is \SI{120}{\kibi\byte} of
-state for this radar, against \SI{384}{\kibi\byte} for the frame itself. DRHE
-therefore needs no frame buffer and emits its first compressed bits as soon as
-the first sample arrives, which suits a compressor placed between an FFT and a
-memory bus. Section~\ref{sec:choice} returns to this when comparing DRHE with
-LPC.
+DRHE works as a stream. Each output depends only on the current sample and on
+values kept from earlier ramps of the same transmitter. The hardware keeps five
+floating-point values for each transmitter, receive channel and range bin: the
+magnitude prediction, the previous magnitude, the phase prediction and the
+previous two phases. For this radar that is \SI{120}{\kibi\byte} of state,
+compared with \SI{384}{\kibi\byte} for the frame itself. Hence, DRHE does not
+need a frame buffer, and it can send its first compressed bits as soon as the
+first sample arrives. This suits a compressor placed between an FFT and a
+memory bus. Section~\ref{sec:choice} returns to this point when comparing DRHE
+with LPC.
 
 \section{LPC: linear prediction with Yule--Walker coefficients}
 \label{sec:lpc}
 
 \subsection{Autoregressive modelling}
 
-Rather than assuming a particular signal shape and designing filters for it,
-the second algorithm \emph{fits} a model to the data. A second-order
-autoregressive (AR) model predicts each sample as a linear combination of the
-previous two:
+DRHE assumes a particular signal shape and uses filters designed for it. The
+second algorithm instead fits a model to the data. A second-order
+autoregressive (AR) model predicts each sample from the previous two:
 \begin{equation}
 \label{eq:ar2}
 \hat{x}[m] = a_1 x[m-L] + a_2 x[m-2L].
 \end{equation}
-The coefficients that minimise the mean-square prediction error satisfy the
-Yule--Walker equations, which for order two are
+The coefficients that give the smallest mean-square prediction error are found
+from the Yule--Walker equations. For order two these are
 \begin{equation}
 \begin{bmatrix} R_0 & R_1 \\ R_1 & R_0 \end{bmatrix}
 \begin{bmatrix} a_1 \\ a_2 \end{bmatrix}
@@ -274,7 +282,7 @@ Yule--Walker equations, which for order two are
 \begin{bmatrix} R_1 \\ R_2 \end{bmatrix},
 \end{equation}
 where $R_k = \sum_m x[m]\,x[m-kL]$ is the autocorrelation at lag $kL$, summed
-over every ramp of the frame. Solving directly,
+over every ramp of the frame. Solving them gives
 \begin{equation}
 \label{eq:yw}
 a_1 = \frac{R_1(R_0 - R_2)}{R_0^2 - R_1^2},
@@ -284,114 +292,115 @@ a_2 = \frac{R_0 R_2 - R_1^2}{R_0^2 - R_1^2}.
 
 \subsection{Stability}
 
-An AR model with poles outside the unit circle is unstable, so its prediction
-errors grow rather than decay. For order two the stability conditions are
+If an AR model has poles outside the unit circle it is unstable, and its
+prediction errors grow instead of dying away. For order two, the model is
+stable when
 \begin{equation}
 \label{eq:stability}
 |a_2| < 1
 \qquad\text{and}\qquad
 |a_1| < 1 - a_2 .
 \end{equation}
-If either fails, or if the denominator $R_0^2 - R_1^2$ is zero, the
-implementation sets $a_1 = a_2 = 0$, which falls back to predicting zero, i.e.\
-coding the raw value. On the data used here this never happens:
-\SI{100.00}{\percent} of coefficient sets pass.
+If either condition fails, or if $R_0^2 - R_1^2$ is zero, the implementation
+sets $a_1 = a_2 = 0$. The predictor then predicts zero, which means the raw
+value is coded. This never happens on the data used here, as
+\SI{100.00}{\percent} of the coefficient sets pass.
 
 \subsection{Granularity and side information}
 
-The model is fitted per (range bin, receive channel, real/imaginary part),
-across all ramps of the frame. One model for the whole frame would ignore that
-different range bins contain targets at different velocities, whilst one model
-per (bin, ramp) would have no data to fit to. The decoder cannot reproduce the
-coefficients, so they must be transmitted as side information. Two 16-bit
-values per (bin, channel, part) is
+A separate model is fitted for each range bin, receive channel, and real or
+imaginary part, using all the ramps of the frame. A single model for the whole
+frame would ignore that different range bins hold targets moving at different
+speeds. On the other hand, a model for each bin and ramp would have no data to
+fit to. The decoder cannot work out the coefficients itself, so they have to be
+sent as side information. Two 16-bit values for each bin, channel and part
+come to
 \begin{equation}
 128 \times 4 \times 2 \times 2 \times 16 = \num{32768}\ \text{bits}
 \end{equation}
 per frame, which is \SI{1.04}{\percent} of the uncompressed frame.
-Section~\ref{sec:predaxis} showed why fitting more coefficients, such as one
-set per transmitter, makes this the dominant cost.
+Section~\ref{sec:predaxis} showed that fitting more coefficients, such as one
+set per transmitter, makes this side information the largest cost.
 
 \subsection{LPC is not causal}
 
-$R_0$, $R_1$ and $R_2$ are sums over \emph{all} ramps of the frame, so the
-coefficients are not known until the frame is complete, and the compressor
-cannot emit any output before then. Whilst DRHE holds five values per (channel,
-bin), LPC must buffer the whole frame:
+$R_0$, $R_1$ and $R_2$ are sums over all the ramps of the frame. Hence, the
+coefficients are not known until the whole frame has arrived, and the
+compressor cannot send anything before then. DRHE only keeps five values for
+each channel and bin, but LPC must store the whole frame, which is
 $4 \times 192 \times 128 \times 32 = \num{3145728}$ bits, or
-\SI{3.0}{\mebi bit}. Section~\ref{sec:choice} argues that this trade-off
-matters more than the difference in compression ratio.
+\SI{3.0}{\mebi bit}. Section~\ref{sec:choice} argues that this matters more
+than the difference in compression ratio.
 
 \subsection{Coefficient quantisation}
 
-The coefficients of Equation~\eqref{eq:yw} are computed in floating point and
-then quantised, since the decoder must use exactly the coefficients the
-encoder used and must be able to read them from the bitstream. $a_1$ is stored
-as \texttt{ap\_fixed<16,2>} (range $[-2, 2)$, step $2^{-14}$) and $a_2$ as
-\texttt{ap\_fixed<16,1>} (range $[-1, 1)$, step $2^{-15}$), both with
-truncation towards $-\infty$, which is the HLS default. The prediction is then
-formed in fixed point and rounded to an integer before the residual is taken,
-so encoder and decoder agree to the bit. The MATLAB model and the independent
-Python implementation of Section~\ref{sec:indep} both reproduce this
-quantisation, and the latter matches the HLS bit counts exactly on all 50
-frames.
-
+The coefficients of Equation~\eqref{eq:yw} are calculated in floating point and
+then quantised. This is needed because the decoder must use exactly the same
+coefficients as the encoder, and must be able to read them from the bitstream.
+$a_1$ is stored as \texttt{ap\_fixed<16,2>}, with a range of $[-2, 2)$ and a
+step of $2^{-14}$. $a_2$ is stored as \texttt{ap\_fixed<16,1>}, with a range of
+$[-1, 1)$ and a step of $2^{-15}$. Both are truncated towards $-\infty$, which
+is the HLS default. The prediction is then formed in fixed point and rounded to
+an integer before the residual is taken, so the encoder and decoder agree to
+the bit. The MATLAB model and the separate Python version of
+Section~\ref{sec:indep} both use the same quantisation, and the Python version
+matches the HLS bit counts exactly on all 50 frames.
 
 \subsection{Relation to the LPC-Huffman of Meucci and Mancuso}
 \label{sec:lpc_notkiem}
 
-Kiem's thesis mentions the ``LPC-Huffman'' method of Meucci and Mancuso
-\cite{meucci2022}, which he judged less promising than DRHE and did not
-implement. That method predicts
-each raw ADC sample from earlier samples of the \emph{same chirp}, along fast
-time before the range FFT, and codes the residuals with a Huffman code derived
-from the data. The LPC here instead predicts each range-FFT code from the same
-range bin in earlier \emph{ramps}, along slow time after the range FFT where
-DRHE predicts, and uses DRHE's own entropy coder. It was designed this way so
-that DRHE's input, axis and coder are kept and only the predictor changes, so
-any difference in compression ratio can be attributed to the predictor alone.
+Kiem's thesis mentions the LPC-Huffman method of Meucci and Mancuso
+\cite{meucci2022}. He judged it less promising than DRHE and did not implement
+it. That method predicts each raw ADC sample from earlier samples of the same
+chirp, along fast time and before the range FFT. It then codes the residuals
+with a Huffman code built from the data. The LPC in this thesis is different.
+It predicts each range-FFT code from the same range bin in earlier ramps, which
+is along slow time and after the range FFT, where DRHE also predicts. It also
+uses DRHE's entropy coder. It was designed this way so that the input, the
+prediction axis and the coder are all the same as DRHE's. Any difference in
+compression ratio can then be put down to the predictor alone.
 
 \section{The Huffman dictionary}
 \label{sec:dict}
 
-The entropy coder needs one design-time constant: the sixteen codeword lengths
-$\ell_0, \ldots, \ell_{15}$, one per $S_4$ category. Two kinds of dictionary
-are used in this thesis.
+The entropy coder needs one value fixed at design time, which is the set of
+sixteen codeword lengths $\ell_0, \ldots, \ell_{15}$, one for each $S_4$
+category. Two kinds of dictionary are used in this thesis.
 
-\paragraph{The original dictionary.} Kiem derived his dictionary once, from
-the $S_4$ statistics of one of his own recordings, and fixed it for simulation
+\paragraph{The original dictionary.} Kiem built his dictionary once, from the
+$S_4$ statistics of one of his own recordings, and used it in both simulation
 and hardware. Its two-bit codewords go to categories 2, 3 and 4, so it suits
-residuals of magnitude 2 to 15, the size his single-transmitter data produced.
-No value can be coded in fewer than four bits, which limits the compression
-ratio of any frame to $32/(2 \times 4) = 4.0$.
+residuals of size 2 to 15. These were the sizes his single-transmitter data
+produced. No value can be coded in fewer than four bits, so no frame can be
+compressed by more than $32/(2 \times 4) = 4.0$.
 
-\paragraph{The re-derived dictionaries.} The prediction errors of DRHE and
-LPC at lag $\nTx$ are smaller, with most in categories 0, 1 and 2
+\paragraph{The re-derived dictionaries.} The prediction errors of DRHE and LPC
+at lag $\nTx$ are smaller, and most fall in categories 0, 1 and 2
 (Section~\ref{sec:dictresult}). A new set of codeword lengths was therefore
-derived for each algorithm by building a Huffman code
-\cite{huffman1952}\label{lit:huffman:dict} on the $S_4$ category counts of the
-algorithm's own residuals over frames 0--4 only. One is added to every count
-first, so that categories never seen in training still get a codeword and the
-code stays lossless on any input. The lengths are assigned as canonical codes
-and, like the original, bit-reversed for the least-significant-bit-first
-packer:
+built for each algorithm. Each is a Huffman code
+\cite{huffman1952}\label{lit:huffman:dict} built from the $S_4$ category counts
+of that algorithm's own residuals over frames 0 to 4 only. One is added to
+every count first, so that categories never seen in training still get a
+codeword and the code stays lossless on any input. The codewords are assigned
+as canonical codes and, like the original dictionary, bit-reversed for the
+packer, which fills from the least significant bit:
 \begin{align*}
 \ell^{\mathrm{orig}} &= [\,4,3,2,2,2,5,6,7,8,9,10,11,14,14,13,12\,],\\
 \ell^{\mathrm{DRHE}} &= [\,3,2,1,4,5,6,7,8,9,10,11,14,14,13,13,13\,],\\
 \ell^{\mathrm{LPC}}  &= [\,3,1,2,4,5,6,7,8,9,10,13,13,13,13,12,12\,].
 \end{align*}
-DRHE's one-bit codeword goes to category 2 and LPC's to category 1, so their
-most common residuals cost three bits and two bits respectively, rather than
-four. Since only the contents of a sixteen-entry table change, a re-derived
-dictionary costs nothing in hardware, and the FPGA cores of
-Chapter~\ref{ch:hardware} use them. Appendix~\ref{app:huffman} lists both in
-full, and Section~\ref{sec:dictresult} reports their effect, including on the
-45 frames they were not trained on.
+DRHE's one-bit codeword goes to category 2 and LPC's goes to category 1. Their
+most common residuals therefore cost three and two bits, rather than four.
+Since only the contents of a sixteen-entry table change, a new dictionary costs
+nothing extra in hardware, and the FPGA cores of Chapter~\ref{ch:hardware} use
+them. Appendix~\ref{app:huffman} lists both dictionaries in full, and
+Section~\ref{sec:dictresult} reports their effect, including on the 45 frames
+they were not trained on.
 
 \section{The two algorithms side by side}
 
-Table~\ref{tab:algcompare} compares the structure of the two lossless
-algorithms before any measurement.
+Table~\ref{tab:algcompare} compares how the two lossless algorithms are built,
+before any results are measured.
 
 \begin{table}[t]
 \centering

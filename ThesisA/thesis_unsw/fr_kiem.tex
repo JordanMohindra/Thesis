@@ -7,25 +7,26 @@
 
 \section{Overview and Objectives}
 \label{sec:kc_problem}
-The baseline for this thesis is the master's thesis by Lukas Kiem~\cite{kiem2025}, titled \textit{Design and Implementation of Data Compression Methods for SoC-based Radar Systems}. His research was motivated by the same problem statement. His primary objective was to design, evaluate, and implement an automotive radar data compression algorithm on an AMD Zynq UltraScale+ MPSoC.
+The baseline for this thesis is the master's thesis by Lukas Kiem~\cite{kiem2025}, titled ``Design and Implementation of Data Compression Methods for SoC-based Radar Systems''. His research was motivated by the same problem statement. His primary objective was to design, evaluate, and implement an automotive radar data compression algorithm on an AMD Zynq UltraScale+ MPSoC.
 
 His use case (his Section~3.3) was one Infineon CTRX8191F MMIC with four
-receive channels and 12-bit samples at \SI{50}{MS/s}, which produces
+receive channels and 12-bit samples at \SI{50}{MS/s}. This produces
 \begin{equation}
 \label{eq:kc_rate}
 50\,\mathrm{MS/s} \times 12\,\mathrm{bit} \times 4 = \SI{2.4}{Gbit/s},
 \end{equation}
-so one Gigabit Ethernet link needs a compression ratio of 2.4, or 2.7 with
-protocol headers. A frame of 1024 ramps takes about \SI{21}{\milli\second} to
-acquire in a \SI{50}{\milli\second} cycle, and he allowed compression
-\SI{15}{\milli\second}. His radar uses one transmitter, so consecutive ramps
-come from the same antenna, and it delivers real samples, so he keeps half of
-each range FFT. His evaluation chain, which this thesis adopts, takes the range
-FFT, quantises it to FX16, compresses and decompresses, and then runs a Doppler
+so one Gigabit Ethernet link needs a compression ratio of 2.4, or 2.7 once
+protocol headers are added. A frame of 1024 ramps takes about
+\SI{21}{\milli\second} to measure in a \SI{50}{\milli\second} cycle, and he
+allowed \SI{15}{\milli\second} for compression. His radar uses one
+transmitter, so ramps next to each other come from the same antenna. It also
+gives real rather than complex samples, so he keeps half of each range FFT.
+This thesis uses the same evaluation chain as Kiem. It takes the range FFT,
+quantises it to FX16, compresses and decompresses it, and then runs a Doppler
 FFT, non-coherent integration (NCI) over the receive channels and a peak
-detector, comparing the detections with those of an FP16 reference. Every
-compression result he publishes was measured on his own recordings, which are
-not public.
+detector. The detections are then compared with those of an FP16 reference.
+All of the compression results he published were measured on his own
+recordings, which are not public.
 
 \section{Results and Algorithm Evaluation}
 \label{sec:kc_dse}
@@ -40,22 +41,23 @@ Upon comparing these algorithms in their performance metrics, specifically Compr
 \label{fig:kiemresults}
 \end{figure}
 
-He excluded one method, the LPC-Huffman of Meucci and
-Mancuso~\cite{meucci2022}, without running it, because ``it has the same
+He left out one method, the LPC-Huffman of Meucci and
+Mancuso~\cite{meucci2022}, without testing it. His reason was that ``it has the same
 approach as DRHE, but instead of compressing range FFT data, it operates on raw
 ADC data; the results for DRHE are more promising'' (his Section~3.4.1). For
-hardware he removed the run-length half of DRHE's original coder, which changed
-the ratio only from 3.25 to 3.24, and fixed the Huffman dictionary from one of
-his recordings; this is the \emph{original dictionary} of this thesis
+the hardware, he removed the run-length part of DRHE's original coder. This
+only changed the ratio from 3.25 to 3.24. He also fixed the Huffman dictionary
+using one of his recordings. This thesis calls it the original dictionary
 (Section~\ref{sec:dict}). His final scheme is Equations~\eqref{eq:magpred}
-and~\eqref{eq:phasepred} of Chapter~\ref{ch:methods} at a lag of one ramp.
+and~\eqref{eq:phasepred} in Chapter~\ref{ch:methods}, with a lag of one ramp.
 
-He implemented it with Vitis HLS 2022.2 on a \texttt{XCZU3CG-1} device, in a
-system that streams ADC data from an SD card through a Xilinx FFT core into the
-compressor, which reads four channels per clock in fixed point at
+He built it with Vitis HLS 2022.2 on a \texttt{XCZU3CG-1} device. His system
+streams ADC data from an SD card through a Xilinx FFT core into the
+compressor. The compressor reads four channels per clock in fixed point, at
 $\mathrm{II} = 1$ and \SI{100}{\mega\hertz}. Table~\ref{tab:kc_hwres} lists
-the figures he reports. His throughput is theoretical, and his hardware ratio
-is below his simulated one because the hardware FFT is fixed point.
+the values he reports. His throughput is a theoretical value. His hardware
+ratio is also lower than his simulated one, because the hardware FFT is fixed
+point.
 
 \begin{table}[htbp]
 \centering
@@ -90,15 +92,17 @@ Secondly, whilst his design space exploration was thorough, covering a wide rang
 Thirdly, the scope of his hardware implementation was limited to just the compression pipeline on the Zynq UltraScale+ MPSoC; he did not implement the full compression and decompression pipeline on hardware, and listed a bit-accurate decompression model as future work. To fully evaluate the algorithm's performance, the full pipeline needs to be implemented.
 
 \subsection{Single-Transmitter Data}
-Lastly, his results come from private recordings of a single-transmitter radar.
-DRHE predicts each ramp from the previous one, which on his radar is the same
-antenna; on a TDM-MIMO cascade it is not (Section~\ref{sec:tdm}).
+Lastly, his results come from private recordings of a radar with a single
+transmitter. DRHE predicts each ramp from the previous one. On his radar this
+is the same antenna, but on a TDM-MIMO cascade it is not
+(Section~\ref{sec:tdm}).
 
-This thesis takes up these gaps. It measures the cost of the FX16 step
-separately from compression, compares eight methods including an LPC on public
-cascade data, sets the prediction lag to the transmitter count, and implements
-and verifies a hardware decompressor for every design. It also follows two of
-his suggestions: its DRHE predicts in floating point, and it saturates the one
-residual the code cannot represent (Section~\ref{sec:robust}), a form of the
-safe error handling he asked for.
+This thesis addresses these gaps. It measures the loss from the FX16 step
+separately from compression. It compares eight methods, including an LPC, on
+public cascade data, and it sets the prediction lag to the number of
+transmitters. It also builds and checks a hardware decompressor for every
+design. It follows two of his suggestions as well. Its DRHE predicts in
+floating point, and it clips the one residual that the code cannot represent
+(Section~\ref{sec:robust}). This is a form of the safe error handling that he
+asked for.
 \label{ch:kiem:end}

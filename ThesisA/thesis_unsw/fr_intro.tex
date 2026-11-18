@@ -34,12 +34,12 @@ An alternative approach (and the one that motivates this thesis) is to apply dat
 \end{figure}
 
 \label{sec:lossless}
-The compressor sits \emph{upstream} of detection, and the detector's job is to
-find weak returns close to the noise floor, so the less information a
-compressor loses, the better. A \emph{lossless} compressor, whose every
-reconstructed sample equals the original exactly, loses nothing at all, and
-for such a design verification is unambiguous, since a single differing bit
-anywhere in the test set is a failure.
+The compressor sits before the detector in the processing chain. Since the
+detector has to find weak returns close to the noise floor, the less
+information the compressor loses, the better. A lossless compressor loses
+nothing at all, as every sample it rebuilds is exactly the same as the
+original. This also makes such a design simple to check, since a single
+different bit anywhere in the test data means it has failed.
 
 \section{Objective}
 \label{sec:objectives}
@@ -49,41 +49,42 @@ The primary objective of this thesis is to extend and improve the radar data com
 Specifically, this thesis pursues the following objectives:
 
 \begin{enumerate}
-    \item Kiem's implementation required that radar data be converted to a 16-bit fixed-point format prior to compression. This linear quantisation step was identified as the dominant source of information loss in the processing chain, as it buries weak radar signals, which are critical for detecting small or distant objects such as pedestrians, in the noise floor. This thesis measures what this step costs in detection, separately from the cost of compression, and investigates whether floating-point storage, re-scaling or a non-linear (companding) quantiser~\cite{deng2024} avoids it.
+    \item Kiem's implementation required that radar data be converted to a 16-bit fixed-point format prior to compression. This linear quantisation step was identified as the dominant source of information loss in the processing chain, as it buries weak radar signals, which are critical for detecting small or distant objects such as pedestrians, in the noise floor. This thesis measures how many detections this step loses, separately from the loss caused by compression. It also tests whether storing the data as floating point, re-scaling it, or using a non-linear (companding) quantiser~\cite{deng2024} avoids this loss.
 
-    \item Kiem's results were measured on private recordings of a single-transmitter radar, leaving the performance of his design on a multi-transmitter (MIMO) radar unvalidated. This thesis uses real-world data recorded with the Texas Instruments AWR2243 cascaded MIMO radar sensor, taken from the public ColoRadar dataset~\cite{kramer2022}\label{lit:kramer:intro}, enabling more accurate analysis of compression algorithms performance.
+    \item Kiem's results were measured on private recordings from a radar with a single transmitter. Hence, it was not known how his design would perform on a radar with multiple transmitters (MIMO). This thesis uses real-world data recorded with the Texas Instruments AWR2243 cascaded MIMO radar sensor, taken from the public ColoRadar dataset~\cite{kramer2022}\label{lit:kramer:intro}, enabling more accurate analysis of compression algorithms performance.
 
-    \item This thesis re-runs the comparison on public cascade data with eight methods under one set of metrics, adding block adaptive quantisation (BAQ), range-dependent variable-length encoding with and without uniform dynamic-range re-encoding (RDVLE, RDVLE+UDRE), and a slow-time linear predictive coder (LPC) designed as a controlled comparison with DRHE. Neural methods are reviewed but not evaluated.
+    \item This thesis repeats the comparison on public cascade data, with eight methods and one set of metrics. It adds block adaptive quantisation (BAQ), range-dependent variable-length encoding with and without uniform dynamic-range re-encoding (RDVLE and RDVLE+UDRE), and a slow-time linear predictive coder (LPC). LPC was designed so that it could be compared directly with DRHE. Neural methods are reviewed but not tested.
 
-    \item Kiem implemented only the compressor. This thesis implements the full compression and decompression pipeline in hardware for the selected algorithms, verifies it bit for bit from MATLAB to the board, and measures its throughput, latency and resources on an AMD KCU116 FPGA board.
+    \item Kiem only implemented the compressor. This thesis implements both the compressor and the decompressor in hardware for the selected algorithms. It checks them bit for bit at every step from MATLAB to the board, and measures their throughput, latency and resources on an AMD KCU116 FPGA board.
 \end{enumerate}
 
-The ultimate goal of this thesis is to implement a compressor for automotive radar that achieves a high compression ratio with as little loss as possible, and keeps up with the sensor.
+The overall goal of this thesis is to build a compressor for automotive radar that has a high compression ratio, loses as little as possible, and keeps up with the sensor.
 
 \section{Contributions}
 \label{sec:contributions}
 
 \begin{enumerate}
 \item A comparison of eight compression methods on real cascade radar data
-(Section~\ref{sec:stage1}): the lossless predictive coders DRHE (\num{3.75})
-and LPC (\num{3.70}) give the best trade-off, compressing by more than three
-with no detections lost beyond the 16-bit quantisation they share.
-\item A breakdown of the compression ratio and Huffman dictionaries matched to
-the prediction errors (Sections~\ref{sec:decomp} and~\ref{sec:dictresult}),
-which raise DRHE to \num{4.22} and LPC to \num{4.40}.
-\item Verified encoders and decoders for both algorithms, with a range-FFT front
-end, running on an FPGA board (Chapter~\ref{ch:hardware} and
-Section~\ref{sec:verifres}), whose output is byte-identical to the simulation
-and is reconstructed exactly on the board.
+(Section~\ref{sec:stage1}). The lossless predictive coders DRHE (\num{3.75})
+and LPC (\num{3.70}) give the best trade-off. They compress by more than three,
+and lose no detections beyond those lost in the 16-bit quantisation step.
+\item A breakdown of where the compression ratio comes from, and new Huffman
+dictionaries matched to the prediction errors (Sections~\ref{sec:decomp}
+and~\ref{sec:dictresult}). These raise DRHE to \num{4.22} and LPC to
+\num{4.40}.
+\item Encoders and decoders for both algorithms, with a range-FFT front end,
+running on an FPGA board (Chapter~\ref{ch:hardware} and
+Section~\ref{sec:verifres}). Their output is the same as the simulation byte
+for byte, and the board rebuilds it exactly.
 \end{enumerate}
 
 \section{Thesis Outline}
 \label{sec:structure}
 
 Chapter~\ref{ch:background} gives the background on automotive radar, data
-compression and FPGAs, and Chapter~\ref{ch:kiem} summarises the baseline.
-Chapter~\ref{ch:methods} describes the compression methods,
-Chapter~\ref{ch:evaluation} how they are evaluated, and
-Chapter~\ref{ch:hardware} the hardware. Chapter~\ref{ch:results} reports the
-results, Chapter~\ref{ch:discussion} discusses them, and
-Chapter~\ref{ch:conclusion} concludes.
+compression and FPGAs. Chapter~\ref{ch:kiem} summarises Kiem's work, which
+this thesis builds on. Chapter~\ref{ch:methods} describes the compression
+methods, Chapter~\ref{ch:evaluation} describes how they are evaluated, and
+Chapter~\ref{ch:hardware} describes the hardware. Chapter~\ref{ch:results}
+reports the results, Chapter~\ref{ch:discussion} discusses them, and
+Chapter~\ref{ch:conclusion} concludes the thesis.

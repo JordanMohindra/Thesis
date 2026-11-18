@@ -4,51 +4,54 @@
 
 \section{Summary}
 
-This thesis set out to compare data compression methods for SoC-based radar on
-real, public, multi-transmitter data, to select those with the best trade-off
-between compression and loss, and to
-implement their encoders and decoders on an FPGA and measure them on a board.
-The four objectives of Section~\ref{sec:objectives} were met. Eight methods
-were compared in MATLAB on 50 ColoRadar frames from a twelve-transmitter
-cascade. DRHE and a second-order LPC were implemented in C++ for Vitis HLS
-with matching decompressors and a range-FFT front end, built into a test system
-on an AMD KCU116 board, and verified bit for bit from MATLAB to the board.
+This thesis compared data compression methods for SoC-based radar on real,
+public data from a radar with many transmitters. It selected the methods with
+the best trade-off between compression and loss. It then built their encoders
+and decoders on an FPGA and measured them on a board. The four objectives in
+Section~\ref{sec:objectives} were met. Eight methods were compared in MATLAB on
+50 ColoRadar frames from a cascade radar with twelve transmitters. DRHE and a
+second-order LPC were written in C++ for Vitis HLS, together with their
+decompressors and a range-FFT front end. These were built into a test system on
+an AMD KCU116 board, and checked bit for bit at every step from MATLAB to the
+board.
 
 \section{Findings}
 
 \begin{enumerate}
 \item Lossless predictive coding gives the best trade-off. DRHE (\num{3.75})
 and LPC (\num{3.70}) are the only methods that compress by more than three
-without adding a missed detection; the best lossy quantiser reaches \num{3.76}
-but misses \SI{10.4}{\percent} of the reference detections, and floating-point
-storage compresses by only \num{1.04}. All detection loss in the lossless chain
-comes from the 16-bit quantisation step, which cannot be removed without
-losing almost all of the compression.
+without adding a missed detection. The best lossy quantiser reaches
+\num{3.76}, but it misses \SI{10.4}{\percent} of the reference detections.
+Storing the data as floating point only compresses it by \num{1.04}. All of the
+detection loss in the lossless chain comes from the 16-bit quantisation step.
+This loss cannot be removed without losing almost all of the compression.
 
-\item On a TDM-MIMO radar, prediction must use the same transmitter, $\nTx$
-ramps back. Predicting from the adjacent ramp compresses worse than no
-prediction; predicting from the same antenna gains \SIrange{6}{8}{\percent}.
+\item On a TDM-MIMO radar, prediction must use the last ramp from the same
+transmitter, which is $\nTx$ ramps back. Predicting from the adjacent ramp
+compresses worse than not predicting at all. Predicting from the same
+transmitter gains \SIrange{6}{8}{\percent}.
 
-\item Most of the ratio comes before prediction, from unused fixed-point
-headroom and the sparsity of the data, and the dictionary matters more than the
-predictor: dictionaries re-derived from five frames raise DRHE to \num{4.22}
-and LPC to \num{4.40} on the board, and hold on the 45 frames they did not see.
-At \num{4.22}, the \SI{0.835}{Gbit/s} one cascade produces becomes about
-\SI{0.20}{Gbit/s}, so four cascades fit one Gigabit Ethernet link; at the worst
-frame (\num{3.5}), three still do.
+\item Most of the ratio comes before prediction. It comes from the unused top
+bits of each fixed-point code, and from the many values close to zero. The
+dictionary also matters more than the predictor. Dictionaries re-derived from
+five frames raise DRHE to \num{4.22} and LPC to \num{4.40} on the board, and
+they work just as well on the 45 frames they did not see. At \num{4.22}, the
+\SI{0.835}{Gbit/s} from one cascade becomes about \SI{0.20}{Gbit/s}, so four
+cascades fit on one Gigabit Ethernet link. At the worst frame (\num{3.5}),
+three still fit.
 
-\item The hardware is exact and fast. Both compressors' output was
-byte-identical to the simulation on all 50 frames and the board's decoders
-reconstructed every frame exactly. DRHE compresses a frame in
+\item The hardware is exact and fast. The output of both compressors was the
+same as the simulation, byte for byte, on all 50 frames. The board's decoders
+also rebuilt every frame exactly. DRHE compresses a frame in
 \SI{0.61}{\milli\second} (\SI{5.1}{Gbit/s}) with \SI{13}{\micro\second} of
-latency, LPC in \SI{3.25}{\milli\second} with \SI{3.0}{\milli\second}, and both
-decoders in about \SI{2}{\milli\second}. Encoder and decoder together use about
-\SI{23}{\percent} of the chip's logic.
+latency. LPC takes \SI{3.25}{\milli\second} with \SI{3.0}{\milli\second} of
+latency, and both decoders take about \SI{2}{\milli\second}. The encoder and
+decoder together use about \SI{23}{\percent} of the chip's logic.
 
-\item DRHE is the better choice for a streaming sensor: it needs no frame
-buffer and scales with the data rate, whereas LPC's buffer and latency grow
-with the frame. Kiem's DRHE carries over to a cascade with only the prediction
-lag changed.
+\item DRHE is the better choice for a streaming sensor. It needs no frame
+buffer and its cost grows with the data rate. LPC's buffer and latency grow
+with the frame size. Kiem's DRHE also works on a cascade radar with only the
+prediction lag changed.
 \end{enumerate}
 
 \section{Future work}
@@ -56,25 +59,24 @@ lag changed.
 
 \begin{itemize}
 \item \textbf{Fixed-point DRHE.} Kiem's fixed-point types would remove most of
-the logic, DSPs and pipeline depth for \SI{0.07}{\percent} of ratio, and remain
-exactly lossless because the closed loop makes the decoder follow the encoder's
-arithmetic.
-\item \textbf{A streaming LPC.} A backward-adaptive LPC, fitted to previous
-frames, would need no frame buffer and add no frame of latency.
-\item \textbf{Adaptive dictionaries} trained on more varied scenes, chosen or
-updated per frame.
-\item \textbf{All sixteen channels and measured power}, by widening or
-time-multiplexing the cores, and measuring the board's power draw.
-\item \textbf{The quantisation trade-off}: how many bits of the noise floor are
-worth keeping for the detection margin they buy.
-\item \textbf{Other multiplexing schemes and methods}: Doppler- and
-code-division MIMO, and learned methods such as AdaRadar \cite{park2026} on the
-same data.
+the logic, DSPs and pipeline stages for a \SI{0.07}{\percent} lower ratio, and
+the closed loop would keep the design exactly lossless.
+\item \textbf{A streaming LPC.} An LPC fitted to previous frames, with no frame
+buffer or extra latency.
+\item \textbf{Adaptive dictionaries.} Dictionaries trained on more scenes and
+updated for each frame.
+\item \textbf{All sixteen channels and measured power.} Wider cores for all sixteen
+channels, and measured board power.
+\item \textbf{The quantisation trade-off.} How many bits of the noise floor are
+worth keeping for the detections they save.
+\item \textbf{Other MIMO schemes and methods.} Doppler-division and
+code-division MIMO, and learned methods such as AdaRadar \cite{park2026}, tested
+on the same data.
 \end{itemize}
 
 \section*{Use of AI tools}
 \addcontentsline{toc}{section}{Use of AI tools}
 
 Generative AI tools were used to help produce the MATLAB figures, the tables
-and the \LaTeX{} formatting of this report. All of the code written for this
+and the formatting of this report. All of the code written for this
 thesis was also developed with the support of AI tools.

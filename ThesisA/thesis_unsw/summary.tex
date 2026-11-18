@@ -23,33 +23,34 @@
 
 A.\quad\textbf{Problem statement}\\
 \sumbox{In automotive radar, high-resolution cascaded MIMO sensors produce more
-raw data than a vehicle's network and central processor can comfortably absorb.
-Compressing at the sensor saves link bandwidth, but the compressor must keep up
-with the sensor and be small enough for sensor hardware, and the less it loses
-before target detection, the better. Radar compression methods
-are rarely compared on the same real multi-transmitter data, and the lossless
-baseline was evaluated on a single-transmitter radar with no decoder.}
+raw data than a vehicle's network and central processor can easily handle.
+Compressing the data at the sensor saves link bandwidth. However, the
+compressor must keep up with the sensor and be small enough for sensor
+hardware, and the less it loses before target detection, the better. Radar
+compression methods are rarely compared on the same real data from a radar
+with many transmitters. The lossless baseline was also only tested on a radar
+with one transmitter, and had no decoder.}
 \vspace{2mm}
 
 B.\quad\textbf{Objective}\\
-\sumbox{Compare compression methods side by side on real, public,
-multi-transmitter radar data; select the methods with the best trade-off
-between compression and loss; and implement
-their encoders and decoders on an FPGA, verified and measured on a board.}
+\sumbox{Compare compression methods on the same real, public data from a radar
+with many transmitters. Select the methods with the best trade-off between
+compression and loss. Then build their encoders and decoders on an FPGA, and
+check and measure them on a board.}
 \vspace{2mm}
 
 C.\quad\textbf{My solution}\\
 \sumbox{Eight methods were run in MATLAB on 50 ColoRadar frames (Texas
-Instruments cascade, 12 transmitters, 16 receivers) through one chain: range
-FFT, fixed 16-bit (FX16) scaling, compression, Doppler FFT, non-coherent
-integration and peak detection, against a double-precision reference. The two
-lossless predictive coders, DRHE and a second-order slow-time LPC, predict from
-the same transmitter (12 ramps back) and share an $S_4$/Huffman coder whose
-dictionary was re-derived from five frames of their prediction errors. Both,
-with matching decoders and a range-FFT front end, were written in C++ for
-Vitis HLS, built with Vivado into a DMA test system on an AMD KCU116 board at
-\SI{100}{\mega\hertz}, and verified bit-exact from MATLAB through C-simulation
-and RTL co-simulation to the board.}
+Instruments cascade, 12 transmitters, 16 receivers) through one chain. The
+chain is the range FFT, fixed 16-bit (FX16) scaling, compression, Doppler FFT,
+non-coherent integration and peak detection, compared with a double-precision
+reference. The two lossless predictive coders are DRHE and a second-order
+slow-time LPC. Both predict from the same transmitter, 12 ramps back, and share
+an $S_4$/Huffman coder. Its dictionary was re-derived from five frames of their
+prediction errors. Both coders, with their decoders and a range-FFT front end,
+were written in C++ for Vitis HLS. They were built with Vivado into a DMA test
+system on an AMD KCU116 board at \SI{100}{\mega\hertz}, and checked bit for
+bit from MATLAB through C-simulation and RTL co-simulation to the board.}
 \vspace{2mm}
 
 D.\quad\textbf{Contributions} (at most one per line, most important first)\\
@@ -125,7 +126,7 @@ selective: Don't list all pages of your report!\\[1mm]
 
 \ptab{\textbf{Literature}: (up to 5 most important references)}{%
 \ptr{\pageref{ch:kiem}--\pageref{ch:kiem:end}, \pageref{sec:choice}}{\cite{kiem2025} L.~Kiem, master's thesis, 2025 (the baseline design)}
-\ptr{\pageref{lit:kramer:bg}, \pageref{lit:kramer:intro}}{\cite{kramer2022} A.~Kramer \emph{et al.}, ColoRadar dataset, 2022}
+\ptr{\pageref{lit:kramer:bg}, \pageref{lit:kramer:intro}}{\cite{kramer2022} A.~Kramer et al., ColoRadar dataset, 2022}
 \ptr{\pageref{sec:drhe}, \pageref{sec:candidates}, \pageref{sec:sota}}{\cite{li2014} L.~Li, MSc thesis, 2014 (origin of DRHE)}
 \ptr{\pageref{sec:lpc_notkiem}, \pageref{sec:kc_dse}, \pageref{sec:sota}}{\cite{meucci2022} G.~Meucci and F.~Mancuso, LPC-Huffman, 2022}
 \ptr{\pageref{lit:huffman:dict}}{\cite{huffman1952} D.~A.~Huffman, minimum-redundancy codes, 1952}}
